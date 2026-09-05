@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { pairingRepository } from "@/lib/repository";
 import { DEMO_PARENT_A_ID, isDemoMode } from "@/lib/demoSession";
 import { createChildAction, createInvitationAction } from "./actions";
@@ -25,15 +26,18 @@ export default async function RegistroPage() {
         Progenitor A: agrega a tu hijo o hija y genera un link de invitación para el otro
         progenitor.
       </p>
+      <Link href="/perfil" className="mt-3 inline-block text-sm font-medium underline">
+        Editar mi perfil y el de mis hijos →
+      </Link>
 
       <form action={createChildAction} className="mt-8 flex flex-col gap-3 rounded-lg border border-zinc-200 p-5 dark:border-zinc-800">
         <label className="text-sm font-medium">
           Nombre completo
-          <input name="fullName" required minLength={2} className="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-transparent" />
+          <input name="childFullName" autoComplete="off" required minLength={2} className="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-transparent" />
         </label>
         <label className="text-sm font-medium">
           Fecha de nacimiento
-          <input name="birthDate" type="date" required className="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-transparent" />
+          <input name="childBirthDate" type="date" autoComplete="off" required className="mt-1 w-full rounded-md border border-zinc-300 px-3 py-2 text-sm dark:border-zinc-700 dark:bg-transparent" />
         </label>
         <button type="submit" className="mt-2 self-start rounded-full bg-zinc-900 px-4 py-2 text-sm font-medium text-white dark:bg-zinc-100 dark:text-zinc-900">
           Agregar hijo/a

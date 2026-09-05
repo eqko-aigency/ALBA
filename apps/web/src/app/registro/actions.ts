@@ -6,8 +6,8 @@ import { pairingRepository } from "@/lib/repository";
 import { DEMO_PARENT_A_ID } from "@/lib/demoSession";
 
 export async function createChildAction(formData: FormData) {
-  const fullName = String(formData.get("fullName") ?? "").trim();
-  const birthDate = String(formData.get("birthDate") ?? "");
+  const fullName = String(formData.get("childFullName") ?? "").trim();
+  const birthDate = String(formData.get("childBirthDate") ?? "");
 
   if (fullName.length < 2 || !birthDate) {
     throw new Error("Nombre y fecha de nacimiento son requeridos");

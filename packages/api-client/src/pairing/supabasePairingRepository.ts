@@ -5,6 +5,9 @@ import type {
   CreateInvitationInput,
   Invitation,
   PairingRepository,
+  Parent,
+  UpdateChildInput,
+  UpsertProfileInput,
 } from "@alba/core";
 
 export function createSupabasePairingRepository(client: SupabaseClient): PairingRepository {
@@ -26,6 +29,39 @@ export function createSupabasePairingRepository(client: SupabaseClient): Pairing
         .single();
       if (error) throw error;
       return mapChild(data);
+    },
+
+    async updateChild(_parentId, childId, input: UpdateChildInput) {
+      const { data, error } = await client
+        .from("children")
+        .update({ full_name: input.fullName, birth_date: input.birthDate })
+        .eq("id", childId)
+        .select()
+        .single();
+      if (error) throw error;
+      return mapChild(data);
+    },
+
+    async getProfile(parentId) {
+      const { data, error } = await client.from("profiles").select().eq("id", parentId).maybeSingle();
+      if (error) throw error;
+      if (!data) return null;
+
+      const { data: userData } = await client.auth.getUser();
+      const email = userData.user?.id === parentId ? (userData.user?.email ?? "") : "";
+      return { id: data.id, fullName: data.full_name, email };
+    },
+
+    async upsertProfile(parentId, input: UpsertProfileInput) {
+      const { data, error } = await client
+        .from("profiles")
+        .upsert({ id: parentId, full_name: input.fullName })
+        .select()
+        .single();
+      if (error) throw error;
+
+      const { data: userData } = await client.auth.getUser();
+      return { id: data.id, fullName: data.full_name, email: userData.user?.email ?? "" };
     },
 
     async getInvitationByToken(token) {

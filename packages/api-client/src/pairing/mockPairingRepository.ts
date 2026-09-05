@@ -4,6 +4,9 @@ import type {
   CreateInvitationInput,
   Invitation,
   PairingRepository,
+  Parent,
+  UpdateChildInput,
+  UpsertProfileInput,
 } from "@alba/core";
 
 /**
@@ -15,16 +18,43 @@ import type {
 export function createMockPairingRepository(): PairingRepository {
   const children = new Map<string, Child & { parentIds: string[] }>();
   const invitations = new Map<string, Invitation>();
+  const profiles = new Map<string, Parent>();
 
   return {
     async getMyChildren(parentId) {
-      return [...children.values()].filter((c) => c.parentIds.includes(parentId));
+      return [...children.values()]
+        .filter((c) => c.parentIds.includes(parentId))
+        .map(({ id, fullName, birthDate }) => ({ id, fullName, birthDate }));
     },
 
     async createChild(parentId, input) {
       const child = { id: crypto.randomUUID(), ...input, parentIds: [parentId] };
       children.set(child.id, child);
       return { id: child.id, fullName: child.fullName, birthDate: child.birthDate };
+    },
+
+    async updateChild(parentId, childId, input: UpdateChildInput) {
+      const child = children.get(childId);
+      if (!child || !child.parentIds.includes(parentId)) {
+        throw new Error("hijo no encontrado");
+      }
+      child.fullName = input.fullName;
+      child.birthDate = input.birthDate;
+      return { id: child.id, fullName: child.fullName, birthDate: child.birthDate };
+    },
+
+    async getProfile(parentId) {
+      return profiles.get(parentId) ?? null;
+    },
+
+    async upsertProfile(parentId, input: UpsertProfileInput) {
+      const profile: Parent = {
+        id: parentId,
+        fullName: input.fullName,
+        email: profiles.get(parentId)?.email ?? `${parentId}@demo.local`,
+      };
+      profiles.set(parentId, profile);
+      return profile;
     },
 
     async getInvitationByToken(token) {

@@ -18,6 +18,17 @@ export const acceptInvitationInputSchema = z.object({
 });
 export type AcceptInvitationInput = z.infer<typeof acceptInvitationInputSchema>;
 
+export const upsertProfileInputSchema = z.object({
+  fullName: z.string().min(2).max(120),
+});
+export type UpsertProfileInput = z.infer<typeof upsertProfileInputSchema>;
+
+export const updateChildInputSchema = z.object({
+  fullName: z.string().min(2).max(120),
+  birthDate: z.string(),
+});
+export type UpdateChildInput = z.infer<typeof updateChildInputSchema>;
+
 export const custodyEventInputSchema = z.object({
   childId: z.string().uuid(),
   type: z.enum(["checkin", "checkout"]),
