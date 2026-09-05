@@ -2,29 +2,52 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type {
   AcceptInvitationInput,
   Child,
-  CreateInvitationInput,
+  Family,
   Invitation,
   PairingRepository,
-  Parent,
   UpdateChildInput,
   UpsertProfileInput,
 } from "@alba/core";
 
 export function createSupabasePairingRepository(client: SupabaseClient): PairingRepository {
+  async function getMyFamilyId(parentId: string): Promise<string | null> {
+    const { data, error } = await client
+      .from("family_members")
+      .select("family_id")
+      .eq("parent_id", parentId)
+      .maybeSingle();
+    if (error) throw error;
+    return data?.family_id ?? null;
+  }
+
   return {
-    async getMyChildren(parentId) {
+    async getOrCreateMyFamily(parentId) {
+      const existingFamilyId = await getMyFamilyId(parentId);
+      if (existingFamilyId) return { id: existingFamilyId };
+
       const { data, error } = await client
-        .from("parent_child_links")
-        .select("children(id, full_name, birth_date)")
-        .eq("parent_id", parentId);
+        .from("families")
+        .insert({ created_by: parentId })
+        .select()
+        .single();
       if (error) throw error;
-      return (data ?? []).map((row: any) => mapChild(row.children));
+      return { id: data.id };
+    },
+
+    async getMyChildren(parentId) {
+      const familyId = await getMyFamilyId(parentId);
+      if (!familyId) return [];
+      const { data, error } = await client.from("children").select().eq("family_id", familyId);
+      if (error) throw error;
+      return (data ?? []).map(mapChild);
     },
 
     async createChild(parentId, input) {
+      const familyId = await getMyFamilyId(parentId);
+      if (!familyId) throw new Error("el progenitor no pertenece a ninguna familia todavía");
       const { data, error } = await client
         .from("children")
-        .insert({ full_name: input.fullName, birth_date: input.birthDate, created_by: parentId })
+        .insert({ family_id: familyId, full_name: input.fullName, birth_date: input.birthDate })
         .select()
         .single();
       if (error) throw error;
@@ -74,52 +97,49 @@ export function createSupabasePairingRepository(client: SupabaseClient): Pairing
       return data ? mapInvitation(data) : null;
     },
 
-    async listPendingInvitations(parentId, childId) {
+    async listPendingInvitations(parentId) {
+      const familyId = await getMyFamilyId(parentId);
+      if (!familyId) return [];
       const { data, error } = await client
         .from("invitations")
         .select()
-        .eq("child_id", childId)
-        .eq("created_by", parentId)
+        .eq("family_id", familyId)
         .eq("status", "pending");
       if (error) throw error;
       return (data ?? []).map(mapInvitation);
     },
 
-    async createInvitation(parentId, input: CreateInvitationInput) {
+    async createInvitation(parentId) {
+      const familyId = await getMyFamilyId(parentId);
+      if (!familyId) throw new Error("el progenitor no pertenece a ninguna familia todavía");
       const { data, error } = await client
         .from("invitations")
-        .insert({ child_id: input.childId, created_by: parentId })
+        .insert({ family_id: familyId, created_by: parentId })
         .select()
         .single();
       if (error) throw error;
       return mapInvitation(data);
     },
 
-    async acceptInvitation(_parentId, input: AcceptInvitationInput) {
-      const { data: childId, error } = await client.rpc("accept_invitation", {
+    async acceptInvitation(_parentId, input: AcceptInvitationInput): Promise<Family> {
+      const { data: familyId, error } = await client.rpc("accept_invitation", {
         invitation_token: input.token,
       });
       if (error) throw error;
-      const { data, error: childError } = await client
-        .from("children")
-        .select()
-        .eq("id", childId)
-        .single();
-      if (childError) throw childError;
-      return mapChild(data);
+      return { id: familyId };
     },
   };
 }
 
 function mapChild(row: any): Child {
-  return { id: row.id, fullName: row.full_name, birthDate: row.birth_date };
+  return { id: row.id, familyId: row.family_id, fullName: row.full_name, birthDate: row.birth_date };
 }
 
 function mapInvitation(row: any): Invitation {
   return {
     id: row.id,
     token: row.token,
-    childId: row.child_id,
+    familyId: row.family_id,
     createdByParentId: row.created_by,
     status: row.status,
     expiresAt: row.expires_at,

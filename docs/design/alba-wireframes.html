@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>ALBA — Wireframes de referencia (Beta)</title>
+<style>
+  :root{
+    --noche:#241B32;
+    --coral:#E2735A;
+    --ambar:#EFA25F;
+    --cielo:#9FB0C9;
+    --bruma:#FBF1E6;
+    --tinta:#2A2438;
+    --ink:#2A2438;
+    --line:#D8CBBB;
+    --line-light:#EFE2D3;
+    --panel:#F0E5D6;
+    --accent:#E2735A;
+    --muted:#8A7F76;
+    --bg:#FBF1E6;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:'DM Sans', -apple-system, sans-serif;
+    padding:40px 24px 80px;
+  }
+  h1{
+    font-family:'Share Tech', monospace; font-size:28px; letter-spacing:0.5px;
+    margin:0 0 4px;
+  }
+  .sub{color:var(--muted); font-size:14px; margin-bottom:40px;}
+  .block{
+    margin-bottom:56px;
+    border-top:2px solid var(--accent);
+    padding-top:16px;
+  }
+  .block h2{
+    font-family:'Share Tech', monospace; font-size:18px; margin:0 0 4px;
+    color:var(--accent);
+  }
+  .block .desc{font-size:13px; color:var(--muted); margin-bottom:20px;}
+  .screens{display:flex; gap:20px; flex-wrap:wrap; align-items:flex-start;}
+  .screen{
+    width:220px; flex-shrink:0;
+  }
+  .screen .label{
+    font-family:'Space Mono', monospace; font-size:11px; color:var(--ink);
+    margin-bottom:8px; display:flex; align-items:center; gap:6px;
+  }
+  .screen .label .num{
+    background:var(--ink); color:#fff; width:16px; height:16px;
+    border-radius:50%; display:inline-flex; align-items:center; justify-content:center;
+    font-size:9px;
+  }
+  .frame{
+    border:2px solid var(--noche); border-radius:18px; background:#fff;
+    width:220px; height:440px; padding:8px; position:relative;
+    display:flex; flex-direction:column; gap:6px;
+  }
+  .notch{
+    width:50px; height:5px; background:var(--noche); border-radius:3px;
+    margin:0 auto 6px;
+  }
+  .box{
+    border:1.5px dashed var(--line); border-radius:6px; background:#fff;
+  }
+  .box.soft{background:var(--panel); border:1px solid var(--line-light);}
+  .box.filled{background:var(--coral); border:none; color:#4A1B0C;}
+  .box.filled .t{color:#4A1B0C; font-weight:600;}
+  .box.amber{background:var(--ambar); border:none;}
+  .box.amber .t{color:#412402; font-weight:600;}
+  .box.cielo{background:var(--cielo); border:none;}
+  .box.cielo .t{color:#1a2636;}
+  .box.dark{background:var(--noche); border:none;}
+  .box.dark .t{color:var(--bruma);}
+  .box .t{
+    font-size:9px; color:var(--muted); padding:4px 6px; font-family:'Space Mono',monospace;
+  }
+  .row{display:flex; gap:6px;}
+  .grow{flex:1;}
+  .arrow{
+    align-self:center; font-size:20px; color:var(--line); margin-top:200px;
+  }
+  .tag{
+    display:inline-block; font-family:'Space Mono',monospace; font-size:9px;
+    background:var(--accent); color:#fff; padding:2px 6px; border-radius:3px;
+    margin-left:6px;
+  }
+  .legend{
+    background:var(--panel); border-radius:10px; padding:16px 20px; margin-bottom:40px;
+    font-size:13px; display:flex; gap:24px; flex-wrap:wrap;
+  }
+  .legend .item{display:flex; align-items:center; gap:8px;}
+  .swatch{width:14px; height:14px; border-radius:3px; display:inline-block;}
+</style>
+</head>
+<body>
+
+<h1>ALBA — Wireframes de referencia · Beta (Etapa 1)</h1>
+<div class="sub">Paleta "Alba" aplicada · estructura y jerarquía de flujo · referencia para desarrollo con Claude Code</div>
+
+<div class="legend">
+  <div class="item"><span class="swatch" style="background:var(--noche);"></span> Noche — headers, nav, texto</div>
+  <div class="item"><span class="swatch" style="background:var(--coral);"></span> Coral — acción principal (CTA)</div>
+  <div class="item"><span class="swatch" style="background:var(--ambar);"></span> Ámbar — acción secundaria / estado positivo</div>
+  <div class="item"><span class="swatch" style="background:var(--cielo);"></span> Cielo — info / selección / estado neutro</div>
+  <div class="item"><span class="swatch" style="background:var(--panel); border:1px solid var(--line-light);"></span> Bruma — contenido estructural</div>
+  <div class="item"><span class="tag">TAG</span> Nota funcional para dev</div>
+</div>
+
+<!-- BLOCK 1: ONBOARDING -->
+<div class="block">
+  <h2>1 · Onboarding &amp; Emparejamiento</h2>
+  <div class="desc">Splash → Registro/Login → Verificación → Invitar al otro padre/madre → Confirmación de vínculo</div>
+  <div class="screens">
+
+    <div class="screen">
+      <div class="label"><span class="num">1</span> Splash</div>
+      <div class="frame">
+        <div class="notch"></div>
+        <div class="box" style="height:60%; margin-top:auto; margin-bottom:auto;"><div class="t">Logo ALBA</div></div>
+        <div class="box filled" style="height:36px;"><div class="t">Iniciar sesión</div></div>
+        <div class="box" style="height:36px;"><div class="t">Crear cuenta</div></div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <div class="label"><span class="num">2</span> Registro <span class="tag">validación legal</span></div>
+      <div class="frame">
+        <div class="notch"></div>
+        <div class="box" style="height:32px;"><div class="t">Nombre completo</div></div>
+        <div class="box" style="height:32px;"><div class="t">Email</div></div>
+        <div class="box" style="height:32px;"><div class="t">Teléfono</div></div>
+        <div class="box" style="height:32px;"><div class="t">Contraseña</div></div>
+        <div class="box" style="height:60px; margin-top:8px;"><div class="t">Aviso de privacidad + consentimiento datos sensibles</div></div>
+        <div class="box filled" style="height:36px; margin-top:auto;"><div class="t">Continuar</div></div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <div class="label"><span class="num">3</span> Invitar al otro padre <span class="tag">core flow</span></div>
+      <div class="frame">
+        <div class="notch"></div>
+        <div class="box" style="height:70px;"><div class="t">Explicación: ambos deben aceptar</div></div>
+        <div class="box" style="height:32px;"><div class="t">Email o teléfono del otro padre/madre</div></div>
+        <div class="box filled" style="height:36px;"><div class="t">Enviar invitación</div></div>
+        <div class="box" style="height:24px; margin-top:auto;"><div class="t">Estado: pendiente / aceptada</div></div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <div class="label"><span class="num">4</span> Vínculo confirmado</div>
+      <div class="frame">
+        <div class="notch"></div>
+        <div class="box amber" style="height:100px; margin:auto;"><div class="t">✓ Vínculo con [nombre] confirmado</div></div>
+        <div class="box" style="height:32px;"><div class="t">Agregar hijos (opcional aquí)</div></div>
+        <div class="box filled" style="height:36px; margin-top:auto;"><div class="t">Ir al dashboard</div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- BLOCK 2: PERFILES -->
+<div class="block">
+  <h2>2 · Perfiles</h2>
+  <div class="desc">Perfil propio → Perfil de hijos → Configuración de cuenta</div>
+  <div class="screens">
+
+    <div class="screen">
+      <div class="label"><span class="num">1</span> Perfil propio</div>
+      <div class="frame">
+        <div class="notch"></div>
+        <div class="box" style="height:60px; border-radius:50%; width:60px; margin:0 auto;"></div>
+        <div class="box" style="height:20px;"><div class="t">Nombre</div></div>
+        <div class="box" style="height:20px;"><div class="t">Rol: mamá / papá</div></div>
+        <div class="box" style="height:60px; margin-top:8px;"><div class="t">Lista: hijos vinculados</div></div>
+        <div class="box" style="height:36px; margin-top:auto;"><div class="t">Editar perfil</div></div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <div class="label"><span class="num">2</span> Perfil de hijo <span class="tag">multi-hijo</span></div>
+      <div class="frame">
+        <div class="notch"></div>
+        <div class="box" style="height:60px; border-radius:50%; width:60px; margin:0 auto;"></div>
+        <div class="box" style="height:20px;"><div class="t">Nombre / fecha nac.</div></div>
+        <div class="box" style="height:20px;"><div class="t">Escuela / datos médicos básicos</div></div>
+        <div class="box" style="height:40px;"><div class="t">Calendario de custodia asociado</div></div>
+        <div class="box amber" style="height:32px; margin-top:auto;"><div class="t">+ Agregar otro hijo</div></div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <div class="label"><span class="num">3</span> Configuración</div>
+      <div class="frame">
+        <div class="notch"></div>
+        <div class="box" style="height:28px;"><div class="t">Notificaciones</div></div>
+        <div class="box" style="height:28px;"><div class="t">Privacidad y datos</div></div>
+        <div class="box" style="height:28px;"><div class="t">Vínculo / co-padre</div></div>
+        <div class="box" style="height:28px;"><div class="t">Idioma</div></div>
+        <div class="box" style="height:28px; margin-top:auto;"><div class="t">Cerrar sesión</div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- BLOCK 3: CHAT + CALENDARIO -->
+<div class="block">
+  <h2>3 · Chat + Calendario</h2>
+  <div class="desc">Lista de chats → Chat con Tone Meter inline → Calendario compartido → Detalle de evento/custodia</div>
+  <div class="screens">
+
+    <div class="screen">
+      <div class="label"><span class="num">1</span> Lista de chats</div>
+      <div class="frame">
+        <div class="notch"></div>
+        <div class="box cielo" style="height:44px;"><div class="t">Chat con [co-padre] — último msj</div></div>
+        <div class="box" style="height:44px;"><div class="t">Hilo: Gastos escolares</div></div>
+        <div class="box" style="height:44px;"><div class="t">Hilo: Vacaciones dic.</div></div>
+        <div class="box dark" style="height:36px; margin-top:auto;"><div class="t" style="color:#fff;">Chat · Calendario · Gastos · Docs</div></div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <div class="label"><span class="num">2</span> Chat <span class="tag">Tone Meter</span></div>
+      <div class="frame">
+        <div class="notch"></div>
+        <div class="row"><div class="box grow" style="height:30px;"><div class="t">msj recibido</div></div></div>
+        <div class="row"><div class="grow"></div><div class="box filled" style="height:30px; width:70%;"><div class="t">msj enviado 🟡</div></div></div>
+        <div class="box" style="height:30px; border-color:var(--accent);"><div class="t">⚠️ Tono tenso detectado</div></div>
+        <div class="row"><div class="grow"></div><div class="box filled" style="height:30px; width:70%;"><div class="t">msj enviado 🟢</div></div></div>
+        <div class="box" style="height:32px; margin-top:auto;"><div class="t">Escribir mensaje…</div></div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <div class="label"><span class="num">3</span> Calendario compartido</div>
+      <div class="frame">
+        <div class="notch"></div>
+        <div class="box" style="height:20px;"><div class="t">Agosto 2026</div></div>
+        <div class="box soft" style="height:180px;"><div class="t">Grid mensual · días custodia mamá/papá con color</div></div>
+        <div class="box" style="height:50px;"><div class="t">Próximo evento: recoger a Sofía — vie 5pm</div></div>
+        <div class="box amber" style="height:32px; margin-top:auto;"><div class="t">+ Agregar evento</div></div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <div class="label"><span class="num">4</span> Detalle de evento <span class="tag">registro evidencia</span></div>
+      <div class="frame">
+        <div class="notch"></div>
+        <div class="box" style="height:24px;"><div class="t">Recoger a Sofía</div></div>
+        <div class="box" style="height:24px;"><div class="t">Vie 5 sept · 5:00pm</div></div>
+        <div class="box" style="height:24px;"><div class="t">Responsable: Papá</div></div>
+        <div class="box" style="height:40px;"><div class="t">Notas / confirmación de asistencia</div></div>
+        <div class="box" style="height:24px; margin-top:auto;"><div class="t">Hash de evidencia (POC blockchain)</div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- BLOCK 4: GASTOS -->
+<div class="block">
+  <h2>4 · Gastos</h2>
+  <div class="desc">Lista de gastos → Agregar gasto → Detalle/aprobación → Balance resumen</div>
+  <div class="screens">
+
+    <div class="screen">
+      <div class="label"><span class="num">1</span> Lista de gastos</div>
+      <div class="frame">
+        <div class="notch"></div>
+        <div class="box amber" style="height:20px;"><div class="t">Balance: $1,200 a favor</div></div>
+        <div class="box" style="height:36px;"><div class="t">Útiles escolares · $850 · pendiente</div></div>
+        <div class="box" style="height:36px;"><div class="t">Consulta médica · $600 · aprobado</div></div>
+        <div class="box amber" style="height:32px; margin-top:auto;"><div class="t">+ Registrar gasto</div></div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <div class="label"><span class="num">2</span> Agregar gasto</div>
+      <div class="frame">
+        <div class="notch"></div>
+        <div class="box" style="height:28px;"><div class="t">Concepto</div></div>
+        <div class="box" style="height:28px;"><div class="t">Monto</div></div>
+        <div class="box" style="height:28px;"><div class="t">Categoría</div></div>
+        <div class="box" style="height:44px;"><div class="t">Subir comprobante (foto/PDF)</div></div>
+        <div class="box" style="height:28px;"><div class="t">% split acordado</div></div>
+        <div class="box filled" style="height:36px; margin-top:auto;"><div class="t">Enviar para aprobación</div></div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <div class="label"><span class="num">3</span> Aprobación <span class="tag">notif. push</span></div>
+      <div class="frame">
+        <div class="notch"></div>
+        <div class="box" style="height:60px;"><div class="t">Comprobante adjunto</div></div>
+        <div class="box" style="height:20px;"><div class="t">$850 · 50/50</div></div>
+        <div class="row" style="margin-top:auto;">
+          <div class="box grow" style="height:36px;"><div class="t">Rechazar</div></div>
+          <div class="box filled grow" style="height:36px;"><div class="t">Aprobar</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <div class="label"><span class="num">4</span> Balance resumen</div>
+      <div class="frame">
+        <div class="notch"></div>
+        <div class="box soft" style="height:100px;"><div class="t">Gráfico simple: gastado por categoría</div></div>
+        <div class="box" style="height:24px;"><div class="t">Total mes: $2,450</div></div>
+        <div class="box" style="height:24px;"><div class="t">Pendientes de aprobar: 2</div></div>
+        <div class="box" style="height:32px; margin-top:auto;"><div class="t">Exportar resumen</div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- BLOCK 5: DOCUMENTOS -->
+<div class="block">
+  <h2>5 · Documentos / Acuerdos</h2>
+  <div class="desc">Lista de documentos → Detalle (estado) → Subir documento</div>
+  <div class="screens">
+
+    <div class="screen">
+      <div class="label"><span class="num">1</span> Lista de documentos</div>
+      <div class="frame">
+        <div class="notch"></div>
+        <div class="box" style="height:36px;"><div class="t">Convenio de custodia · firmado</div></div>
+        <div class="box" style="height:36px;"><div class="t">Acuerdo vacaciones · pendiente</div></div>
+        <div class="box" style="height:36px;"><div class="t">Constancia escolar · firmado</div></div>
+        <div class="box amber" style="height:32px; margin-top:auto;"><div class="t">+ Subir documento</div></div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <div class="label"><span class="num">2</span> Detalle documento <span class="tag">estado + hash</span></div>
+      <div class="frame">
+        <div class="notch"></div>
+        <div class="box" style="height:100px;"><div class="t">Vista previa PDF</div></div>
+        <div class="box cielo" style="height:20px;"><div class="t">Estado: pendiente firma [co-padre]</div></div>
+        <div class="box" style="height:20px;"><div class="t">Hash de anclaje (evidencia)</div></div>
+        <div class="box filled" style="height:32px; margin-top:auto;"><div class="t">Firmar / comentar</div></div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <div class="label"><span class="num">3</span> Subir documento</div>
+      <div class="frame">
+        <div class="notch"></div>
+        <div class="box" style="height:80px;"><div class="t">Arrastrar / seleccionar archivo</div></div>
+        <div class="box" style="height:24px;"><div class="t">Nombre del documento</div></div>
+        <div class="box" style="height:24px;"><div class="t">Tipo: acuerdo / constancia / otro</div></div>
+        <div class="box filled" style="height:32px; margin-top:auto;"><div class="t">Enviar a revisión</div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- BLOCK 6: TONE METER + IA -->
+<div class="block">
+  <h2>6 · Tone Meter + IA de reformulación</h2>
+  <div class="desc">Semáforo de tono inline en chat → Modal de sugerencia → Historial de alertas</div>
+  <div class="screens">
+
+    <div class="screen">
+      <div class="label"><span class="num">1</span> Alerta inline</div>
+      <div class="frame">
+        <div class="notch"></div>
+        <div class="box" style="height:80px; border-color:var(--accent);"><div class="t">Mensaje en redacción con borde de alerta 🟡→🔴</div></div>
+        <div class="box filled" style="height:24px;"><div class="t">"Este mensaje suena confrontativo"</div></div>
+        <div class="box" style="height:28px; margin-top:auto;"><div class="t">Enviar de todas formas / revisar</div></div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <div class="label"><span class="num">2</span> Modal de reformulación <span class="tag">IA</span></div>
+      <div class="frame">
+        <div class="notch"></div>
+        <div class="box" style="height:30px;"><div class="t">Original: "..."</div></div>
+        <div class="box cielo" style="height:50px;"><div class="t">Sugerido por IA: "..."</div></div>
+        <div class="row" style="margin-top:auto;">
+          <div class="box grow" style="height:32px;"><div class="t">Usar original</div></div>
+          <div class="box filled grow" style="height:32px;"><div class="t">Usar sugerido</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen">
+      <div class="label"><span class="num">3</span> Historial de alertas <span class="tag">evidencia</span></div>
+      <div class="frame">
+        <div class="notch"></div>
+        <div class="box" style="height:28px;"><div class="t">3 sept — tono tenso — reformulado</div></div>
+        <div class="box" style="height:28px;"><div class="t">1 sept — tono tenso — enviado igual</div></div>
+        <div class="box" style="height:28px;"><div class="t">28 ago — tono neutral</div></div>
+        <div class="box" style="height:28px; margin-top:auto;"><div class="t">Ver como reporte (para abogada)</div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

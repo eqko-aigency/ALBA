@@ -12,11 +12,14 @@ export default async function InvitacionPage({ params }: { params: Promise<{ tok
 
   if (invitation.status === "accepted") {
     const children = await pairingRepository.getMyChildren(DEMO_PARENT_B_ID);
-    const child = children.find((c) => c.id === invitation.childId);
     return (
       <StatusPage
         title="Invitación aceptada"
-        message={child ? `Ya quedaste vinculado a ${child.fullName}.` : "Ya quedaste vinculado."}
+        message={
+          children.length > 0
+            ? `Ya quedaste vinculado. Hijos en la familia: ${children.map((c) => c.fullName).join(", ")}.`
+            : "Ya quedaste vinculado con el otro progenitor."
+        }
       />
     );
   }
@@ -26,19 +29,19 @@ export default async function InvitacionPage({ params }: { params: Promise<{ tok
   }
 
   return (
-    <div className="mx-auto min-h-screen max-w-md px-6 py-16 text-center font-sans">
+    <div className="mx-auto min-h-screen max-w-md px-6 py-16 text-center bg-bruma">
       {isDemoMode && (
-        <p className="mb-8 rounded-md border border-amber-300 bg-amber-50 px-4 py-2 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200">
+        <p className="mb-8 rounded-md border border-ambar bg-ambar/20 px-4 py-2 text-sm text-noche">
           Modo de prueba local — aceptando como Progenitor B.
         </p>
       )}
-      <h1 className="text-2xl font-semibold tracking-tight">Te invitaron a coparentar</h1>
-      <p className="mt-2 text-zinc-600 dark:text-zinc-400">
-        El otro progenitor te está invitando a compartir el seguimiento de su hijo/a en ALBA.
+      <h1 className="text-2xl font-semibold tracking-tight text-noche">Te invitaron a coparentar</h1>
+      <p className="mt-2 text-tinta/80">
+        El otro progenitor te está invitando a vincular tu familia en ALBA.
       </p>
       <form action={acceptInvitationAction} className="mt-8">
         <input type="hidden" name="token" value={token} />
-        <button type="submit" className="rounded-full bg-zinc-900 px-5 py-2.5 text-sm font-medium text-white dark:bg-zinc-100 dark:text-zinc-900">
+        <button type="submit" className="rounded-full bg-coral px-5 py-2.5 text-sm font-semibold text-[#4A1B0C]">
           Aceptar invitación
         </button>
       </form>
@@ -48,9 +51,9 @@ export default async function InvitacionPage({ params }: { params: Promise<{ tok
 
 function StatusPage({ title, message }: { title: string; message: string }) {
   return (
-    <div className="mx-auto min-h-screen max-w-md px-6 py-16 text-center font-sans">
-      <h1 className="text-2xl font-semibold tracking-tight">{title}</h1>
-      <p className="mt-2 text-zinc-600 dark:text-zinc-400">{message}</p>
+    <div className="mx-auto min-h-screen max-w-md px-6 py-16 text-center bg-bruma">
+      <h1 className="text-2xl font-semibold tracking-tight text-noche">{title}</h1>
+      <p className="mt-2 text-tinta/80">{message}</p>
     </div>
   );
 }

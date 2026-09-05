@@ -4,8 +4,13 @@ export interface Parent {
   email: string;
 }
 
+export interface Family {
+  id: string;
+}
+
 export interface Child {
   id: string;
+  familyId: string;
   fullName: string;
   birthDate: string;
 }
@@ -15,7 +20,7 @@ export type InvitationStatus = "pending" | "accepted" | "expired";
 export interface Invitation {
   id: string;
   token: string;
-  childId: string;
+  familyId: string;
   createdByParentId: string;
   status: InvitationStatus;
   expiresAt: string;

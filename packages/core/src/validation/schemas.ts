@@ -8,11 +8,6 @@ export const expenseInputSchema = z.object({
 });
 export type ExpenseInput = z.infer<typeof expenseInputSchema>;
 
-export const createInvitationInputSchema = z.object({
-  childId: z.string().uuid(),
-});
-export type CreateInvitationInput = z.infer<typeof createInvitationInputSchema>;
-
 export const acceptInvitationInputSchema = z.object({
   token: z.string().uuid(),
 });

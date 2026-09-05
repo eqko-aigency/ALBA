@@ -1,7 +1,7 @@
 import type {
   AcceptInvitationInput,
   Child,
-  CreateInvitationInput,
+  Family,
   Invitation,
   PairingRepository,
   Parent,
@@ -16,31 +16,46 @@ import type {
  * desarrollo; no persiste entre reinicios.
  */
 export function createMockPairingRepository(): PairingRepository {
-  const children = new Map<string, Child & { parentIds: string[] }>();
+  const families = new Map<string, Family>();
+  const familyMembers = new Map<string, Set<string>>(); // familyId -> parentIds
+  const memberOf = new Map<string, string>(); // parentId -> familyId
+  const children = new Map<string, Child>();
   const invitations = new Map<string, Invitation>();
   const profiles = new Map<string, Parent>();
 
   return {
+    async getOrCreateMyFamily(parentId) {
+      const existingFamilyId = memberOf.get(parentId);
+      if (existingFamilyId) return families.get(existingFamilyId)!;
+
+      const family: Family = { id: crypto.randomUUID() };
+      families.set(family.id, family);
+      familyMembers.set(family.id, new Set([parentId]));
+      memberOf.set(parentId, family.id);
+      return family;
+    },
+
     async getMyChildren(parentId) {
-      return [...children.values()]
-        .filter((c) => c.parentIds.includes(parentId))
-        .map(({ id, fullName, birthDate }) => ({ id, fullName, birthDate }));
+      const familyId = memberOf.get(parentId);
+      if (!familyId) return [];
+      return [...children.values()].filter((c) => c.familyId === familyId);
     },
 
     async createChild(parentId, input) {
-      const child = { id: crypto.randomUUID(), ...input, parentIds: [parentId] };
+      const familyId = memberOf.get(parentId);
+      if (!familyId) throw new Error("el progenitor no pertenece a ninguna familia todavía");
+      const child: Child = { id: crypto.randomUUID(), familyId, ...input };
       children.set(child.id, child);
-      return { id: child.id, fullName: child.fullName, birthDate: child.birthDate };
+      return child;
     },
 
     async updateChild(parentId, childId, input: UpdateChildInput) {
+      const familyId = memberOf.get(parentId);
       const child = children.get(childId);
-      if (!child || !child.parentIds.includes(parentId)) {
-        throw new Error("hijo no encontrado");
-      }
+      if (!child || child.familyId !== familyId) throw new Error("hijo no encontrado");
       child.fullName = input.fullName;
       child.birthDate = input.birthDate;
-      return { id: child.id, fullName: child.fullName, birthDate: child.birthDate };
+      return child;
     },
 
     async getProfile(parentId) {
@@ -61,15 +76,19 @@ export function createMockPairingRepository(): PairingRepository {
       return [...invitations.values()].find((i) => i.token === token) ?? null;
     },
 
-    async listPendingInvitations(_parentId, childId) {
-      return [...invitations.values()].filter((i) => i.childId === childId && i.status === "pending");
+    async listPendingInvitations(parentId) {
+      const familyId = memberOf.get(parentId);
+      if (!familyId) return [];
+      return [...invitations.values()].filter((i) => i.familyId === familyId && i.status === "pending");
     },
 
-    async createInvitation(parentId, input: CreateInvitationInput) {
+    async createInvitation(parentId) {
+      const familyId = memberOf.get(parentId);
+      if (!familyId) throw new Error("el progenitor no pertenece a ninguna familia todavía");
       const invitation: Invitation = {
         id: crypto.randomUUID(),
         token: crypto.randomUUID(),
-        childId: input.childId,
+        familyId,
         createdByParentId: parentId,
         status: "pending",
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
@@ -83,13 +102,14 @@ export function createMockPairingRepository(): PairingRepository {
       if (!invitation || invitation.status !== "pending" || new Date(invitation.expiresAt) < new Date()) {
         throw new Error("invitación inválida o expirada");
       }
-      const child = children.get(invitation.childId);
-      if (!child) throw new Error("hijo no encontrado");
 
-      if (!child.parentIds.includes(parentId)) child.parentIds.push(parentId);
+      const members = familyMembers.get(invitation.familyId) ?? new Set<string>();
+      members.add(parentId);
+      familyMembers.set(invitation.familyId, members);
+      memberOf.set(parentId, invitation.familyId);
       invitation.status = "accepted";
 
-      return { id: child.id, fullName: child.fullName, birthDate: child.birthDate };
+      return families.get(invitation.familyId)!;
     },
   };
 }
