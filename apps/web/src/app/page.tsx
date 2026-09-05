@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { ComplianceIssueType } from "@alba/core";
 
 const complianceIssueLabels: Record<ComplianceIssueType, string> = {
@@ -27,10 +28,18 @@ export default function Home() {
         </h1>
         <p className="mt-3 text-zinc-600 dark:text-zinc-400">
           <code className="font-mono text-sm">apps/web</code> ya resuelve tipos desde{" "}
-          <code className="font-mono text-sm">@alba/core</code>. Pendiente: conectar Supabase
-          (<code className="font-mono text-sm">apps/web/.env.local</code>) y arrancar el módulo de
-          registro/emparejamiento de la Beta.
+          <code className="font-mono text-sm">@alba/core</code>. El módulo de registro y
+          emparejamiento ya tiene un flujo de punta a punta corriendo contra un repositorio
+          mock — pendiente conectar el proyecto real de Supabase
+          (<code className="font-mono text-sm">apps/web/.env.local</code>).
         </p>
+
+        <Link
+          href="/registro"
+          className="mt-6 inline-block rounded-full bg-zinc-900 px-5 py-2.5 text-sm font-medium text-white dark:bg-zinc-100 dark:text-zinc-900"
+        >
+          Probar registro y emparejamiento →
+        </Link>
 
         <ul className="mt-8 divide-y divide-zinc-200 rounded-lg border border-zinc-200 dark:divide-zinc-800 dark:border-zinc-800">
           {domainModules.map((mod) => (

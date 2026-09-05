@@ -10,6 +10,17 @@ export interface Child {
   birthDate: string;
 }
 
+export type InvitationStatus = "pending" | "accepted" | "expired";
+
+export interface Invitation {
+  id: string;
+  token: string;
+  childId: string;
+  createdByParentId: string;
+  status: InvitationStatus;
+  expiresAt: string;
+}
+
 export interface Expense {
   id: string;
   childId: string;

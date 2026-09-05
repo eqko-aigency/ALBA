@@ -1,2 +1,3 @@
 export * from "./client";
-export type { Parent, Child, Expense, CustodyEvent, CustodyAgreement } from "@alba/core";
+export * from "./pairing";
+export type { Parent, Child, Expense, CustodyEvent, CustodyAgreement, Invitation } from "@alba/core";
