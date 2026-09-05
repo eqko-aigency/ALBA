@@ -1,5 +1,11 @@
-import type { Child, Family, Invitation, Parent } from "./entities";
-import type { AcceptInvitationInput, UpdateChildInput, UpsertProfileInput } from "../validation/schemas";
+import type { Child, ChatThread, Family, Invitation, Message, Parent } from "./entities";
+import type {
+  AcceptInvitationInput,
+  CreateThreadInput,
+  SendMessageInput,
+  UpdateChildInput,
+  UpsertProfileInput,
+} from "../validation/schemas";
 
 /**
  * Puerto de dominio para registro/emparejamiento. La implementación real
@@ -21,4 +27,15 @@ export interface PairingRepository {
   acceptInvitation(parentId: string, input: AcceptInvitationInput): Promise<Family>;
   getProfile(parentId: string): Promise<Parent | null>;
   upsertProfile(parentId: string, input: UpsertProfileInput): Promise<Parent>;
+}
+
+/**
+ * Puerto de dominio para chat. Los hilos y mensajes se filtran por family_id
+ * (nunca por progenitor individual), según docs/design/ALBA-UI-REFERENCE.md.
+ */
+export interface ChatRepository {
+  listThreads(parentId: string): Promise<ChatThread[]>;
+  createThread(parentId: string, input: CreateThreadInput): Promise<ChatThread>;
+  listMessages(parentId: string, threadId: string): Promise<Message[]>;
+  sendMessage(parentId: string, input: SendMessageInput): Promise<Message>;
 }

@@ -8,17 +8,10 @@ import type {
   UpdateChildInput,
   UpsertProfileInput,
 } from "@alba/core";
+import { createFamilyIdResolver } from "../family/resolveFamilyId";
 
 export function createSupabasePairingRepository(client: SupabaseClient): PairingRepository {
-  async function getMyFamilyId(parentId: string): Promise<string | null> {
-    const { data, error } = await client
-      .from("family_members")
-      .select("family_id")
-      .eq("parent_id", parentId)
-      .maybeSingle();
-    if (error) throw error;
-    return data?.family_id ?? null;
-  }
+  const getMyFamilyId = createFamilyIdResolver(client);
 
   return {
     async getOrCreateMyFamily(parentId) {

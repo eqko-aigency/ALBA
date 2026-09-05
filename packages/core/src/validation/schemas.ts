@@ -24,6 +24,17 @@ export const updateChildInputSchema = z.object({
 });
 export type UpdateChildInput = z.infer<typeof updateChildInputSchema>;
 
+export const createThreadInputSchema = z.object({
+  topic: z.string().min(2).max(60),
+});
+export type CreateThreadInput = z.infer<typeof createThreadInputSchema>;
+
+export const sendMessageInputSchema = z.object({
+  threadId: z.string().uuid(),
+  body: z.string().min(1).max(2000),
+});
+export type SendMessageInput = z.infer<typeof sendMessageInputSchema>;
+
 export const custodyEventInputSchema = z.object({
   childId: z.string().uuid(),
   type: z.enum(["checkin", "checkout"]),

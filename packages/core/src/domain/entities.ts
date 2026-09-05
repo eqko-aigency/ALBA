@@ -26,6 +26,21 @@ export interface Invitation {
   expiresAt: string;
 }
 
+export interface ChatThread {
+  id: string;
+  familyId: string;
+  topic: string;
+  createdAt: string;
+}
+
+export interface Message {
+  id: string;
+  threadId: string;
+  senderId: string;
+  body: string;
+  createdAt: string;
+}
+
 export interface Expense {
   id: string;
   childId: string;
