@@ -29,9 +29,9 @@ export default async function InvitacionPage({ params }: { params: Promise<{ tok
   }
 
   return (
-    <div className="mx-auto min-h-screen max-w-md px-6 py-16 text-center bg-canvas">
+    <div className="mx-auto min-h-screen max-w-md px-6 py-16 text-center bg-sand">
       {isDemoMode && (
-        <p className="mb-8 rounded-md border border-ochre bg-ochre/15 px-4 py-2 text-sm text-ink">
+        <p className="mb-8 rounded-md border border-orange bg-dawn px-4 py-2 text-sm text-ink">
           Modo de prueba local — aceptando como Progenitor B.
         </p>
       )}
@@ -41,7 +41,7 @@ export default async function InvitacionPage({ params }: { params: Promise<{ tok
       </p>
       <form action={acceptInvitationAction} className="mt-8">
         <input type="hidden" name="token" value={token} />
-        <button type="submit" className="rounded-full bg-sandstone px-5 py-2.5 text-sm font-semibold text-white shadow-elevated">
+        <button type="submit" className="rounded-full bg-orange px-5 py-2.5 text-sm font-semibold text-ink shadow-elevated">
           Aceptar invitación
         </button>
       </form>
@@ -51,7 +51,7 @@ export default async function InvitacionPage({ params }: { params: Promise<{ tok
 
 function StatusPage({ title, message }: { title: string; message: string }) {
   return (
-    <div className="mx-auto min-h-screen max-w-md px-6 py-16 text-center bg-canvas">
+    <div className="mx-auto min-h-screen max-w-md px-6 py-16 text-center bg-sand">
       <h1 className="text-2xl font-semibold tracking-tight text-ink">{title}</h1>
       <p className="mt-2 text-ink-soft">{message}</p>
     </div>

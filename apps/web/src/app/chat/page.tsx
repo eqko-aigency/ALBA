@@ -16,9 +16,9 @@ export default async function ChatPage({
   const availableTopics = CHAT_TOPICS.filter((topic) => !threads.some((t) => t.topic === topic));
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-2xl flex-col px-6 py-16 bg-canvas">
+    <div className="mx-auto flex min-h-screen max-w-2xl flex-col px-6 py-16 bg-sand">
       {isDemoMode && (
-        <p className="mb-6 rounded-md border border-ochre bg-ochre/15 px-4 py-2 text-sm text-ink">
+        <p className="mb-6 rounded-md border border-orange bg-dawn px-4 py-2 text-sm text-ink">
           Modo de prueba local — viendo como Progenitor {as === "b" ? "B" : "A"}.{" "}
           <Link href={as === "b" ? "/chat" : "/chat?as=b"} className="underline">
             Cambiar a Progenitor {as === "b" ? "A" : "B"}
@@ -43,7 +43,7 @@ export default async function ChatPage({
               </option>
             ))}
           </select>
-          <button type="submit" className="rounded-full bg-sandstone px-4 py-2 text-sm font-semibold text-white">
+          <button type="submit" className="rounded-full bg-orange px-4 py-2 text-sm font-semibold text-ink">
             Abrir hilo
           </button>
         </form>

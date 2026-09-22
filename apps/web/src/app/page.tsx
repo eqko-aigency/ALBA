@@ -18,9 +18,9 @@ const domainModules: Array<{ name: string; description: string }> = [
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen flex-col items-center bg-canvas px-6 py-20">
+    <div className="flex min-h-screen flex-col items-center bg-sand px-6 py-20">
       <main className="w-full max-w-2xl">
-        <p className="text-sm font-medium uppercase tracking-wide text-ochre">ALBA · Etapa 2</p>
+        <p className="text-sm font-medium uppercase tracking-wide text-purple">ALBA · Etapa 2</p>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight text-ink">Monorepo inicializado</h1>
         <p className="mt-3 text-ink-soft">
           <code className="font-mono text-sm">apps/web</code> ya resuelve tipos desde{" "}
@@ -32,12 +32,12 @@ export default function Home() {
 
         <Link
           href="/registro"
-          className="mt-6 inline-block rounded-full bg-sandstone px-5 py-2.5 text-sm font-semibold text-white shadow-elevated"
+          className="mt-6 inline-block rounded-full bg-orange px-5 py-2.5 text-sm font-semibold text-ink shadow-elevated"
         >
           Probar registro y emparejamiento →
         </Link>
 
-        <ul className="mt-8 divide-y divide-subtle rounded-lg border border-subtle bg-card shadow-ambient">
+        <ul className="mt-8 divide-y divide-sand rounded-lg border border-subtle bg-card shadow-ambient">
           {domainModules.map((mod) => (
             <li key={mod.name} className="p-4">
               <p className="font-mono text-sm text-ink">@alba/core/{mod.name}</p>

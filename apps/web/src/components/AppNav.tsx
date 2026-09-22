@@ -16,7 +16,7 @@ export function AppNav({ active }: { active: "Acuerdo" | "Calendario" | "Gastos"
             key={item.label}
             href={item.href}
             className={`flex-1 rounded-full px-3 py-2 text-center text-xs font-semibold ${
-              active === item.label ? "bg-sandstone text-white" : "text-canvas"
+              active === item.label ? "bg-orange text-ink" : "text-sand"
             }`}
           >
             {item.label}
@@ -24,7 +24,7 @@ export function AppNav({ active }: { active: "Acuerdo" | "Calendario" | "Gastos"
         ) : (
           <span
             key={item.label}
-            className="flex-1 rounded-full px-3 py-2 text-center text-xs font-medium text-canvas/40"
+            className="flex-1 rounded-full px-3 py-2 text-center text-xs font-medium text-sand/40"
           >
             {item.label}
           </span>

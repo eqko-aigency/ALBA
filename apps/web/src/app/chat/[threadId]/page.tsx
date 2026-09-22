@@ -21,13 +21,13 @@ export default async function ThreadPage({
   const thread = threads.find((t) => t.id === threadId);
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-2xl flex-col px-6 py-16 bg-canvas">
-      <Link href={`/chat${as === "b" ? "?as=b" : ""}`} className="text-sm font-medium text-sandstone underline">
+    <div className="mx-auto flex min-h-screen max-w-2xl flex-col px-6 py-16 bg-sand">
+      <Link href={`/chat${as === "b" ? "?as=b" : ""}`} className="text-sm font-medium text-purple underline">
         ← Todos los hilos
       </Link>
 
       {isDemoMode && (
-        <p className="mt-4 rounded-md border border-ochre bg-ochre/15 px-4 py-2 text-sm text-ink">
+        <p className="mt-4 rounded-md border border-orange bg-dawn px-4 py-2 text-sm text-ink">
           Modo de prueba local — escribiendo como Progenitor {as === "b" ? "B" : "A"}.
         </p>
       )}
@@ -41,8 +41,8 @@ export default async function ThreadPage({
           return (
             <div key={message.id} className={`flex ${isMine ? "justify-end" : "justify-start"}`}>
               <p
-                className={`max-w-[75%] rounded-lg px-4 py-2 text-sm ${
-                  isMine ? "bg-sandstone text-white" : "bg-sunken text-ink"
+                className={`max-w-[75%] rounded-lg px-4 py-2 text-sm text-ink ${
+                  isMine ? "bg-orange" : "bg-sea"
                 }`}
               >
                 {message.body}
@@ -62,7 +62,7 @@ export default async function ThreadPage({
           placeholder="Escribir mensaje…"
           className="flex-1 rounded-full border border-subtle bg-card px-4 py-2 text-sm text-ink"
         />
-        <button type="submit" className="rounded-full bg-sandstone px-4 py-2 text-sm font-semibold text-white">
+        <button type="submit" className="rounded-full bg-orange px-4 py-2 text-sm font-semibold text-ink">
           Enviar
         </button>
       </form>

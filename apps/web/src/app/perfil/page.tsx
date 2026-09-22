@@ -9,9 +9,9 @@ export default async function PerfilPage() {
   ]);
 
   return (
-    <div className="mx-auto min-h-screen max-w-2xl px-6 py-16 bg-canvas">
+    <div className="mx-auto min-h-screen max-w-2xl px-6 py-16 bg-sand">
       {isDemoMode && (
-        <p className="mb-8 rounded-md border border-ochre bg-ochre/15 px-4 py-2 text-sm text-ink">
+        <p className="mb-8 rounded-md border border-orange bg-dawn px-4 py-2 text-sm text-ink">
           Modo de prueba local — editando como Progenitor A.
         </p>
       )}
@@ -30,7 +30,7 @@ export default async function PerfilPage() {
             className="mt-1 w-full rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink"
           />
         </label>
-        <button type="submit" className="mt-2 self-start rounded-full bg-sandstone px-4 py-2 text-sm font-semibold text-white">
+        <button type="submit" className="mt-2 self-start rounded-full bg-orange px-4 py-2 text-sm font-semibold text-ink">
           Guardar
         </button>
       </form>

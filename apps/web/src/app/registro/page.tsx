@@ -17,9 +17,9 @@ export default async function RegistroPage() {
   ]);
 
   return (
-    <div className="mx-auto min-h-screen max-w-2xl px-6 py-16 bg-canvas">
+    <div className="mx-auto min-h-screen max-w-2xl px-6 py-16 bg-sand">
       {isDemoMode && (
-        <p className="mb-8 rounded-md border border-ochre bg-ochre/15 px-4 py-2 text-sm text-ink">
+        <p className="mb-8 rounded-md border border-orange bg-dawn px-4 py-2 text-sm text-ink">
           Modo de prueba local — sin Supabase conectado. Los datos viven en memoria y se
           pierden al reiniciar el servidor.
         </p>
@@ -30,7 +30,7 @@ export default async function RegistroPage() {
         Progenitor A: invita al otro progenitor a tu familia en ALBA. Los hijos se agregan
         dentro del vínculo, no antes.
       </p>
-      <Link href="/perfil" className="mt-3 inline-block text-sm font-medium text-sandstone underline">
+      <Link href="/perfil" className="mt-3 inline-block text-sm font-medium text-purple underline">
         Editar mi perfil y el de mis hijos →
       </Link>
 
@@ -38,7 +38,7 @@ export default async function RegistroPage() {
         <h2 className="text-sm font-semibold uppercase tracking-wide text-ink">Invitar al otro progenitor</h2>
         {pendingInvitations.length > 0 ? (
           pendingInvitations.map((inv) => (
-            <div key={inv.id} className="mt-3 rounded-md bg-sunken px-4 py-3">
+            <div key={inv.id} className="mt-3 rounded-md bg-sea px-4 py-3">
               <p className="text-xs uppercase tracking-wide text-ink-soft">Código de vinculación</p>
               <p className="mt-1 font-mono text-lg font-semibold tracking-wide text-ink">
                 {formatInvitationCode(inv.token)}
@@ -50,7 +50,7 @@ export default async function RegistroPage() {
           ))
         ) : (
           <form action={createInvitationAction} className="mt-3">
-            <button type="submit" className="rounded-full bg-sandstone px-4 py-2 text-sm font-semibold text-white">
+            <button type="submit" className="rounded-full bg-orange px-4 py-2 text-sm font-semibold text-ink">
               Generar código de invitación
             </button>
           </form>
@@ -80,7 +80,7 @@ export default async function RegistroPage() {
               className="mt-1 w-full rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink"
             />
           </label>
-          <button type="submit" className="mt-1 self-start rounded-full bg-ochre px-4 py-2 text-sm font-semibold text-white">
+          <button type="submit" className="mt-1 self-start rounded-full bg-salmon px-4 py-2 text-sm font-semibold text-ink">
             Agregar hijo/a
           </button>
         </form>
