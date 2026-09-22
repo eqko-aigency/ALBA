@@ -1,17 +1,19 @@
-import { pairingRepository } from "@/lib/repository";
-import { DEMO_PARENT_B_ID, isDemoMode } from "@/lib/demoSession";
+import { getCurrentParentId, getRepositories } from "@/lib/repository";
+import { isDemoMode } from "@/lib/demoSession";
 import { acceptInvitationAction } from "./actions";
 
 export default async function InvitacionPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
-  const invitation = await pairingRepository.getInvitationByToken(token);
+  const { pairing } = await getRepositories();
+  const invitation = await pairing.getInvitationByToken(token);
 
   if (!invitation) {
     return <StatusPage title="Invitación no encontrada" message="Revisa que el link esté completo." />;
   }
 
   if (invitation.status === "accepted") {
-    const children = await pairingRepository.getMyChildren(DEMO_PARENT_B_ID);
+    const parentId = await getCurrentParentId("b");
+    const children = await pairing.getMyChildren(parentId);
     return (
       <StatusPage
         title="Invitación aceptada"

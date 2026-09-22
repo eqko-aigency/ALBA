@@ -2,8 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { analyzeToneInputSchema, sendMessageInputSchema, type ToneAnalysis } from "@alba/core";
-import { chatRepository, toneAnalyzer } from "@/lib/repository";
-import { resolveDemoParentId } from "@/lib/demoSession";
+import { getCurrentParentId, getRepositories, toneAnalyzer } from "@/lib/repository";
 
 export async function checkToneAction(body: string): Promise<ToneAnalysis> {
   const input = analyzeToneInputSchema.parse({ body });
@@ -15,7 +14,8 @@ export async function sendMessageAction(formData: FormData) {
     threadId: formData.get("threadId"),
     body: formData.get("body"),
   });
-  const parentId = resolveDemoParentId(String(formData.get("as") ?? ""));
-  await chatRepository.sendMessage(parentId, input);
+  const { chat } = await getRepositories();
+  const parentId = await getCurrentParentId(String(formData.get("as") ?? ""));
+  await chat.sendMessage(parentId, input);
   revalidatePath(`/chat/${input.threadId}`);
 }

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { CHAT_TOPICS } from "@alba/core";
-import { chatRepository, pairingRepository } from "@/lib/repository";
-import { isDemoMode, resolveDemoParentId } from "@/lib/demoSession";
+import { getCurrentParentId, getRepositories } from "@/lib/repository";
+import { isDemoMode } from "@/lib/demoSession";
 import { AppNav } from "@/components/AppNav";
 import { createThreadAction } from "./actions";
 
@@ -11,10 +11,11 @@ export default async function ChatPage({
   searchParams: Promise<{ as?: string }>;
 }) {
   const { as } = await searchParams;
-  const parentId = resolveDemoParentId(as);
+  const { chat, pairing } = await getRepositories();
+  const parentId = await getCurrentParentId(as);
   const [threads, children] = await Promise.all([
-    chatRepository.listThreads(parentId),
-    pairingRepository.getMyChildren(parentId),
+    chat.listThreads(parentId),
+    pairing.getMyChildren(parentId),
   ]);
   const childName = (childId: string | null) => children.find((c) => c.id === childId)?.fullName ?? null;
 

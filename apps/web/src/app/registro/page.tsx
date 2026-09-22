@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { pairingRepository } from "@/lib/repository";
-import { DEMO_PARENT_A_ID, isDemoMode } from "@/lib/demoSession";
+import { getCurrentParentId, getRepositories } from "@/lib/repository";
+import { isDemoMode } from "@/lib/demoSession";
 import { createChildAction, createInvitationAction } from "./actions";
 
 /** Código corto legible derivado del token — estilo W-03 (ej. ALBA-9842-XN23). */
@@ -10,10 +10,13 @@ function formatInvitationCode(token: string): string {
 }
 
 export default async function RegistroPage() {
-  await pairingRepository.getOrCreateMyFamily(DEMO_PARENT_A_ID);
+  const { pairing } = await getRepositories();
+  const parentId = await getCurrentParentId();
+
+  await pairing.getOrCreateMyFamily(parentId);
   const [pendingInvitations, children] = await Promise.all([
-    pairingRepository.listPendingInvitations(DEMO_PARENT_A_ID),
-    pairingRepository.getMyChildren(DEMO_PARENT_A_ID),
+    pairing.listPendingInvitations(parentId),
+    pairing.getMyChildren(parentId),
   ]);
 
   return (

@@ -2,11 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { acceptInvitationInputSchema } from "@alba/core";
-import { pairingRepository } from "@/lib/repository";
-import { DEMO_PARENT_B_ID } from "@/lib/demoSession";
+import { getCurrentParentId, getRepositories } from "@/lib/repository";
 
 export async function acceptInvitationAction(formData: FormData) {
   const input = acceptInvitationInputSchema.parse({ token: formData.get("token") });
-  await pairingRepository.acceptInvitation(DEMO_PARENT_B_ID, input);
+  const { pairing } = await getRepositories();
+  const parentId = await getCurrentParentId("b");
+  await pairing.acceptInvitation(parentId, input);
   revalidatePath(`/invitacion/${input.token}`);
 }

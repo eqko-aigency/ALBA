@@ -12,6 +12,7 @@
   "dependencies": {
     "@alba/api-client": "*",
     "@alba/core": "*",
+    "@supabase/ssr": "^0.5.2",
     "next": "16.3.4",
     "react": "19.2.8",
     "react-dom": "19.2.8"

@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { chatRepository, pairingRepository } from "@/lib/repository";
-import { isDemoMode, resolveDemoParentId } from "@/lib/demoSession";
+import { getCurrentParentId, getRepositories } from "@/lib/repository";
+import { isDemoMode } from "@/lib/demoSession";
 import { MessageComposer } from "./MessageComposer";
 
 export default async function ThreadPage({
@@ -12,12 +12,13 @@ export default async function ThreadPage({
 }) {
   const { threadId } = await params;
   const { as } = await searchParams;
-  const parentId = resolveDemoParentId(as);
+  const { chat, pairing } = await getRepositories();
+  const parentId = await getCurrentParentId(as);
 
   const [threads, messages, children] = await Promise.all([
-    chatRepository.listThreads(parentId),
-    chatRepository.listMessages(parentId, threadId),
-    pairingRepository.getMyChildren(parentId),
+    chat.listThreads(parentId),
+    chat.listMessages(parentId, threadId),
+    pairing.getMyChildren(parentId),
   ]);
   const thread = threads.find((t) => t.id === threadId);
   const childName = children.find((c) => c.id === thread?.childId)?.fullName ?? null;

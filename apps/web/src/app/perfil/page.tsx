@@ -1,11 +1,13 @@
-import { pairingRepository } from "@/lib/repository";
-import { DEMO_PARENT_A_ID, isDemoMode } from "@/lib/demoSession";
+import { getCurrentParentId, getRepositories } from "@/lib/repository";
+import { isDemoMode } from "@/lib/demoSession";
 import { upsertProfileAction, updateChildAction } from "./actions";
 
 export default async function PerfilPage() {
+  const { pairing } = await getRepositories();
+  const parentId = await getCurrentParentId();
   const [profile, children] = await Promise.all([
-    pairingRepository.getProfile(DEMO_PARENT_A_ID),
-    pairingRepository.getMyChildren(DEMO_PARENT_A_ID),
+    pairing.getProfile(parentId),
+    pairing.getMyChildren(parentId),
   ]);
 
   return (

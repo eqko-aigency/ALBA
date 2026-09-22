@@ -2,12 +2,13 @@
 
 import { revalidatePath } from "next/cache";
 import { updateChildInputSchema, upsertProfileInputSchema } from "@alba/core";
-import { pairingRepository } from "@/lib/repository";
-import { DEMO_PARENT_A_ID } from "@/lib/demoSession";
+import { getCurrentParentId, getRepositories } from "@/lib/repository";
 
 export async function upsertProfileAction(formData: FormData) {
   const input = upsertProfileInputSchema.parse({ fullName: formData.get("parentFullName") });
-  await pairingRepository.upsertProfile(DEMO_PARENT_A_ID, input);
+  const { pairing } = await getRepositories();
+  const parentId = await getCurrentParentId();
+  await pairing.upsertProfile(parentId, input);
   revalidatePath("/perfil");
 }
 
@@ -17,6 +18,8 @@ export async function updateChildAction(formData: FormData) {
     fullName: formData.get("childFullName"),
     birthDate: formData.get("childBirthDate"),
   });
-  await pairingRepository.updateChild(DEMO_PARENT_A_ID, childId, input);
+  const { pairing } = await getRepositories();
+  const parentId = await getCurrentParentId();
+  await pairing.updateChild(parentId, childId, input);
   revalidatePath("/perfil");
 }
