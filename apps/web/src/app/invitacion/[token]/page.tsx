@@ -25,23 +25,23 @@ export default async function InvitacionPage({ params }: { params: Promise<{ tok
   }
 
   if (invitation.status === "expired" || new Date(invitation.expiresAt) < new Date()) {
-    return <StatusPage title="Invitación expirada" message="Pide al otro progenitor que genere un link nuevo." />;
+    return <StatusPage title="Invitación expirada" message="Pide al otro progenitor que genere un código nuevo." />;
   }
 
   return (
-    <div className="mx-auto min-h-screen max-w-md px-6 py-16 text-center bg-bruma">
+    <div className="mx-auto min-h-screen max-w-md px-6 py-16 text-center bg-canvas">
       {isDemoMode && (
-        <p className="mb-8 rounded-md border border-ambar bg-ambar/20 px-4 py-2 text-sm text-noche">
+        <p className="mb-8 rounded-md border border-ochre bg-ochre/15 px-4 py-2 text-sm text-ink">
           Modo de prueba local — aceptando como Progenitor B.
         </p>
       )}
-      <h1 className="text-2xl font-semibold tracking-tight text-noche">Te invitaron a coparentar</h1>
-      <p className="mt-2 text-tinta/80">
+      <h1 className="text-2xl font-semibold tracking-tight text-ink">Te invitaron a coparentar</h1>
+      <p className="mt-2 text-ink-soft">
         El otro progenitor te está invitando a vincular tu familia en ALBA.
       </p>
       <form action={acceptInvitationAction} className="mt-8">
         <input type="hidden" name="token" value={token} />
-        <button type="submit" className="rounded-full bg-coral px-5 py-2.5 text-sm font-semibold text-[#4A1B0C]">
+        <button type="submit" className="rounded-full bg-sandstone px-5 py-2.5 text-sm font-semibold text-white shadow-elevated">
           Aceptar invitación
         </button>
       </form>
@@ -51,9 +51,9 @@ export default async function InvitacionPage({ params }: { params: Promise<{ tok
 
 function StatusPage({ title, message }: { title: string; message: string }) {
   return (
-    <div className="mx-auto min-h-screen max-w-md px-6 py-16 text-center bg-bruma">
-      <h1 className="text-2xl font-semibold tracking-tight text-noche">{title}</h1>
-      <p className="mt-2 text-tinta/80">{message}</p>
+    <div className="mx-auto min-h-screen max-w-md px-6 py-16 text-center bg-canvas">
+      <h1 className="text-2xl font-semibold tracking-tight text-ink">{title}</h1>
+      <p className="mt-2 text-ink-soft">{message}</p>
     </div>
   );
 }

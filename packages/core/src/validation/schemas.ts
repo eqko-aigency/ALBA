@@ -24,8 +24,12 @@ export const updateChildInputSchema = z.object({
 });
 export type UpdateChildInput = z.infer<typeof updateChildInputSchema>;
 
+/** Categorías fijas de W-06 (Chat por Temas) — Manual Sandstone Sanctuary §4. */
+export const CHAT_TOPICS = ["Salud", "Escuela", "Pensiones", "Vacaciones"] as const;
+export type ChatTopic = (typeof CHAT_TOPICS)[number];
+
 export const createThreadInputSchema = z.object({
-  topic: z.string().min(2).max(60),
+  topic: z.enum(CHAT_TOPICS),
 });
 export type CreateThreadInput = z.infer<typeof createThreadInputSchema>;
 

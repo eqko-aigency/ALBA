@@ -21,28 +21,28 @@ export default async function ThreadPage({
   const thread = threads.find((t) => t.id === threadId);
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-2xl flex-col px-6 py-16 bg-bruma">
-      <Link href={`/chat${as === "b" ? "?as=b" : ""}`} className="text-sm font-medium text-coral underline">
+    <div className="mx-auto flex min-h-screen max-w-2xl flex-col px-6 py-16 bg-canvas">
+      <Link href={`/chat${as === "b" ? "?as=b" : ""}`} className="text-sm font-medium text-sandstone underline">
         ← Todos los hilos
       </Link>
 
       {isDemoMode && (
-        <p className="mt-4 rounded-md border border-ambar bg-ambar/20 px-4 py-2 text-sm text-noche">
+        <p className="mt-4 rounded-md border border-ochre bg-ochre/15 px-4 py-2 text-sm text-ink">
           Modo de prueba local — escribiendo como Progenitor {as === "b" ? "B" : "A"}.
         </p>
       )}
 
-      <h1 className="mt-4 text-xl font-semibold tracking-tight text-noche">{thread?.topic ?? "Hilo"}</h1>
+      <h1 className="mt-4 text-xl font-semibold tracking-tight text-ink">{thread?.topic ?? "Hilo"}</h1>
 
       <div className="mt-4 flex flex-1 flex-col gap-2">
-        {messages.length === 0 && <p className="text-sm text-tinta/70">Todavía no hay mensajes en este hilo.</p>}
+        {messages.length === 0 && <p className="text-sm text-ink-soft">Todavía no hay mensajes en este hilo.</p>}
         {messages.map((message) => {
           const isMine = message.senderId === parentId;
           return (
             <div key={message.id} className={`flex ${isMine ? "justify-end" : "justify-start"}`}>
               <p
-                className={`max-w-[75%] rounded-2xl px-4 py-2 text-sm ${
-                  isMine ? "bg-coral text-[#4A1B0C]" : "bg-cielo/50 text-noche"
+                className={`max-w-[75%] rounded-lg px-4 py-2 text-sm ${
+                  isMine ? "bg-sandstone text-white" : "bg-sunken text-ink"
                 }`}
               >
                 {message.body}
@@ -60,9 +60,9 @@ export default async function ThreadPage({
           autoComplete="off"
           required
           placeholder="Escribir mensaje…"
-          className="flex-1 rounded-full border border-tinta/20 bg-white px-4 py-2 text-sm text-tinta"
+          className="flex-1 rounded-full border border-subtle bg-card px-4 py-2 text-sm text-ink"
         />
-        <button type="submit" className="rounded-full bg-coral px-4 py-2 text-sm font-semibold text-[#4A1B0C]">
+        <button type="submit" className="rounded-full bg-sandstone px-4 py-2 text-sm font-semibold text-white">
           Enviar
         </button>
       </form>

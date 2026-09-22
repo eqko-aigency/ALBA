@@ -1,35 +1,64 @@
 @import "tailwindcss";
 
+/* Sistema de diseño "Sandstone Sanctuary" v2.5 —
+   docs/design/Manual del Sistema de Diseño ALBA — Sandstone Sanctuary.pdf */
 :root {
-  --alba-noche: #241b32;
-  --alba-coral: #e2735a;
-  --alba-ambar: #efa25f;
-  --alba-cielo: #9fb0c9;
-  --alba-bruma: #fbf1e6;
-  --alba-tinta: #2a2438;
+  --ss-bg-canvas: #f5f2ec;
+  --ss-surface-card: #ffffff;
+  --ss-surface-muted: #e8e3d8;
+  --ss-surface-sunken: #ede7dd;
+  --ss-brand-sandstone: #b06b53;
+  --ss-brand-hover: #985741;
+  --ss-action-ochre: #c57d2c;
+  --ss-status-emerald: #059669;
+  --ss-status-terracotta: #b54b3a;
+  --ss-text-primary: #262e2b;
+  --ss-text-secondary: #8e726e;
+  --ss-text-tertiary: #929792;
+  --ss-border-subtle: #e2dcd5;
 
-  --background: var(--alba-bruma);
-  --foreground: var(--alba-tinta);
+  --shadow-ambient: 0 4px 20px rgba(38, 46, 43, 0.04);
+  --shadow-elevated: 0 12px 32px rgba(38, 46, 43, 0.08);
+  --shadow-modal: 0 24px 48px rgba(38, 46, 43, 0.12);
+
+  --background: var(--ss-bg-canvas);
+  --foreground: var(--ss-text-primary);
 }
 
 @theme inline {
-  --color-noche: var(--alba-noche);
-  --color-coral: var(--alba-coral);
-  --color-ambar: var(--alba-ambar);
-  --color-cielo: var(--alba-cielo);
-  --color-bruma: var(--alba-bruma);
-  --color-tinta: var(--alba-tinta);
+  --color-canvas: var(--ss-bg-canvas);
+  --color-card: var(--ss-surface-card);
+  --color-muted: var(--ss-surface-muted);
+  --color-sunken: var(--ss-surface-sunken);
+  --color-sandstone: var(--ss-brand-sandstone);
+  --color-sandstone-hover: var(--ss-brand-hover);
+  --color-ochre: var(--ss-action-ochre);
+  --color-emerald: var(--ss-status-emerald);
+  --color-terracotta: var(--ss-status-terracotta);
+  --color-ink: var(--ss-text-primary);
+  --color-ink-soft: var(--ss-text-secondary);
+  --color-ink-faint: var(--ss-text-tertiary);
+  --color-subtle: var(--ss-border-subtle);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+
   --font-sans: var(--font-jakarta);
+  --font-mono: var(--font-jetbrains-mono);
+
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 28px;
+
+  --shadow-ambient: var(--shadow-ambient);
+  --shadow-elevated: var(--shadow-elevated);
+  --shadow-modal: var(--shadow-modal);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: var(--alba-noche);
-    --foreground: var(--alba-bruma);
-  }
-}
+/* Sin modo oscuro definido en el manual — el lienzo mate mineral es
+   deliberadamente único (reduce fatiga por reflectancia en lecturas
+   nocturnas), así que no se invierte. */
 
 body {
   background: var(--background);

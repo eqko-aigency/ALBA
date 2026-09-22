@@ -18,11 +18,11 @@ const domainModules: Array<{ name: string; description: string }> = [
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen flex-col items-center bg-bruma px-6 py-20">
+    <div className="flex min-h-screen flex-col items-center bg-canvas px-6 py-20">
       <main className="w-full max-w-2xl">
-        <p className="text-sm font-medium uppercase tracking-wide text-cielo">ALBA · Etapa 2</p>
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-noche">Monorepo inicializado</h1>
-        <p className="mt-3 text-tinta/80">
+        <p className="text-sm font-medium uppercase tracking-wide text-ochre">ALBA · Etapa 2</p>
+        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-ink">Monorepo inicializado</h1>
+        <p className="mt-3 text-ink-soft">
           <code className="font-mono text-sm">apps/web</code> ya resuelve tipos desde{" "}
           <code className="font-mono text-sm">@alba/core</code>. Registro/emparejamiento por familia y
           perfiles ya tienen un flujo de punta a punta corriendo contra un repositorio mock —
@@ -32,16 +32,16 @@ export default function Home() {
 
         <Link
           href="/registro"
-          className="mt-6 inline-block rounded-full bg-coral px-5 py-2.5 text-sm font-semibold text-[#4A1B0C]"
+          className="mt-6 inline-block rounded-full bg-sandstone px-5 py-2.5 text-sm font-semibold text-white shadow-elevated"
         >
           Probar registro y emparejamiento →
         </Link>
 
-        <ul className="mt-8 divide-y divide-tinta/10 rounded-lg border border-tinta/10 bg-white/40">
+        <ul className="mt-8 divide-y divide-subtle rounded-lg border border-subtle bg-card shadow-ambient">
           {domainModules.map((mod) => (
             <li key={mod.name} className="p-4">
-              <p className="font-mono text-sm text-noche">@alba/core/{mod.name}</p>
-              <p className="mt-1 text-sm text-tinta/70">{mod.description}</p>
+              <p className="font-mono text-sm text-ink">@alba/core/{mod.name}</p>
+              <p className="mt-1 text-sm text-ink-soft">{mod.description}</p>
             </li>
           ))}
         </ul>

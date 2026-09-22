@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CHAT_TOPICS } from "@alba/core";
 import { chatRepository } from "@/lib/repository";
 import { isDemoMode, resolveDemoParentId } from "@/lib/demoSession";
 import { AppNav } from "@/components/AppNav";
@@ -12,11 +13,12 @@ export default async function ChatPage({
   const { as } = await searchParams;
   const parentId = resolveDemoParentId(as);
   const threads = await chatRepository.listThreads(parentId);
+  const availableTopics = CHAT_TOPICS.filter((topic) => !threads.some((t) => t.topic === topic));
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-2xl flex-col px-6 py-16 bg-bruma">
+    <div className="mx-auto flex min-h-screen max-w-2xl flex-col px-6 py-16 bg-canvas">
       {isDemoMode && (
-        <p className="mb-6 rounded-md border border-ambar bg-ambar/20 px-4 py-2 text-sm text-noche">
+        <p className="mb-6 rounded-md border border-ochre bg-ochre/15 px-4 py-2 text-sm text-ink">
           Modo de prueba local — viendo como Progenitor {as === "b" ? "B" : "A"}.{" "}
           <Link href={as === "b" ? "/chat" : "/chat?as=b"} className="underline">
             Cambiar a Progenitor {as === "b" ? "A" : "B"}
@@ -24,31 +26,36 @@ export default async function ChatPage({
         </p>
       )}
 
-      <h1 className="text-2xl font-semibold tracking-tight text-noche">Chat</h1>
-      <p className="mt-2 text-tinta/80">Hilos por tema, compartidos con el otro progenitor.</p>
+      <h1 className="text-2xl font-semibold tracking-tight text-ink">Chat por temas</h1>
+      <p className="mt-2 text-ink-soft">Categorías fijas, compartidas con el otro progenitor.</p>
 
-      <form action={createThreadAction} className="mt-6 flex gap-2">
-        <input type="hidden" name="as" value={as ?? ""} />
-        <input
-          name="topic"
-          autoComplete="off"
-          required
-          minLength={2}
-          placeholder="Nuevo hilo (ej. Gastos escolares)"
-          className="flex-1 rounded-md border border-tinta/20 bg-white px-3 py-2 text-sm text-tinta"
-        />
-        <button type="submit" className="rounded-full bg-coral px-4 py-2 text-sm font-semibold text-[#4A1B0C]">
-          Crear
-        </button>
-      </form>
+      {availableTopics.length > 0 && (
+        <form action={createThreadAction} className="mt-6 flex gap-2">
+          <input type="hidden" name="as" value={as ?? ""} />
+          <select
+            name="topic"
+            required
+            className="flex-1 rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink"
+          >
+            {availableTopics.map((topic) => (
+              <option key={topic} value={topic}>
+                {topic}
+              </option>
+            ))}
+          </select>
+          <button type="submit" className="rounded-full bg-sandstone px-4 py-2 text-sm font-semibold text-white">
+            Abrir hilo
+          </button>
+        </form>
+      )}
 
       <ul className="mt-6 flex flex-1 flex-col gap-2">
-        {threads.length === 0 && <p className="text-sm text-tinta/70">Todavía no hay hilos — crea el primero.</p>}
+        {threads.length === 0 && <p className="text-sm text-ink-soft">Todavía no hay hilos — abre el primero.</p>}
         {threads.map((thread) => (
           <li key={thread.id}>
             <Link
               href={`/chat/${thread.id}${as === "b" ? "?as=b" : ""}`}
-              className="block rounded-lg bg-cielo/40 px-4 py-3 font-medium text-noche"
+              className="block rounded-lg border border-subtle bg-card px-4 py-3 font-medium text-ink shadow-ambient"
             >
               {thread.topic}
             </Link>
@@ -57,7 +64,7 @@ export default async function ChatPage({
       </ul>
 
       <div className="mt-8">
-        <AppNav active="Chat" />
+        <AppNav active="Acuerdo" />
       </div>
     </div>
   );
