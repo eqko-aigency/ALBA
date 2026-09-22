@@ -1,21 +1,27 @@
 import {
   createAlbaClient,
+  createAnthropicToneAnalyzer,
+  createHeuristicToneAnalyzer,
   createMockChatRepository,
   createMockPairingRepository,
   createSupabaseChatRepository,
   createSupabasePairingRepository,
 } from "@alba/api-client";
-import type { ChatRepository, PairingRepository } from "@alba/core";
+import type { ChatRepository, PairingRepository, ToneAnalyzer } from "@alba/core";
 
 export const isSupabaseConfigured = Boolean(
   process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 );
+
+// ANTHROPIC_API_KEY (sin NEXT_PUBLIC_) — nunca debe llegar al cliente.
+const isAnthropicConfigured = Boolean(process.env.ANTHROPIC_API_KEY);
 
 // Singleton en globalThis para sobrevivir el hot-reload de Next en desarrollo
 // (si no, cada recarga de módulo perdería los datos del mock en memoria).
 const globalForAlba = globalThis as unknown as {
   pairingRepository?: PairingRepository;
   chatRepository?: ChatRepository;
+  toneAnalyzer?: ToneAnalyzer;
 };
 
 function buildRepositories(): { pairing: PairingRepository; chat: ChatRepository } {
@@ -41,5 +47,12 @@ const repos = globalForAlba.pairingRepository && globalForAlba.chatRepository
 globalForAlba.pairingRepository = repos.pairing;
 globalForAlba.chatRepository = repos.chat;
 
+globalForAlba.toneAnalyzer =
+  globalForAlba.toneAnalyzer ??
+  (isAnthropicConfigured
+    ? createAnthropicToneAnalyzer(process.env.ANTHROPIC_API_KEY!)
+    : createHeuristicToneAnalyzer());
+
 export const pairingRepository: PairingRepository = repos.pairing;
 export const chatRepository: ChatRepository = repos.chat;
+export const toneAnalyzer: ToneAnalyzer = globalForAlba.toneAnalyzer;

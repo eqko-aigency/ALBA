@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@alba/core": "*",
+    "@anthropic-ai/sdk": "^0.32.0",
     "@supabase/supabase-js": "^2.47.0"
   },
   "devDependencies": {

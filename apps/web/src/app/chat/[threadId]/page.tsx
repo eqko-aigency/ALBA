@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { chatRepository } from "@/lib/repository";
+import { chatRepository, pairingRepository } from "@/lib/repository";
 import { isDemoMode, resolveDemoParentId } from "@/lib/demoSession";
-import { sendMessageAction } from "./actions";
+import { MessageComposer } from "./MessageComposer";
 
 export default async function ThreadPage({
   params,
@@ -14,11 +14,13 @@ export default async function ThreadPage({
   const { as } = await searchParams;
   const parentId = resolveDemoParentId(as);
 
-  const [threads, messages] = await Promise.all([
+  const [threads, messages, children] = await Promise.all([
     chatRepository.listThreads(parentId),
     chatRepository.listMessages(parentId, threadId),
+    pairingRepository.getMyChildren(parentId),
   ]);
   const thread = threads.find((t) => t.id === threadId);
+  const childName = children.find((c) => c.id === thread?.childId)?.fullName ?? null;
 
   return (
     <div className="mx-auto flex min-h-screen max-w-2xl flex-col px-6 py-16 bg-sand">
@@ -32,7 +34,12 @@ export default async function ThreadPage({
         </p>
       )}
 
-      <h1 className="mt-4 text-xl font-semibold tracking-tight text-ink">{thread?.topic ?? "Hilo"}</h1>
+      <div className="mt-4 flex items-center gap-2">
+        <h1 className="text-xl font-semibold tracking-tight text-ink">{thread?.topic ?? "Hilo"}</h1>
+        <span className="rounded-full bg-sea px-2.5 py-1 text-xs font-medium text-ink">
+          {childName ?? "General"}
+        </span>
+      </div>
 
       <div className="mt-4 flex flex-1 flex-col gap-2">
         {messages.length === 0 && <p className="text-sm text-ink-soft">Todavía no hay mensajes en este hilo.</p>}
@@ -52,20 +59,7 @@ export default async function ThreadPage({
         })}
       </div>
 
-      <form action={sendMessageAction} className="mt-4 flex gap-2">
-        <input type="hidden" name="threadId" value={threadId} />
-        <input type="hidden" name="as" value={as ?? ""} />
-        <input
-          name="body"
-          autoComplete="off"
-          required
-          placeholder="Escribir mensaje…"
-          className="flex-1 rounded-full border border-subtle bg-card px-4 py-2 text-sm text-ink"
-        />
-        <button type="submit" className="rounded-full bg-orange px-4 py-2 text-sm font-semibold text-ink">
-          Enviar
-        </button>
-      </form>
+      <MessageComposer threadId={threadId} as={as ?? ""} />
     </div>
   );
 }

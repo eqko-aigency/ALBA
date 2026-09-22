@@ -30,6 +30,11 @@ export type ChatTopic = (typeof CHAT_TOPICS)[number];
 
 export const createThreadInputSchema = z.object({
   topic: z.enum(CHAT_TOPICS),
+  /** "" desde el <select> significa "hilo general" — se normaliza a null. */
+  childId: z
+    .union([z.string().uuid(), z.literal("")])
+    .transform((v) => (v === "" ? null : v))
+    .nullable(),
 });
 export type CreateThreadInput = z.infer<typeof createThreadInputSchema>;
 
@@ -38,6 +43,11 @@ export const sendMessageInputSchema = z.object({
   body: z.string().min(1).max(2000),
 });
 export type SendMessageInput = z.infer<typeof sendMessageInputSchema>;
+
+export const analyzeToneInputSchema = z.object({
+  body: z.string().min(1).max(2000),
+});
+export type AnalyzeToneInput = z.infer<typeof analyzeToneInputSchema>;
 
 export const custodyEventInputSchema = z.object({
   childId: z.string().uuid(),

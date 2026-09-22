@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { CHAT_TOPICS } from "@alba/core";
-import { chatRepository } from "@/lib/repository";
+import { chatRepository, pairingRepository } from "@/lib/repository";
 import { isDemoMode, resolveDemoParentId } from "@/lib/demoSession";
 import { AppNav } from "@/components/AppNav";
 import { createThreadAction } from "./actions";
@@ -12,8 +12,11 @@ export default async function ChatPage({
 }) {
   const { as } = await searchParams;
   const parentId = resolveDemoParentId(as);
-  const threads = await chatRepository.listThreads(parentId);
-  const availableTopics = CHAT_TOPICS.filter((topic) => !threads.some((t) => t.topic === topic));
+  const [threads, children] = await Promise.all([
+    chatRepository.listThreads(parentId),
+    pairingRepository.getMyChildren(parentId),
+  ]);
+  const childName = (childId: string | null) => children.find((c) => c.id === childId)?.fullName ?? null;
 
   return (
     <div className="mx-auto flex min-h-screen max-w-2xl flex-col px-6 py-16 bg-sand">
@@ -27,27 +30,29 @@ export default async function ChatPage({
       )}
 
       <h1 className="text-2xl font-semibold tracking-tight text-ink">Chat por temas</h1>
-      <p className="mt-2 text-ink-soft">Categorías fijas, compartidas con el otro progenitor.</p>
+      <p className="mt-2 text-ink-soft">Categoría fija + hijo — compartido con el otro progenitor.</p>
 
-      {availableTopics.length > 0 && (
-        <form action={createThreadAction} className="mt-6 flex gap-2">
-          <input type="hidden" name="as" value={as ?? ""} />
-          <select
-            name="topic"
-            required
-            className="flex-1 rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink"
-          >
-            {availableTopics.map((topic) => (
-              <option key={topic} value={topic}>
-                {topic}
-              </option>
-            ))}
-          </select>
-          <button type="submit" className="rounded-full bg-orange px-4 py-2 text-sm font-semibold text-ink">
-            Abrir hilo
-          </button>
-        </form>
-      )}
+      <form action={createThreadAction} className="mt-6 flex flex-col gap-2 sm:flex-row">
+        <input type="hidden" name="as" value={as ?? ""} />
+        <select name="topic" required className="flex-1 rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink">
+          {CHAT_TOPICS.map((topic) => (
+            <option key={topic} value={topic}>
+              {topic}
+            </option>
+          ))}
+        </select>
+        <select name="childId" className="flex-1 rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink">
+          <option value="">General (toda la familia)</option>
+          {children.map((child) => (
+            <option key={child.id} value={child.id}>
+              {child.fullName}
+            </option>
+          ))}
+        </select>
+        <button type="submit" className="rounded-full bg-orange px-4 py-2 text-sm font-semibold text-ink">
+          Abrir hilo
+        </button>
+      </form>
 
       <ul className="mt-6 flex flex-1 flex-col gap-2">
         {threads.length === 0 && <p className="text-sm text-ink-soft">Todavía no hay hilos — abre el primero.</p>}
@@ -55,9 +60,12 @@ export default async function ChatPage({
           <li key={thread.id}>
             <Link
               href={`/chat/${thread.id}${as === "b" ? "?as=b" : ""}`}
-              className="block rounded-lg border border-subtle bg-card px-4 py-3 font-medium text-ink shadow-ambient"
+              className="flex items-center justify-between rounded-lg border border-subtle bg-card px-4 py-3 shadow-ambient"
             >
-              {thread.topic}
+              <span className="font-medium text-ink">{thread.topic}</span>
+              <span className="rounded-full bg-sea px-2.5 py-1 text-xs font-medium text-ink">
+                {childName(thread.childId) ?? "General"}
+              </span>
             </Link>
           </li>
         ))}

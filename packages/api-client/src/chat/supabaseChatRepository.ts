@@ -23,7 +23,7 @@ export function createSupabaseChatRepository(client: SupabaseClient): ChatReposi
       if (!familyId) throw new Error("el progenitor no pertenece a ninguna familia todavía");
       const { data, error } = await client
         .from("chat_threads")
-        .insert({ family_id: familyId, topic: input.topic, created_by: parentId })
+        .insert({ family_id: familyId, topic: input.topic, child_id: input.childId, created_by: parentId })
         .select()
         .single();
       if (error) throw error;
@@ -53,7 +53,13 @@ export function createSupabaseChatRepository(client: SupabaseClient): ChatReposi
 }
 
 function mapThread(row: any): ChatThread {
-  return { id: row.id, familyId: row.family_id, topic: row.topic, createdAt: row.created_at };
+  return {
+    id: row.id,
+    familyId: row.family_id,
+    topic: row.topic,
+    childId: row.child_id,
+    createdAt: row.created_at,
+  };
 }
 
 function mapMessage(row: any): Message {

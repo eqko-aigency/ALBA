@@ -28,6 +28,7 @@ export function createMockChatRepository(pairingRepository: PairingRepository): 
         id: crypto.randomUUID(),
         familyId: family.id,
         topic: input.topic,
+        childId: input.childId,
         createdAt: new Date().toISOString(),
       };
       threads.set(thread.id, thread);

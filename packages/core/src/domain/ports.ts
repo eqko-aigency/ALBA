@@ -1,4 +1,4 @@
-import type { Child, ChatThread, Family, Invitation, Message, Parent } from "./entities";
+import type { Child, ChatThread, Family, Invitation, Message, Parent, ToneAnalysis } from "./entities";
 import type {
   AcceptInvitationInput,
   CreateThreadInput,
@@ -38,4 +38,13 @@ export interface ChatRepository {
   createThread(parentId: string, input: CreateThreadInput): Promise<ChatThread>;
   listMessages(parentId: string, threadId: string): Promise<Message[]>;
   sendMessage(parentId: string, input: SendMessageInput): Promise<Message>;
+}
+
+/**
+ * Puerto para el Tone Meter — nunca corre en el cliente (la implementación
+ * real llama a la API de Anthropic desde el servidor). La de prueba usa un
+ * heurístico simple para poder construir y probar el flujo sin API key.
+ */
+export interface ToneAnalyzer {
+  analyze(body: string): Promise<ToneAnalysis>;
 }

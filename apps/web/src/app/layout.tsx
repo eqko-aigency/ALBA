@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
 const jakarta = Plus_Jakarta_Sans({
@@ -12,6 +13,13 @@ const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
 });
 
+/** Tipografía del wordmark "alba" — docs/design/Presentación Logo Alba.pdf.
+ * Reservada para el logotipo, no para texto de UI. */
+const albaWordmark = localFont({
+  src: "./fonts/alba-wordmark.ttf",
+  variable: "--font-alba-wordmark",
+});
+
 export const metadata: Metadata = {
   title: "ALBA",
   description: "App de coparentalidad",
@@ -19,7 +27,10 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="es" className={`${jakarta.variable} ${jetbrainsMono.variable} h-full antialiased`}>
+    <html
+      lang="es"
+      className={`${jakarta.variable} ${jetbrainsMono.variable} ${albaWordmark.variable} h-full antialiased`}
+    >
       <body className="min-h-full flex flex-col font-sans">{children}</body>
     </html>
   );

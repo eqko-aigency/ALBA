@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ComplianceIssueType } from "@alba/core";
+import { Wordmark } from "@/components/Wordmark";
 
 const complianceIssueLabels: Record<ComplianceIssueType, string> = {
   missed_checkin: "Check-in no confirmado",
@@ -20,7 +21,8 @@ export default function Home() {
   return (
     <div className="flex min-h-screen flex-col items-center bg-sand px-6 py-20">
       <main className="w-full max-w-2xl">
-        <p className="text-sm font-medium uppercase tracking-wide text-purple">ALBA · Etapa 2</p>
+        <Wordmark className="text-5xl" />
+        <p className="mt-4 text-sm font-medium uppercase tracking-wide text-purple">ALBA · Etapa 2</p>
         <h1 className="mt-2 text-3xl font-semibold tracking-tight text-ink">Monorepo inicializado</h1>
         <p className="mt-3 text-ink-soft">
           <code className="font-mono text-sm">apps/web</code> ya resuelve tipos desde{" "}

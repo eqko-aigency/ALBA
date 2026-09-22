@@ -53,6 +53,7 @@
 
   --font-sans: var(--font-jakarta);
   --font-mono: var(--font-jetbrains-mono);
+  --font-wordmark: var(--font-alba-wordmark);
 
   /* Estructura (radios/sombras) sin definir en el manual de marca —
      se mantiene la escala ya probada, solo se recolorea. */

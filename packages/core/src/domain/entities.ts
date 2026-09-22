@@ -30,6 +30,8 @@ export interface ChatThread {
   id: string;
   familyId: string;
   topic: string;
+  /** Hijo al que aplica el hilo — null para hilos generales de la familia. */
+  childId: string | null;
   createdAt: string;
 }
 
@@ -39,6 +41,14 @@ export interface Message {
   senderId: string;
   body: string;
   createdAt: string;
+}
+
+export type ToneLevel = "neutral" | "tenso" | "hostil";
+
+export interface ToneAnalysis {
+  level: ToneLevel;
+  /** Reformulación sugerida — null cuando level es "neutral". */
+  suggestion: string | null;
 }
 
 export interface Expense {
