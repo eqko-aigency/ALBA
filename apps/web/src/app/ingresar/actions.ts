@@ -21,6 +21,12 @@ export async function loginAction(formData: FormData): Promise<{ error: string }
     if (error.message === "Email not confirmed") {
       return { error: "Todavía no confirmaste tu email — revisa tu bandeja de entrada." };
     }
+    if (error.status === 429) {
+      return { error: "Demasiados intentos — espera un momento e intenta de nuevo." };
+    }
+    if (error.status && error.status >= 500) {
+      return { error: "Hubo un problema temporal del servidor. Intenta de nuevo en un momento." };
+    }
     return { error: "Email o contraseña incorrectos." };
   }
 
