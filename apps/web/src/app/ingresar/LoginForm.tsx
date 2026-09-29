@@ -4,8 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { loginAction } from "./actions";
 
-export function LoginForm() {
-  const [error, setError] = useState<string | null>(null);
+export function LoginForm({ initialError = null }: { initialError?: string | null }) {
+  const [error, setError] = useState<string | null>(initialError);
   const [pending, setPending] = useState(false);
 
   async function handleSubmit(formData: FormData) {
