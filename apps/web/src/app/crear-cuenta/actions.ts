@@ -23,6 +23,10 @@ export async function signupAction(
     return { error: "Revisa los datos: nombre, email y contraseña (mínimo 8 caracteres)." };
   }
 
+  if (!process.env.NEXT_PUBLIC_SITE_URL) {
+    throw new Error("NEXT_PUBLIC_SITE_URL no está configurada — no se puede armar el link de confirmación.");
+  }
+
   const client = await createSupabaseServerClient();
   const { error } = await client.auth.signUp({
     email: parsed.data.email,
