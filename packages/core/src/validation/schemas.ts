@@ -58,3 +58,16 @@ export const custodyEventInputSchema = z.object({
     .nullable(),
 });
 export type CustodyEventInput = z.infer<typeof custodyEventInputSchema>;
+
+export const signUpInputSchema = z.object({
+  fullName: z.string().min(2).max(120),
+  email: z.string().email(),
+  password: z.string().min(8).max(72),
+});
+export type SignUpInput = z.infer<typeof signUpInputSchema>;
+
+export const signInInputSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(1),
+});
+export type SignInInput = z.infer<typeof signInInputSchema>;
