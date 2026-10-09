@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { CHAT_TOPICS } from "@alba/core";
-import { getCurrentParentId, getRepositories } from "@/lib/repository";
+import { getRequestContext } from "@/lib/repository";
 import { isDemoMode } from "@/lib/demoSession";
 import { AppNav } from "@/components/AppNav";
 import { createThreadAction } from "./actions";
@@ -11,8 +11,7 @@ export default async function ChatPage({
   searchParams: Promise<{ as?: string }>;
 }) {
   const { as } = await searchParams;
-  const { chat, pairing } = await getRepositories();
-  const parentId = await getCurrentParentId(as);
+  const { chat, pairing, parentId } = await getRequestContext(as);
   const [threads, children] = await Promise.all([
     chat.listThreads(parentId),
     pairing.getMyChildren(parentId),

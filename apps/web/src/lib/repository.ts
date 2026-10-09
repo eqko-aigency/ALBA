@@ -31,32 +31,25 @@ function getMockRepositories(): { pairing: PairingRepository; chat: ChatReposito
 }
 
 /**
- * Repositorios para ESTA request. En modo Supabase real se construyen de
- * nuevo cada vez, con un cliente atado a la cookie de sesión de quien está
- * pidiendo esto — nunca un singleton (ver supabaseServerClient.ts). En modo
- * demo, sí reusan el mock compartido de proceso.
+ * Repositorios + identidad del caller para ESTA request, desde UN SOLO
+ * cliente de Supabase — nunca uno para los repos y otro aparte para
+ * resolver auth.uid() (ver supabaseServerClient.ts para por qué el cliente
+ * en sí nunca es un singleton). Repartir la identidad y los repos entre dos
+ * clientes construidos por separado causó un bug real en producción:
+ * justo después de confirmar el email, el cliente de los repos todavía no
+ * tenía la sesión resuelta al momento del insert, y Postgres lo evaluaba
+ * como anónimo — "new row violates row-level security policy" — aunque el
+ * otro cliente sí devolvía el user.id correcto. Con un solo cliente, el
+ * insert y la resolución de auth.uid() ven exactamente el mismo estado de
+ * sesión.
  */
-export async function getRepositories(): Promise<{ pairing: PairingRepository; chat: ChatRepository }> {
-  if (!isSupabaseConfigured) return getMockRepositories();
-
-  const client = await createSupabaseServerClient();
-  return {
-    pairing: createSupabasePairingRepository(client),
-    chat: createSupabaseChatRepository(client),
-  };
-}
-
-/**
- * Quién está haciendo esta petición. En modo demo, el progenitor fijo que
- * indique `as` (ver demoSession.ts). En modo Supabase real, SIEMPRE se lee
- * de la sesión autenticada — nunca de un valor que la propia request pueda
- * inventar — para que coincida con el auth.uid() que evalúa cada política
- * de RLS. Sin sesión real, esto lanza en vez de inventar un id.
- */
-export async function getCurrentParentId(as?: string): Promise<string> {
+export async function getRequestContext(
+  as?: string
+): Promise<{ pairing: PairingRepository; chat: ChatRepository; parentId: string }> {
   if (!isSupabaseConfigured) {
     const { resolveDemoParentId } = await import("./demoSession");
-    return resolveDemoParentId(as);
+    const { pairing, chat } = getMockRepositories();
+    return { pairing, chat, parentId: resolveDemoParentId(as) };
   }
 
   const client = await createSupabaseServerClient();
@@ -67,7 +60,27 @@ export async function getCurrentParentId(as?: string): Promise<string> {
   if (error || !user) {
     throw new Error("No hay sesión activa — inicia sesión para continuar.");
   }
-  return user.id;
+
+  return {
+    pairing: createSupabasePairingRepository(client),
+    chat: createSupabaseChatRepository(client),
+    parentId: user.id,
+  };
+}
+
+/**
+ * Repositorio de pairing SIN exigir sesión — para vistas públicas como
+ * /invitacion/[token], donde cualquiera con el link debe poder ver el
+ * estado de la invitación (pending/expired) sin haber iniciado sesión.
+ * No expone parentId porque no hay identidad que resolver acá.
+ */
+export async function getPublicPairingRepository(): Promise<PairingRepository> {
+  if (!isSupabaseConfigured) {
+    const { pairing } = getMockRepositories();
+    return pairing;
+  }
+  const client = await createSupabaseServerClient();
+  return createSupabasePairingRepository(client);
 }
 
 const globalForTone = globalThis as unknown as { toneAnalyzer?: ToneAnalyzer };

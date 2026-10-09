@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getCurrentParentId, getRepositories } from "@/lib/repository";
+import { getRequestContext } from "@/lib/repository";
 import { isDemoMode } from "@/lib/demoSession";
 import { LogoutButton } from "@/components/LogoutButton";
 import { createChildAction, createInvitationAction } from "./actions";
@@ -11,8 +11,7 @@ function formatInvitationCode(token: string): string {
 }
 
 export default async function RegistroPage() {
-  const { pairing } = await getRepositories();
-  const parentId = await getCurrentParentId();
+  const { pairing, parentId } = await getRequestContext();
 
   await pairing.getOrCreateMyFamily(parentId);
   const [pendingInvitations, children] = await Promise.all([
