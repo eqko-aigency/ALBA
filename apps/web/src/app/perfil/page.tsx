@@ -1,5 +1,6 @@
 import { getCurrentParentId, getRepositories } from "@/lib/repository";
 import { isDemoMode } from "@/lib/demoSession";
+import { LogoutButton } from "@/components/LogoutButton";
 import { upsertProfileAction, updateChildAction } from "./actions";
 
 export default async function PerfilPage() {
@@ -18,7 +19,10 @@ export default async function PerfilPage() {
         </p>
       )}
 
-      <h1 className="text-2xl font-semibold tracking-tight text-ink">Mi perfil</h1>
+      <div className="flex items-start justify-between gap-3">
+        <h1 className="text-2xl font-semibold tracking-tight text-ink">Mi perfil</h1>
+        <LogoutButton />
+      </div>
 
       <form action={upsertProfileAction} className="mt-6 flex flex-col gap-3 rounded-lg border border-subtle bg-card p-5 shadow-ambient">
         <label className="text-sm font-medium text-ink">

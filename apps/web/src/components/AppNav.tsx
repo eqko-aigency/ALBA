@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { logoutAction } from "@/lib/authActions";
+import { LogoutButton } from "./LogoutButton";
 
 const items = [
   { href: "/chat", label: "Acuerdo", enabled: true },
@@ -33,14 +33,7 @@ export function AppNav({ active }: { active: "Acuerdo" | "Calendario" | "Gastos"
           )
         )}
       </nav>
-      <form action={logoutAction}>
-        <button
-          type="submit"
-          className="rounded-full border border-subtle px-3 py-2 text-xs font-medium text-ink-soft"
-        >
-          Cerrar sesión
-        </button>
-      </form>
+      <LogoutButton />
     </div>
   );
 }

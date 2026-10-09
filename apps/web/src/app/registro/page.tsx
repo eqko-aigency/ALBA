@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getCurrentParentId, getRepositories } from "@/lib/repository";
 import { isDemoMode } from "@/lib/demoSession";
+import { LogoutButton } from "@/components/LogoutButton";
 import { createChildAction, createInvitationAction } from "./actions";
 
 /** Código corto legible derivado del token — estilo W-03 (ej. ALBA-9842-XN23). */
@@ -28,7 +29,10 @@ export default async function RegistroPage() {
         </p>
       )}
 
-      <h1 className="text-2xl font-semibold tracking-tight text-ink">Registro y emparejamiento</h1>
+      <div className="flex items-start justify-between gap-3">
+        <h1 className="text-2xl font-semibold tracking-tight text-ink">Registro y emparejamiento</h1>
+        <LogoutButton />
+      </div>
       <p className="mt-2 text-ink-soft">
         Progenitor A: invita al otro progenitor a tu familia en ALBA. Los hijos se agregan
         dentro del vínculo, no antes.
