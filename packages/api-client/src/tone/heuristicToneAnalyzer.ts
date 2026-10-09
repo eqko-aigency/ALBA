@@ -3,7 +3,10 @@ import type { ToneAnalyzer, ToneAnalysis, ToneLevel } from "@alba/core";
 const HOSTILE_PATTERNS = [
   /\bnunca\s+haces\b/i,
   /\bsiempre\s+haces\b/i,
-  /\beres\s+un[a]?\s+/i,
+  // Antes "eres un/una " solo, sin exigir una palabra ofensiva después —
+  // marcaba como hostil frases como "eres un gran papá". Ahora exige que
+  // le siga un insulto conocido.
+  /\beres\s+un[a]?\s+(idiota|estúpid[oa]|inútil|imbécil|tont[oa]|desastre|fracasad[oa])\b/i,
   /\bme\s+vale\b/i,
   /\bno\s+me\s+importa\b/i,
   /\bidiota\b/i,
