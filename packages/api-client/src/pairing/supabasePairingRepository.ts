@@ -70,8 +70,12 @@ export function createSupabasePairingRepository(client: SupabaseClient): Pairing
       if (error) throw error;
       if (!data) return null;
 
-      const { data: userData } = await client.auth.getUser();
-      const email = userData.user?.id === parentId ? (userData.user?.email ?? "") : "";
+      // getSession() lee el JWT ya verificado localmente, sin pegarle de
+      // nuevo al servidor de Auth — a diferencia de getCurrentParentId()
+      // (repository.ts), acá la identidad del caller ya se validó río
+      // arriba; esto solo necesita leer el email que ya trae la sesión.
+      const { data: sessionData } = await client.auth.getSession();
+      const email = sessionData.session?.user.id === parentId ? (sessionData.session?.user.email ?? "") : "";
       return { id: data.id, fullName: data.full_name, email };
     },
 
@@ -83,8 +87,8 @@ export function createSupabasePairingRepository(client: SupabaseClient): Pairing
         .single();
       if (error) throw error;
 
-      const { data: userData } = await client.auth.getUser();
-      return { id: data.id, fullName: data.full_name, email: userData.user?.email ?? "" };
+      const { data: sessionData } = await client.auth.getSession();
+      return { id: data.id, fullName: data.full_name, email: sessionData.session?.user.email ?? "" };
     },
 
     async getInvitationByToken(token) {
