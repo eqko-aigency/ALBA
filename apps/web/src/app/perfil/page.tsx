@@ -1,11 +1,10 @@
-import { getCurrentParentId, getRepositories } from "@/lib/repository";
+import { getRequestContext } from "@/lib/repository";
 import { isDemoMode } from "@/lib/demoSession";
 import { LogoutButton } from "@/components/LogoutButton";
 import { upsertProfileAction, updateChildAction } from "./actions";
 
 export default async function PerfilPage() {
-  const { pairing } = await getRepositories();
-  const parentId = await getCurrentParentId();
+  const { pairing, parentId } = await getRequestContext();
   const [profile, children] = await Promise.all([
     pairing.getProfile(parentId),
     pairing.getMyChildren(parentId),

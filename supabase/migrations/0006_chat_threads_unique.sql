@@ -10,5 +10,5 @@
 -- esto, "hilos generales" (child_id null) del mismo topic no quedarían
 -- protegidos.
 
-create unique index chat_threads_family_topic_child_unique
+create unique index if not exists chat_threads_family_topic_child_unique
   on public.chat_threads (family_id, topic, coalesce(child_id, '00000000-0000-0000-0000-000000000000'::uuid));

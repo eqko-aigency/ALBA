@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getCurrentParentId, getRepositories } from "@/lib/repository";
+import { getRequestContext } from "@/lib/repository";
 import { isDemoMode } from "@/lib/demoSession";
 import { MessageComposer } from "./MessageComposer";
 
@@ -12,8 +12,7 @@ export default async function ThreadPage({
 }) {
   const { threadId } = await params;
   const { as } = await searchParams;
-  const { chat, pairing } = await getRepositories();
-  const parentId = await getCurrentParentId(as);
+  const { chat, pairing, parentId } = await getRequestContext(as);
 
   const [threads, messages, children] = await Promise.all([
     chat.listThreads(parentId),

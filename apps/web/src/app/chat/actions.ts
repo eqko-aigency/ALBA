@@ -2,15 +2,14 @@
 
 import { revalidatePath } from "next/cache";
 import { createThreadInputSchema } from "@alba/core";
-import { getCurrentParentId, getRepositories } from "@/lib/repository";
+import { getRequestContext } from "@/lib/repository";
 
 export async function createThreadAction(formData: FormData) {
   const input = createThreadInputSchema.parse({
     topic: formData.get("topic"),
     childId: formData.get("childId"),
   });
-  const { chat } = await getRepositories();
-  const parentId = await getCurrentParentId(String(formData.get("as") ?? ""));
+  const { chat, parentId } = await getRequestContext(String(formData.get("as") ?? ""));
 
   // createThread es idempotente ante duplicados (family_id + topic +
   // child_id) — tanto en el repo real (constraint único en la base,

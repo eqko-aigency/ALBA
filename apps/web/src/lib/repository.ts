@@ -1,3 +1,4 @@
+import { createClient } from "@supabase/supabase-js";
 import {
   createAnthropicToneAnalyzer,
   createHeuristicToneAnalyzer,
@@ -31,43 +32,70 @@ function getMockRepositories(): { pairing: PairingRepository; chat: ChatReposito
 }
 
 /**
- * Repositorios para ESTA request. En modo Supabase real se construyen de
- * nuevo cada vez, con un cliente atado a la cookie de sesión de quien está
- * pidiendo esto — nunca un singleton (ver supabaseServerClient.ts). En modo
- * demo, sí reusan el mock compartido de proceso.
+ * Repositorios + identidad del caller para ESTA request.
+ *
+ * Unificar en un solo cliente cookie-based (en vez de uno para los repos y
+ * otro aparte para resolver auth.uid(), como estaba antes) no bastó: en
+ * producción, confirmado en los logs de Postgres de Supabase, getUser() SÍ
+ * validaba la sesión y devolvía el user.id correcto, pero el insert
+ * inmediatamente después llegaba a Postgres con auth_user: null — el
+ * cliente de @supabase/ssr (createServerClient, atado a cookies vía
+ * next/headers) no estaba propagando el Authorization header de la sesión a
+ * cada request de postgrest de forma confiable dentro de un Server
+ * Component. Por eso acá se arma un segundo cliente, SIN estado de cookies,
+ * con el access_token de la sesión ya validada puesto explícitamente como
+ * header — así el insert nunca depende de esa propagación implícita.
  */
-export async function getRepositories(): Promise<{ pairing: PairingRepository; chat: ChatRepository }> {
-  if (!isSupabaseConfigured) return getMockRepositories();
+export async function getRequestContext(
+  as?: string
+): Promise<{ pairing: PairingRepository; chat: ChatRepository; parentId: string }> {
+  if (!isSupabaseConfigured) {
+    const { resolveDemoParentId } = await import("./demoSession");
+    const { pairing, chat } = getMockRepositories();
+    return { pairing, chat, parentId: resolveDemoParentId(as) };
+  }
 
-  const client = await createSupabaseServerClient();
+  const cookieClient = await createSupabaseServerClient();
+  const {
+    data: { user },
+    error,
+  } = await cookieClient.auth.getUser();
+  if (error || !user) {
+    throw new Error("No hay sesión activa — inicia sesión para continuar.");
+  }
+
+  const {
+    data: { session },
+  } = await cookieClient.auth.getSession();
+  if (!session) {
+    throw new Error("No hay sesión activa — inicia sesión para continuar.");
+  }
+
+  const client = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
+    global: { headers: { Authorization: `Bearer ${session.access_token}` } },
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+
   return {
     pairing: createSupabasePairingRepository(client),
     chat: createSupabaseChatRepository(client),
+    parentId: user.id,
   };
 }
 
 /**
- * Quién está haciendo esta petición. En modo demo, el progenitor fijo que
- * indique `as` (ver demoSession.ts). En modo Supabase real, SIEMPRE se lee
- * de la sesión autenticada — nunca de un valor que la propia request pueda
- * inventar — para que coincida con el auth.uid() que evalúa cada política
- * de RLS. Sin sesión real, esto lanza en vez de inventar un id.
+ * Repositorio de pairing SIN exigir sesión — para vistas públicas como
+ * /invitacion/[token], donde cualquiera con el link debe poder ver el
+ * estado de la invitación (pending/expired) sin haber iniciado sesión.
+ * No expone parentId porque no hay identidad que resolver acá.
  */
-export async function getCurrentParentId(as?: string): Promise<string> {
+export async function getPublicPairingRepository(): Promise<PairingRepository> {
   if (!isSupabaseConfigured) {
-    const { resolveDemoParentId } = await import("./demoSession");
-    return resolveDemoParentId(as);
+    const { pairing } = getMockRepositories();
+    return pairing;
   }
-
   const client = await createSupabaseServerClient();
-  const {
-    data: { user },
-    error,
-  } = await client.auth.getUser();
-  if (error || !user) {
-    throw new Error("No hay sesión activa — inicia sesión para continuar.");
-  }
-  return user.id;
+  return createSupabasePairingRepository(client);
 }
 
 const globalForTone = globalThis as unknown as { toneAnalyzer?: ToneAnalyzer };

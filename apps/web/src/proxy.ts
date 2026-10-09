@@ -34,7 +34,7 @@ export async function proxy(request: NextRequest) {
 
   // getUser() valida el token contra el servidor de Supabase (no solo decodifica
   // el JWT local) — más lento que el "optimistic check" que Next.js recomienda
-  // para proxy, pero necesario para refrescar la sesión igual que getCurrentParentId()
+  // para proxy, pero necesario para refrescar la sesión igual que getRequestContext()
   // en repository.ts. Decisión deliberada, no un descuido: no cambiar a getSession().
   const {
     data: { user },

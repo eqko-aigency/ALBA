@@ -5,8 +5,12 @@
 -- dejaba que alguien ya emparejado aceptara una segunda invitación y
 -- quedara en dos familias a la vez.
 
-alter table public.family_members
-  add constraint family_members_parent_id_unique unique (parent_id);
+do $$
+begin
+  if not exists (select 1 from pg_constraint where conname = 'family_members_parent_id_unique') then
+    alter table public.family_members add constraint family_members_parent_id_unique unique (parent_id);
+  end if;
+end $$;
 
 -- Con el constraint de arriba, el "on conflict do nothing" original de
 -- accept_invitation() también se dispararía ante ESTE conflicto (no solo

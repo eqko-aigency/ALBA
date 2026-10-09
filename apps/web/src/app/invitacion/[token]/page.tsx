@@ -1,10 +1,10 @@
-import { getCurrentParentId, getRepositories } from "@/lib/repository";
+import { getPublicPairingRepository, getRequestContext } from "@/lib/repository";
 import { isDemoMode } from "@/lib/demoSession";
 import { acceptInvitationAction } from "./actions";
 
 export default async function InvitacionPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
-  const { pairing } = await getRepositories();
+  const pairing = await getPublicPairingRepository();
   const invitation = await pairing.getInvitationByToken(token);
 
   if (!invitation) {
@@ -12,8 +12,8 @@ export default async function InvitacionPage({ params }: { params: Promise<{ tok
   }
 
   if (invitation.status === "accepted") {
-    const parentId = await getCurrentParentId("b");
-    const children = await pairing.getMyChildren(parentId);
+    const { pairing: authedPairing, parentId } = await getRequestContext("b");
+    const children = await authedPairing.getMyChildren(parentId);
     return (
       <StatusPage
         title="Invitación aceptada"
