@@ -1,3 +1,4 @@
+import { createClient } from "@supabase/supabase-js";
 import {
   createAnthropicToneAnalyzer,
   createHeuristicToneAnalyzer,
@@ -31,17 +32,19 @@ function getMockRepositories(): { pairing: PairingRepository; chat: ChatReposito
 }
 
 /**
- * Repositorios + identidad del caller para ESTA request, desde UN SOLO
- * cliente de Supabase — nunca uno para los repos y otro aparte para
- * resolver auth.uid() (ver supabaseServerClient.ts para por qué el cliente
- * en sí nunca es un singleton). Repartir la identidad y los repos entre dos
- * clientes construidos por separado causó un bug real en producción:
- * justo después de confirmar el email, el cliente de los repos todavía no
- * tenía la sesión resuelta al momento del insert, y Postgres lo evaluaba
- * como anónimo — "new row violates row-level security policy" — aunque el
- * otro cliente sí devolvía el user.id correcto. Con un solo cliente, el
- * insert y la resolución de auth.uid() ven exactamente el mismo estado de
- * sesión.
+ * Repositorios + identidad del caller para ESTA request.
+ *
+ * Unificar en un solo cliente cookie-based (en vez de uno para los repos y
+ * otro aparte para resolver auth.uid(), como estaba antes) no bastó: en
+ * producción, confirmado en los logs de Postgres de Supabase, getUser() SÍ
+ * validaba la sesión y devolvía el user.id correcto, pero el insert
+ * inmediatamente después llegaba a Postgres con auth_user: null — el
+ * cliente de @supabase/ssr (createServerClient, atado a cookies vía
+ * next/headers) no estaba propagando el Authorization header de la sesión a
+ * cada request de postgrest de forma confiable dentro de un Server
+ * Component. Por eso acá se arma un segundo cliente, SIN estado de cookies,
+ * con el access_token de la sesión ya validada puesto explícitamente como
+ * header — así el insert nunca depende de esa propagación implícita.
  */
 export async function getRequestContext(
   as?: string
@@ -52,14 +55,26 @@ export async function getRequestContext(
     return { pairing, chat, parentId: resolveDemoParentId(as) };
   }
 
-  const client = await createSupabaseServerClient();
+  const cookieClient = await createSupabaseServerClient();
   const {
     data: { user },
     error,
-  } = await client.auth.getUser();
+  } = await cookieClient.auth.getUser();
   if (error || !user) {
     throw new Error("No hay sesión activa — inicia sesión para continuar.");
   }
+
+  const {
+    data: { session },
+  } = await cookieClient.auth.getSession();
+  if (!session) {
+    throw new Error("No hay sesión activa — inicia sesión para continuar.");
+  }
+
+  const client = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
+    global: { headers: { Authorization: `Bearer ${session.access_token}` } },
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
 
   return {
     pairing: createSupabasePairingRepository(client),
