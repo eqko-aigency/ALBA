@@ -47,11 +47,18 @@ export function createSupabasePairingRepository(client: SupabaseClient): Pairing
       return mapChild(data);
     },
 
-    async updateChild(_parentId, childId, input: UpdateChildInput) {
+    async updateChild(parentId, childId, input: UpdateChildInput) {
+      // RLS ya restringe el update a hijos de la familia del caller, pero
+      // scopear también acá por family_id da defensa en profundidad (igual
+      // que mockPairingRepository.updateChild) en vez de depender
+      // únicamente de que la política de RLS esté bien.
+      const familyId = await getMyFamilyId(parentId);
+      if (!familyId) throw new Error("el progenitor no pertenece a ninguna familia todavía");
       const { data, error } = await client
         .from("children")
         .update({ full_name: input.fullName, birth_date: input.birthDate })
         .eq("id", childId)
+        .eq("family_id", familyId)
         .select()
         .single();
       if (error) throw error;

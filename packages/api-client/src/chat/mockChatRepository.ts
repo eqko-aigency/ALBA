@@ -40,12 +40,17 @@ export function createMockChatRepository(pairingRepository: PairingRepository): 
       return thread;
     },
 
-    async listMessages(_parentId, threadId) {
+    async listMessages(parentId, threadId) {
+      const family = await pairingRepository.getOrCreateMyFamily(parentId);
+      const thread = threads.get(threadId);
+      if (!thread || thread.familyId !== family.id) return [];
       return messagesByThread.get(threadId) ?? [];
     },
 
     async sendMessage(parentId, input: SendMessageInput) {
-      if (!threads.has(input.threadId)) throw new Error("hilo no encontrado");
+      const family = await pairingRepository.getOrCreateMyFamily(parentId);
+      const thread = threads.get(input.threadId);
+      if (!thread || thread.familyId !== family.id) throw new Error("hilo no encontrado");
       const message: Message = {
         id: crypto.randomUUID(),
         threadId: input.threadId,
