@@ -35,9 +35,16 @@ export function createAnthropicToneAnalyzer(apiKey: string): ToneAnalyzer {
       let parsed: { level?: string; suggestion?: string | null };
       try {
         parsed = JSON.parse(text);
-      } catch {
-        // Si el modelo no devolvió JSON válido, fallar hacia "neutral" en
-        // vez de bloquear el envío del mensaje por un error de parseo.
+      } catch (err) {
+        // Fallar hacia "neutral" en vez de bloquear el envío del mensaje
+        // por un error de parseo — pero logueando fuerte, porque esto
+        // significa que un mensaje genuinamente hostil pudo pasar sin
+        // aviso. Antes fallaba en silencio total, sin señal de que el
+        // modelo está devolviendo algo no parseable.
+        console.error("[anthropicToneAnalyzer] respuesta no parseable como JSON, fallback a neutral", {
+          text,
+          err,
+        });
         return { level: "neutral", suggestion: null };
       }
 
