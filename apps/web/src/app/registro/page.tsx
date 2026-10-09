@@ -20,6 +20,13 @@ export default async function RegistroPage() {
     pairing.getMyChildren(parentId),
   ]);
 
+  // listPendingInvitations devuelve todo lo que sigue en status "pending" en
+  // la base, pero nada transiciona ese status a "expired" cuando pasa
+  // expiresAt — sin este filtro, un código vencido se mostraría para siempre
+  // y nunca se ofrecería generar uno nuevo.
+  const activeInvitations = pendingInvitations.filter((inv) => new Date(inv.expiresAt) > new Date());
+  const hasExpiredInvitation = pendingInvitations.length > 0 && activeInvitations.length === 0;
+
   return (
     <div className="mx-auto min-h-screen max-w-2xl px-6 py-16 bg-sand">
       {isDemoMode && (
@@ -43,8 +50,11 @@ export default async function RegistroPage() {
 
       <section className="mt-8 rounded-lg border border-subtle bg-card p-5 shadow-ambient">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-ink">Invitar al otro progenitor</h2>
-        {pendingInvitations.length > 0 ? (
-          pendingInvitations.map((inv) => (
+        {hasExpiredInvitation && (
+          <p className="mt-3 text-sm text-ink-soft">Tu código anterior venció — genera uno nuevo.</p>
+        )}
+        {activeInvitations.length > 0 ? (
+          activeInvitations.map((inv) => (
             <div key={inv.id} className="mt-3 rounded-md bg-sea px-4 py-3">
               <p className="text-xs uppercase tracking-wide text-ink-soft">Código de vinculación</p>
               <p className="mt-1 font-mono text-lg font-semibold tracking-wide text-ink">
