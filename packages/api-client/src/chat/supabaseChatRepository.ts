@@ -26,7 +26,19 @@ export function createSupabaseChatRepository(client: SupabaseClient): ChatReposi
         .insert({ family_id: familyId, topic: input.topic, child_id: input.childId, created_by: parentId })
         .select()
         .single();
-      if (error) throw error;
+      if (error) {
+        // 23505 = unique_violation — otra request ya creó este mismo hilo
+        // (mismo topic + child_id) entre que listThreads() lo chequeó y que
+        // esta insert corrió. No es un error real, el hilo ya existe.
+        if (error.code === "23505") {
+          let query = client.from("chat_threads").select().eq("family_id", familyId).eq("topic", input.topic);
+          query = input.childId === null ? query.is("child_id", null) : query.eq("child_id", input.childId);
+          const { data: existing, error: fetchError } = await query.single();
+          if (fetchError) throw fetchError;
+          return mapThread(existing);
+        }
+        throw error;
+      }
       return mapThread(data);
     },
 

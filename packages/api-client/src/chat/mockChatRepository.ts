@@ -24,6 +24,10 @@ export function createMockChatRepository(pairingRepository: PairingRepository): 
 
     async createThread(parentId, input: CreateThreadInput) {
       const family = await pairingRepository.getOrCreateMyFamily(parentId);
+      const existing = [...threads.values()].find(
+        (t) => t.familyId === family.id && t.topic === input.topic && t.childId === input.childId
+      );
+      if (existing) return existing;
       const thread: ChatThread = {
         id: crypto.randomUUID(),
         familyId: family.id,
