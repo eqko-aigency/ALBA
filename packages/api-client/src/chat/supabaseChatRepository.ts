@@ -42,7 +42,21 @@ export function createSupabaseChatRepository(client: SupabaseClient): ChatReposi
       return mapThread(data);
     },
 
-    async listMessages(_parentId, threadId) {
+    async listMessages(parentId, threadId) {
+      // RLS ya scopea messages por family_id vía chat_threads, pero chequear
+      // también acá da defensa en profundidad (mismo criterio que
+      // updateChild en supabasePairingRepository y el chat mock) en vez de
+      // depender únicamente de que la política de RLS esté bien.
+      const familyId = await getMyFamilyId(parentId);
+      if (!familyId) return [];
+      const { data: thread, error: threadError } = await client
+        .from("chat_threads")
+        .select("family_id")
+        .eq("id", threadId)
+        .maybeSingle();
+      if (threadError) throw threadError;
+      if (!thread || thread.family_id !== familyId) return [];
+
       const { data, error } = await client
         .from("messages")
         .select()
@@ -53,6 +67,16 @@ export function createSupabaseChatRepository(client: SupabaseClient): ChatReposi
     },
 
     async sendMessage(parentId, input: SendMessageInput) {
+      const familyId = await getMyFamilyId(parentId);
+      if (!familyId) throw new Error("el progenitor no pertenece a ninguna familia todavía");
+      const { data: thread, error: threadError } = await client
+        .from("chat_threads")
+        .select("family_id")
+        .eq("id", input.threadId)
+        .maybeSingle();
+      if (threadError) throw threadError;
+      if (!thread || thread.family_id !== familyId) throw new Error("hilo no encontrado");
+
       const { data, error } = await client
         .from("messages")
         .insert({ thread_id: input.threadId, sender_id: parentId, body: input.body })
