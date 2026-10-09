@@ -1,26 +1,73 @@
 @import "tailwindcss";
 
+/* Paleta oficial de marca ALBA — docs/design/Presentación Logo Alba.pdf
+   (Entre Tintas, 8 sep 2025). Reemplaza toda paleta anterior ("Alba"
+   provisional y "Sandstone Sanctuary"). Nombres tal cual el manual. */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --alba-sand: #e5dcd3;
+  --alba-dawn: #f7dbb7;
+  --alba-orange: #f79a7a;
+  --alba-orange-deep: #e37f5c; /* hover — no viene en el manual, derivado */
+  --alba-salmon: #ebb2a9;
+  --alba-purple: #bb889b;
+  --alba-sky: #a4bed5;
+  --alba-sea: #cee4e7;
+
+  /* El manual solo define la paleta de marca (7 tonos claros) — sin
+     texto oscuro ni colores de estado. Estos dos grupos son adiciones
+     necesarias para legibilidad y estados, deliberadamente fuera de la
+     paleta de marca para no diluirla. */
+  --alba-ink: #3a332e;
+  --alba-ink-soft: #6b5f57;
+  --alba-ink-faint: #948a82;
+  --alba-success: #8fae95;
+  --alba-danger: #c4776a;
+
+  --shadow-ambient: 0 4px 20px rgba(58, 51, 46, 0.05);
+  --shadow-elevated: 0 12px 32px rgba(58, 51, 46, 0.09);
+
+  --background: var(--alba-sand);
+  --foreground: var(--alba-ink);
 }
 
 @theme inline {
+  --color-sand: var(--alba-sand);
+  --color-dawn: var(--alba-dawn);
+  --color-orange: var(--alba-orange);
+  --color-orange-deep: var(--alba-orange-deep);
+  --color-salmon: var(--alba-salmon);
+  --color-purple: var(--alba-purple);
+  --color-sky: var(--alba-sky);
+  --color-sea: var(--alba-sea);
+  --color-card: #ffffff;
+
+  --color-ink: var(--alba-ink);
+  --color-ink-soft: var(--alba-ink-soft);
+  --color-ink-faint: var(--alba-ink-faint);
+  --color-success: var(--alba-success);
+  --color-danger: var(--alba-danger);
+  --color-subtle: var(--alba-sand);
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-sans: var(--font-jakarta);
+  --font-mono: var(--font-jetbrains-mono);
+  --font-wordmark: var(--font-alba-wordmark);
+
+  /* Estructura (radios/sombras) sin definir en el manual de marca —
+     se mantiene la escala ya probada, solo se recolorea. */
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 28px;
+
+  --shadow-ambient: var(--shadow-ambient);
+  --shadow-elevated: var(--shadow-elevated);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
 }

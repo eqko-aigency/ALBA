@@ -4,10 +4,51 @@ export interface Parent {
   email: string;
 }
 
+export interface Family {
+  id: string;
+}
+
 export interface Child {
   id: string;
+  familyId: string;
   fullName: string;
   birthDate: string;
+}
+
+export type InvitationStatus = "pending" | "accepted" | "expired";
+
+export interface Invitation {
+  id: string;
+  token: string;
+  familyId: string;
+  createdByParentId: string;
+  status: InvitationStatus;
+  expiresAt: string;
+}
+
+export interface ChatThread {
+  id: string;
+  familyId: string;
+  topic: string;
+  /** Hijo al que aplica el hilo — null para hilos generales de la familia. */
+  childId: string | null;
+  createdAt: string;
+}
+
+export interface Message {
+  id: string;
+  threadId: string;
+  senderId: string;
+  body: string;
+  createdAt: string;
+}
+
+export type ToneLevel = "neutral" | "tenso" | "hostil";
+
+export interface ToneAnalysis {
+  level: ToneLevel;
+  /** Reformulación sugerida — null cuando level es "neutral". */
+  suggestion: string | null;
 }
 
 export interface Expense {
