@@ -10,6 +10,14 @@ const TONE_BORDER: Record<ToneAnalysis["level"], string> = {
   hostil: "border-danger",
 };
 
+// El banner solo se renderiza cuando analysis no es "neutral" (ver
+// handleSubmit), pero se tipa completo para que coincida con TONE_BORDER.
+const TONE_BANNER: Record<ToneAnalysis["level"], string> = {
+  neutral: "border-orange bg-dawn",
+  tenso: "border-orange bg-dawn",
+  hostil: "border-danger bg-danger/10",
+};
+
 export function MessageComposer({ threadId, as }: { threadId: string; as: string }) {
   const [body, setBody] = useState("");
   const [checking, setChecking] = useState(false);
@@ -48,7 +56,7 @@ export function MessageComposer({ threadId, as }: { threadId: string; as: string
   return (
     <div className="mt-4">
       {analysis && (
-        <div className="mb-3 rounded-lg border border-orange bg-dawn p-4">
+        <div className={`mb-3 rounded-lg border p-4 ${TONE_BANNER[analysis.level]}`}>
           <p className="text-sm font-semibold text-ink">
             {analysis.level === "hostil" ? "⚠️ Tono hostil detectado" : "Tono tenso detectado"}
           </p>
