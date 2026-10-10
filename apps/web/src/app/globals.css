@@ -71,3 +71,12 @@ body {
   background: var(--background);
   color: var(--foreground);
 }
+
+/* <button> no trae cursor de mano por default en todos los navegadores
+   (a diferencia de <a>) — sin esto, botones y el disclosure "+ Nuevo hilo"
+   se sienten como texto estático en vez de algo clickeable. */
+button:not(:disabled),
+summary,
+[role="button"] {
+  cursor: pointer;
+}
