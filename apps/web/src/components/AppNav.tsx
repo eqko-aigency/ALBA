@@ -8,7 +8,7 @@ const items = [
   { href: "#", label: "Bóveda", enabled: false },
 ] as const;
 
-export function AppNav({ active }: { active: "Acuerdo" | "Calendario" | "Gastos" | "Bóveda" }) {
+export function AppNav({ active }: { active?: "Acuerdo" | "Calendario" | "Gastos" | "Bóveda" }) {
   return (
     <div className="flex items-center gap-2">
       <nav className="flex flex-1 gap-1 rounded-full bg-ink p-1">

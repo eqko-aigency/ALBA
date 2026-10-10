@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getRequestContext } from "@/lib/repository";
 import { isDemoMode } from "@/lib/demoSession";
-import { LogoutButton } from "@/components/LogoutButton";
+import { AppNav } from "@/components/AppNav";
 import { createChildAction, createInvitationAction } from "./actions";
 import { CopyInvitationLink } from "./CopyInvitationLink";
 
@@ -38,10 +38,7 @@ export default async function RegistroPage() {
         </p>
       )}
 
-      <div className="flex items-start justify-between gap-3">
-        <h1 className="text-2xl font-semibold tracking-tight text-ink">Registro y emparejamiento</h1>
-        <LogoutButton />
-      </div>
+      <h1 className="text-2xl font-semibold tracking-tight text-ink">Registro y emparejamiento</h1>
       <p className="mt-2 text-ink-soft">
         Progenitor A: invita al otro progenitor a tu familia en ALBA. Los hijos se agregan
         dentro del vínculo, no antes.
@@ -114,6 +111,10 @@ export default async function RegistroPage() {
           ))}
         </ul>
       )}
+
+      <div className="mt-8">
+        <AppNav active="Acuerdo" />
+      </div>
     </div>
   );
 }
