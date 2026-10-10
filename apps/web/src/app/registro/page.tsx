@@ -116,7 +116,7 @@ export default async function RegistroPage() {
         </ul>
       )}
 
-      <AppNav active="Registro" />
+      <AppNav />
     </div>
   );
 }

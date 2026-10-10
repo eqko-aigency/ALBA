@@ -1,7 +1,7 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PROTECTED_PREFIXES = ["/registro", "/perfil", "/chat", "/calendario", "/gastos", "/boveda"];
+const PROTECTED_PREFIXES = ["/dashboard", "/registro", "/perfil", "/chat", "/calendario", "/gastos", "/boveda"];
 const AUTH_PAGES = ["/ingresar", "/crear-cuenta"];
 
 const isSupabaseConfigured = Boolean(
@@ -51,7 +51,7 @@ export async function proxy(request: NextRequest) {
   }
 
   if (user && isAuthPage) {
-    const redirect = NextResponse.redirect(new URL("/registro", request.url));
+    const redirect = NextResponse.redirect(new URL("/dashboard", request.url));
     response.cookies.getAll().forEach((cookie) => redirect.cookies.set(cookie));
     return redirect;
   }

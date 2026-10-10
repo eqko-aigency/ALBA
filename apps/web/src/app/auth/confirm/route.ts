@@ -18,5 +18,5 @@ export async function GET(request: NextRequest) {
     redirect("/ingresar?error=link_vencido");
   }
 
-  redirect("/registro");
+  redirect("/dashboard");
 }

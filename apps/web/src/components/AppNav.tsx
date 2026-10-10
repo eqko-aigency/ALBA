@@ -1,9 +1,9 @@
 import Link from "next/link";
 
-type NavLabel = "Registro" | "Perfil" | "Chat" | "Calendario" | "Gastos" | "Bóveda";
+type NavLabel = "Dashboard" | "Perfil" | "Chat" | "Calendario" | "Gastos" | "Bóveda";
 
 const items: { href: string; label: NavLabel; enabled: boolean }[] = [
-  { href: "/registro", label: "Registro", enabled: true },
+  { href: "/dashboard", label: "Dashboard", enabled: true },
   { href: "/perfil", label: "Perfil", enabled: true },
   { href: "/chat", label: "Chat", enabled: true },
   { href: "/calendario", label: "Calendario", enabled: true },
@@ -14,11 +14,11 @@ const items: { href: string; label: NavLabel; enabled: boolean }[] = [
 function NavIcon({ label }: { label: NavLabel }) {
   const common = { viewBox: "0 0 24 24", fill: "none", className: "h-5 w-5", "aria-hidden": true } as const;
   switch (label) {
-    case "Registro":
+    case "Dashboard":
       return (
         <svg {...common}>
           <path
-            d="M10 13a4 4 0 005.66 0l2.83-2.83a4 4 0 10-5.66-5.66l-1.5 1.5M14 11a4 4 0 00-5.66 0l-2.83 2.83a4 4 0 105.66 5.66l1.5-1.5"
+            d="M4 11l8-6.5L20 11M6 9.5V19a1 1 0 001 1h3v-5h4v5h3a1 1 0 001-1V9.5"
             stroke="currentColor"
             strokeWidth="1.8"
             strokeLinecap="round"

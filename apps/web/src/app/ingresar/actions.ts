@@ -30,5 +30,5 @@ export async function loginAction(formData: FormData): Promise<{ error: string }
     return { error: "Email o contraseña incorrectos." };
   }
 
-  redirect("/registro");
+  redirect("/dashboard");
 }
