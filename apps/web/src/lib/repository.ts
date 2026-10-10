@@ -76,6 +76,26 @@ export async function getRequestContext(
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
+  // DEBUG TEMPORAL — quitar en cuanto se resuelva el bug de RLS en
+  // producción. Confirma, con una query real contra Postgres (no solo
+  // contra el endpoint de Auth), si ESTE cliente llega autenticado.
+  const [selfSelect, jwtClaim] = await Promise.all([
+    client.from("profiles").select("id").eq("id", user.id).maybeSingle(),
+    client.rpc("debug_jwt_claims" as never).then(
+      (r) => r,
+      (e) => ({ data: null, error: String(e) })
+    ),
+  ]);
+  console.error("[DEBUG getRequestContext]", {
+    userId: user.id,
+    sessionUserId: session.user?.id,
+    accessTokenLen: session.access_token?.length ?? 0,
+    accessTokenPrefix: session.access_token?.slice(0, 12),
+    selfSelectData: selfSelect.data,
+    selfSelectError: selfSelect.error,
+    jwtClaim,
+  });
+
   return {
     pairing: createSupabasePairingRepository(client),
     chat: createSupabaseChatRepository(client),
