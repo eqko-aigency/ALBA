@@ -11,6 +11,20 @@ export async function upsertProfileAction(formData: FormData) {
   revalidatePath("/perfil");
 }
 
+export async function createChildAction(formData: FormData) {
+  const fullName = String(formData.get("childFullName") ?? "").trim();
+  const birthDate = String(formData.get("childBirthDate") ?? "");
+
+  if (fullName.length < 2 || !birthDate) {
+    throw new Error("Nombre y fecha de nacimiento son requeridos");
+  }
+
+  const { pairing, parentId } = await getRequestContext();
+  await pairing.getOrCreateMyFamily(parentId);
+  await pairing.createChild(parentId, { fullName, birthDate });
+  revalidatePath("/perfil");
+}
+
 export async function updateChildAction(formData: FormData) {
   const childId = String(formData.get("childId") ?? "");
   const input = updateChildInputSchema.parse({
