@@ -97,6 +97,15 @@ export function createMockPairingRepository(): PairingRepository {
       return invitation;
     },
 
+    async listFamilyMembers(parentId) {
+      const familyId = memberOf.get(parentId);
+      if (!familyId) return [];
+      const memberIds = familyMembers.get(familyId) ?? new Set<string>();
+      return [...memberIds].map(
+        (id) => profiles.get(id) ?? { id, fullName: id === parentId ? "Tú" : "El otro progenitor", email: `${id}@demo.local` }
+      );
+    },
+
     async acceptInvitation(parentId, input: AcceptInvitationInput) {
       const invitation = [...invitations.values()].find((i) => i.token === input.token);
       if (!invitation || invitation.status !== "pending" || new Date(invitation.expiresAt) < new Date()) {

@@ -3,11 +3,13 @@ import {
   createAnthropicToneAnalyzer,
   createHeuristicToneAnalyzer,
   createMockChatRepository,
+  createMockCustodyRepository,
   createMockPairingRepository,
   createSupabaseChatRepository,
+  createSupabaseCustodyRepository,
   createSupabasePairingRepository,
 } from "@alba/api-client";
-import type { ChatRepository, PairingRepository, ToneAnalyzer } from "@alba/core";
+import type { ChatRepository, CustodyRepository, PairingRepository, ToneAnalyzer } from "@alba/core";
 import { createSupabaseServerClient } from "./supabaseServerClient";
 
 export const isSupabaseConfigured = Boolean(
@@ -23,12 +25,18 @@ const isAnthropicConfigured = Boolean(process.env.ANTHROPIC_API_KEY);
 const globalForMock = globalThis as unknown as {
   mockPairingRepository?: PairingRepository;
   mockChatRepository?: ChatRepository;
+  mockCustodyRepository?: CustodyRepository;
 };
 
-function getMockRepositories(): { pairing: PairingRepository; chat: ChatRepository } {
+function getMockRepositories(): { pairing: PairingRepository; chat: ChatRepository; custody: CustodyRepository } {
   globalForMock.mockPairingRepository ??= createMockPairingRepository();
   globalForMock.mockChatRepository ??= createMockChatRepository(globalForMock.mockPairingRepository);
-  return { pairing: globalForMock.mockPairingRepository, chat: globalForMock.mockChatRepository };
+  globalForMock.mockCustodyRepository ??= createMockCustodyRepository(globalForMock.mockPairingRepository);
+  return {
+    pairing: globalForMock.mockPairingRepository,
+    chat: globalForMock.mockChatRepository,
+    custody: globalForMock.mockCustodyRepository,
+  };
 }
 
 /**
@@ -48,11 +56,11 @@ function getMockRepositories(): { pairing: PairingRepository; chat: ChatReposito
  */
 export async function getRequestContext(
   as?: string
-): Promise<{ pairing: PairingRepository; chat: ChatRepository; parentId: string }> {
+): Promise<{ pairing: PairingRepository; chat: ChatRepository; custody: CustodyRepository; parentId: string }> {
   if (!isSupabaseConfigured) {
     const { resolveDemoParentId } = await import("./demoSession");
-    const { pairing, chat } = getMockRepositories();
-    return { pairing, chat, parentId: resolveDemoParentId(as) };
+    const { pairing, chat, custody } = getMockRepositories();
+    return { pairing, chat, custody, parentId: resolveDemoParentId(as) };
   }
 
   const cookieClient = await createSupabaseServerClient();
@@ -91,6 +99,7 @@ export async function getRequestContext(
   return {
     pairing: createSupabasePairingRepository(client),
     chat: createSupabaseChatRepository(client),
+    custody: createSupabaseCustodyRepository(client),
     parentId: user.id,
   };
 }

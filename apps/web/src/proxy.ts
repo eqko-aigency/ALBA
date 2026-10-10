@@ -1,7 +1,7 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PROTECTED_PREFIXES = ["/registro", "/perfil", "/chat"];
+const PROTECTED_PREFIXES = ["/registro", "/perfil", "/chat", "/calendario"];
 const AUTH_PAGES = ["/ingresar", "/crear-cuenta"];
 
 const isSupabaseConfigured = Boolean(

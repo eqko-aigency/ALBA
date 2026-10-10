@@ -59,6 +59,17 @@ export const custodyEventInputSchema = z.object({
 });
 export type CustodyEventInput = z.infer<typeof custodyEventInputSchema>;
 
+const timeOfDaySchema = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Hora inválida (HH:MM)");
+
+export const custodySlotInputSchema = z.object({
+  childId: z.string().uuid(),
+  parentId: z.string().uuid(),
+  weekday: z.coerce.number().int().min(0).max(6),
+  startTime: timeOfDaySchema,
+  endTime: timeOfDaySchema,
+});
+export type CustodySlotInput = z.infer<typeof custodySlotInputSchema>;
+
 export const signUpInputSchema = z.object({
   fullName: z.string().min(2).max(120),
   email: z.string().email(),

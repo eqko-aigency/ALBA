@@ -121,6 +121,24 @@ export function createSupabasePairingRepository(client: SupabaseClient): Pairing
       return mapInvitation(data);
     },
 
+    async listFamilyMembers(parentId) {
+      const familyId = await getMyFamilyId(parentId);
+      if (!familyId) return [];
+      // Embedding vía la FK family_members.parent_id -> profiles.id (misma
+      // relación que ya usa family_members para RLS en 0001). Si en algún
+      // ambiente el embed fallara, el fallback es dos queries separadas.
+      const { data, error } = await client
+        .from("family_members")
+        .select("parent_id, profiles(full_name)")
+        .eq("family_id", familyId);
+      if (error) throw error;
+      return (data ?? []).map((row: any) => ({
+        id: row.parent_id,
+        fullName: row.profiles?.full_name ?? "Progenitor",
+        email: "",
+      }));
+    },
+
     async acceptInvitation(_parentId, input: AcceptInvitationInput): Promise<Family> {
       const { data: familyId, error } = await client.rpc("accept_invitation", {
         invitation_token: input.token,

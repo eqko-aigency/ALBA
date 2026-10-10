@@ -5,7 +5,7 @@ const items = [
   { href: "/registro", label: "Registro", enabled: true },
   { href: "/perfil", label: "Perfil", enabled: true },
   { href: "/chat", label: "Acuerdo", enabled: true },
-  { href: "#", label: "Calendario", enabled: false },
+  { href: "/calendario", label: "Calendario", enabled: true },
   { href: "#", label: "Gastos", enabled: false },
   { href: "#", label: "Bóveda", enabled: false },
 ] as const;

@@ -2,6 +2,7 @@ export * from "./client";
 export * from "./pairing";
 export * from "./chat";
 export * from "./tone";
+export * from "./custody";
 export type {
   Parent,
   Child,
@@ -9,6 +10,7 @@ export type {
   Expense,
   CustodyEvent,
   CustodyAgreement,
+  CustodySlot,
   Invitation,
   ChatThread,
   Message,
