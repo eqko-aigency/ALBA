@@ -85,7 +85,10 @@ function NavIcon({ label }: { label: NavLabel }) {
 
 export function AppNav({ active }: { active?: NavLabel }) {
   return (
-    <nav className="fixed inset-x-4 bottom-4 z-20 mx-auto flex max-w-md items-stretch justify-between gap-1 rounded-2xl bg-card px-1.5 py-1.5 shadow-elevated">
+    <nav
+      className="fixed inset-x-4 z-20 mx-auto flex max-w-md items-stretch justify-between gap-1 rounded-2xl bg-card px-1.5 py-1.5 shadow-elevated"
+      style={{ bottom: "calc(1rem + env(safe-area-inset-bottom))" }}
+    >
       {items.map((item) => {
         const isActive = active === item.label;
         if (!item.enabled) {

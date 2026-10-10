@@ -30,7 +30,7 @@ export default async function RegistroPage() {
   const hasExpiredInvitation = pendingInvitations.length > 0 && activeInvitations.length === 0;
 
   return (
-    <div className="mx-auto min-h-screen max-w-2xl px-6 pb-28 pt-16 bg-sand">
+    <div className="mx-auto min-h-screen max-w-2xl px-6 pb-[calc(7.5rem+env(safe-area-inset-bottom))] pt-16 bg-sand">
       {isDemoMode && (
         <p className="mb-8 rounded-md border border-orange bg-dawn px-4 py-2 text-sm text-ink">
           Modo de prueba local — sin Supabase conectado. Los datos viven en memoria y se

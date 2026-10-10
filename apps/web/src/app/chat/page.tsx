@@ -20,7 +20,7 @@ export default async function ChatPage({
   const childName = (childId: string | null) => children.find((c) => c.id === childId)?.fullName ?? null;
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-2xl flex-col px-6 pb-28 pt-16 bg-sand">
+    <div className="mx-auto flex min-h-screen max-w-2xl flex-col px-6 pb-[calc(7.5rem+env(safe-area-inset-bottom))] pt-16 bg-sand">
       {isDemoMode && (
         <p className="mb-6 rounded-md border border-orange bg-dawn px-4 py-2 text-sm text-ink">
           Modo de prueba local — viendo como Progenitor {as === "b" ? "B" : "A"}.{" "}

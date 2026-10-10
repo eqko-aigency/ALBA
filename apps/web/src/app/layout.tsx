@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
@@ -23,6 +23,16 @@ const albaWordmark = localFont({
 export const metadata: Metadata = {
   title: "ALBA",
   description: "App de coparentalidad",
+};
+
+// viewportFit "cover" es lo que hace que env(safe-area-inset-bottom) deje de
+// ser 0 en iOS Safari — sin esto, el bottom nav flotante de AppNav.tsx queda
+// pegado al borde real de la pantalla, por debajo de la barra/gesto de
+// Safari, en vez de respetar esa zona segura.
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
