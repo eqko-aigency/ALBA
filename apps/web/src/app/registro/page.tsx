@@ -43,11 +43,15 @@ export default async function RegistroPage() {
         Progenitor A: invita al otro progenitor a tu familia en ALBA. Los hijos se agregan
         dentro del vínculo, no antes.
       </p>
-      <Link href="/perfil" className="mt-3 inline-block text-sm font-medium text-purple underline">
-        Editar mi perfil y el de mis hijos →
+      <Link
+        href="/perfil"
+        className="mt-4 inline-flex items-center gap-1.5 rounded-full border-2 border-subtle bg-card px-4 py-2 text-sm font-semibold text-ink shadow-ambient transition-all hover:-translate-y-0.5 hover:shadow-elevated"
+      >
+        Editar mi perfil y el de mis hijos
+        <span aria-hidden="true">→</span>
       </Link>
 
-      <section className="mt-8 rounded-lg border border-subtle bg-card p-5 shadow-ambient">
+      <section className="mt-6 rounded-lg border border-subtle bg-card p-5 shadow-ambient">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-ink">Invitar al otro progenitor</h2>
         {hasExpiredInvitation && (
           <p className="mt-3 text-sm text-ink-soft">Tu código anterior venció — genera uno nuevo.</p>
