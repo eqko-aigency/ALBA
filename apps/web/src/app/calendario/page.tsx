@@ -170,14 +170,14 @@ export default async function CalendarioPage({
             <div
               key={dayKey}
               id={`dia-${dayKey}`}
-              className={`scroll-mt-20 rounded-2xl p-4 shadow-ambient ${
-                isToday ? "bg-gradient-to-br from-dawn to-salmon" : "border border-subtle bg-card"
+              className={`scroll-mt-20 rounded-2xl border bg-card p-4 shadow-ambient ${
+                isToday ? "border-orange" : "border-subtle"
               }`}
             >
               <p className="flex items-center gap-2 text-sm font-semibold text-ink">
                 {WEEKDAY_LABELS[day.getDay()]} · {formatDay(day)}
                 {isToday && (
-                  <span className="rounded-full bg-card px-2 py-0.5 text-xs font-semibold text-ink">Hoy</span>
+                  <span className="rounded-full bg-orange px-2 py-0.5 text-xs font-semibold text-ink">Hoy</span>
                 )}
               </p>
 
@@ -215,7 +215,7 @@ export default async function CalendarioPage({
                     const parentDisplayName = parentName(slot.parentId);
 
                     return (
-                      <li key={idx} className={`rounded-xl px-3 py-2.5 ${isToday ? "bg-card/80" : accent.chip}`}>
+                      <li key={idx} className={`rounded-xl px-3 py-2.5 ${accent.chip}`}>
                         <div className="flex items-center justify-between gap-2">
                           <span className="flex items-center gap-2 text-sm text-ink">
                             <span

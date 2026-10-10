@@ -19,16 +19,11 @@ function startOfWeek(reference: Date): Date {
   return d;
 }
 
-const QUICK_LINKS: { href: string; title: string; description: string; gradient: string }[] = [
-  { href: "/chat", title: "Chat", description: "Habla con el otro progenitor.", gradient: "from-salmon to-orange" },
-  {
-    href: "/calendario",
-    title: "Calendario",
-    description: "Confirma check-in/check-out.",
-    gradient: "from-sky to-sea",
-  },
-  { href: "/gastos", title: "Gastos", description: "Registra y aprueba gastos.", gradient: "from-dawn to-salmon" },
-  { href: "/boveda", title: "Bóveda", description: "Documentos y evidencia.", gradient: "from-purple to-sky" },
+const QUICK_LINKS: { href: string; title: string; description: string; accent: string }[] = [
+  { href: "/chat", title: "Chat", description: "Habla con el otro progenitor.", accent: "bg-salmon" },
+  { href: "/calendario", title: "Calendario", description: "Confirma check-in/check-out.", accent: "bg-sky" },
+  { href: "/gastos", title: "Gastos", description: "Registra y aprueba gastos.", accent: "bg-dawn" },
+  { href: "/boveda", title: "Bóveda", description: "Documentos y evidencia.", accent: "bg-purple" },
 ];
 
 export default async function DashboardPage({
@@ -102,8 +97,9 @@ export default async function DashboardPage({
       <p className="mt-2 text-ink-soft">Esto es lo que está pasando en tu familia hoy.</p>
 
       <div className="mt-6 grid grid-cols-2 gap-3">
-        <div className="rounded-2xl bg-gradient-to-br from-dawn to-salmon p-4 shadow-ambient">
-          <p className="text-xs font-semibold uppercase tracking-wide text-ink/70">Hoy</p>
+        <div className="rounded-2xl border border-subtle bg-card p-4 shadow-ambient">
+          <span className="inline-block h-2 w-8 rounded-full bg-orange" />
+          <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-ink-soft">Hoy</p>
           {todayStatus.length === 0 ? (
             <p className="mt-1 text-sm font-medium text-ink">Sin eventos</p>
           ) : (
@@ -117,16 +113,18 @@ export default async function DashboardPage({
           )}
         </div>
 
-        <div className="rounded-2xl bg-gradient-to-br from-sky to-sea p-4 shadow-ambient">
-          <p className="text-xs font-semibold uppercase tracking-wide text-ink/70">Balance de gastos</p>
+        <div className="rounded-2xl border border-subtle bg-card p-4 shadow-ambient">
+          <span className="inline-block h-2 w-8 rounded-full bg-sky" />
+          <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-ink-soft">Balance de gastos</p>
           <p className="mt-1 text-sm font-medium text-ink">{balanceLabel}</p>
           {pendingForMe > 0 && (
-            <p className="mt-1 text-xs font-semibold text-ink/80">{pendingForMe} por aprobar</p>
+            <p className="mt-1 text-xs font-semibold text-orange-deep">{pendingForMe} por aprobar</p>
           )}
         </div>
 
-        <div className="rounded-2xl bg-gradient-to-br from-purple to-sky p-4 shadow-ambient">
-          <p className="text-xs font-semibold uppercase tracking-wide text-ink/70">Documentos</p>
+        <div className="rounded-2xl border border-subtle bg-card p-4 shadow-ambient">
+          <span className="inline-block h-2 w-8 rounded-full bg-purple" />
+          <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-ink-soft">Documentos</p>
           <p className="mt-1 text-sm font-medium text-ink">
             {documentList.length === 0
               ? "Ninguno todavía"
@@ -134,8 +132,9 @@ export default async function DashboardPage({
           </p>
         </div>
 
-        <div className="rounded-2xl bg-gradient-to-br from-salmon to-orange p-4 shadow-ambient">
-          <p className="text-xs font-semibold uppercase tracking-wide text-ink/70">Chats</p>
+        <div className="rounded-2xl border border-subtle bg-card p-4 shadow-ambient">
+          <span className="inline-block h-2 w-8 rounded-full bg-salmon" />
+          <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-ink-soft">Chats</p>
           <p className="mt-1 text-sm font-medium text-ink">
             {threads.length} hilo{threads.length === 1 ? "" : "s"} activo{threads.length === 1 ? "" : "s"}
           </p>
@@ -148,10 +147,11 @@ export default async function DashboardPage({
           <Link
             key={link.href}
             href={as === "b" ? `${link.href}?as=b` : link.href}
-            className={`rounded-2xl bg-gradient-to-br p-4 shadow-ambient transition-all hover:-translate-y-0.5 hover:shadow-elevated ${link.gradient}`}
+            className="rounded-2xl border border-subtle bg-card p-4 shadow-ambient transition-all hover:-translate-y-0.5 hover:shadow-elevated"
           >
-            <p className="text-sm font-semibold text-ink">{link.title}</p>
-            <p className="mt-1 text-xs text-ink/70">{link.description}</p>
+            <span className={`inline-block h-2 w-8 rounded-full ${link.accent}`} />
+            <p className="mt-3 text-sm font-semibold text-ink">{link.title}</p>
+            <p className="mt-1 text-xs text-ink-soft">{link.description}</p>
           </Link>
         ))}
       </div>

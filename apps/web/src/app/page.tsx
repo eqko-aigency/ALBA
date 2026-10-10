@@ -1,26 +1,26 @@
 import Link from "next/link";
 import { Wordmark } from "@/components/Wordmark";
 
-const FEATURES: { title: string; description: string; gradient: string }[] = [
+const FEATURES: { title: string; description: string; accent: string }[] = [
   {
     title: "Chat con tono cuidado",
     description: "Habla con el otro progenitor sin que el tono escale — se revisa antes de enviar.",
-    gradient: "from-salmon to-orange",
+    accent: "bg-salmon",
   },
   {
     title: "Calendario compartido",
     description: "Confirma check-ins y check-outs, sin ambigüedad sobre quién tiene a los hijos.",
-    gradient: "from-sky to-sea",
+    accent: "bg-sky",
   },
   {
     title: "Gastos transparentes",
     description: "Registra, aprueba y lleva el balance de los gastos compartidos.",
-    gradient: "from-dawn to-salmon",
+    accent: "bg-dawn",
   },
   {
     title: "Documentos seguros",
     description: "Acuerdos y evidencia protegidos, con verificación de que nadie los alteró.",
-    gradient: "from-purple to-sky",
+    accent: "bg-purple",
   },
 ];
 
@@ -60,12 +60,10 @@ export default function Home() {
 
         <div className="mt-16 grid w-full gap-4 sm:grid-cols-2">
           {FEATURES.map((feature) => (
-            <div
-              key={feature.title}
-              className={`rounded-3xl bg-gradient-to-br p-6 text-left shadow-ambient ${feature.gradient}`}
-            >
-              <p className="text-base font-semibold text-ink">{feature.title}</p>
-              <p className="mt-2 text-sm text-ink/70">{feature.description}</p>
+            <div key={feature.title} className="rounded-3xl border border-subtle bg-card p-6 text-left shadow-ambient">
+              <span className={`inline-block h-2 w-10 rounded-full ${feature.accent}`} />
+              <p className="mt-3 text-base font-semibold text-ink">{feature.title}</p>
+              <p className="mt-2 text-sm text-ink-soft">{feature.description}</p>
             </div>
           ))}
         </div>
