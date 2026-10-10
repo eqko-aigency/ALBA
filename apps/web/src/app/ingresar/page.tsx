@@ -1,3 +1,5 @@
+import { AuthLayout } from "@/components/AuthLayout";
+import { Wordmark } from "@/components/Wordmark";
 import { LoginForm } from "./LoginForm";
 
 const CONFIRM_LINK_ERRORS: Record<string, string> = {
@@ -14,10 +16,11 @@ export default async function IngresarPage({
   const initialError = error ? (CONFIRM_LINK_ERRORS[error] ?? null) : null;
 
   return (
-    <div className="mx-auto min-h-screen max-w-md px-6 py-16 bg-sand">
-      <h1 className="text-2xl font-semibold tracking-tight text-ink">Iniciar sesión</h1>
+    <AuthLayout>
+      <Wordmark className="text-4xl" />
+      <h1 className="mt-6 text-2xl font-semibold tracking-tight text-ink">Iniciar sesión</h1>
       <p className="mt-2 text-ink-soft">Entra a tu cuenta de ALBA.</p>
       <LoginForm initialError={initialError} />
-    </div>
+    </AuthLayout>
   );
 }

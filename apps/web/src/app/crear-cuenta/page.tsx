@@ -1,11 +1,14 @@
+import { AuthLayout } from "@/components/AuthLayout";
+import { Wordmark } from "@/components/Wordmark";
 import { SignupForm } from "./SignupForm";
 
 export default function CrearCuentaPage() {
   return (
-    <div className="mx-auto min-h-screen max-w-md px-6 py-16 bg-sand">
-      <h1 className="text-2xl font-semibold tracking-tight text-ink">Crear cuenta</h1>
+    <AuthLayout>
+      <Wordmark className="text-4xl" />
+      <h1 className="mt-6 text-2xl font-semibold tracking-tight text-ink">Crear cuenta</h1>
       <p className="mt-2 text-ink-soft">Regístrate para empezar a usar ALBA.</p>
       <SignupForm />
-    </div>
+    </AuthLayout>
   );
 }
