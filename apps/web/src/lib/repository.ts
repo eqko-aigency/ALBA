@@ -55,68 +55,44 @@ export async function getRequestContext(
     return { pairing, chat, parentId: resolveDemoParentId(as) };
   }
 
-  // DEBUG TEMPORAL — try/catch de blindaje: quitar junto con los
-  // console.error de abajo en cuanto se resuelva el bug de RLS en
-  // producción. Los intentos previos de loguear esto nunca imprimían nada
-  // en los Runtime Logs de Vercel pese a 500s reproducibles, lo que sugiere
-  // que algo está lanzando ANTES de llegar a esas líneas — este try/catch
-  // envuelve TODO el cuerpo para no perder ninguna excepción.
-  try {
-    const cookieClient = await createSupabaseServerClient();
-    const {
-      data: { user },
-      error,
-    } = await cookieClient.auth.getUser();
-    console.error("[DEBUG] getUser", { hasUser: !!user, userId: user?.id, errorMsg: error?.message });
-    if (error || !user) {
-      throw new Error("No hay sesión activa — inicia sesión para continuar.");
-    }
-
-    const {
-      data: { session },
-      error: sessionError,
-    } = await cookieClient.auth.getSession();
-    console.error("[DEBUG] getSession", {
-      hasSession: !!session,
-      sessionUserId: session?.user?.id,
-      accessTokenLen: session?.access_token?.length ?? 0,
-      sessionErrorMsg: sessionError?.message,
-    });
-    if (!session) {
-      throw new Error("No hay sesión activa — inicia sesión para continuar.");
-    }
-
-    const client = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
-      global: { headers: { Authorization: `Bearer ${session.access_token}` } },
-      auth: { persistSession: false, autoRefreshToken: false },
-    });
-
-    const [selfSelect, jwtClaim] = await Promise.all([
-      client.from("profiles").select("id").eq("id", user.id).maybeSingle(),
-      client.rpc("debug_jwt_claims" as never).then(
-        (r) => r,
-        (e) => ({ data: null, error: String(e) })
-      ),
-    ]);
-    console.error("[DEBUG] built client", {
-      userId: user.id,
-      selfSelectData: selfSelect.data,
-      selfSelectError: selfSelect.error,
-      jwtClaim,
-    });
-
-    return {
-      pairing: createSupabasePairingRepository(client),
-      chat: createSupabaseChatRepository(client),
-      parentId: user.id,
-    };
-  } catch (e) {
-    console.error(
-      "[DEBUG] CAUGHT in getRequestContext",
-      e instanceof Error ? { name: e.name, message: e.message, stack: e.stack } : e
-    );
-    throw e;
+  const cookieClient = await createSupabaseServerClient();
+  const {
+    data: { user },
+    error,
+  } = await cookieClient.auth.getUser();
+  if (error || !user) {
+    throw new Error("No hay sesión activa — inicia sesión para continuar.");
   }
+
+  const {
+    data: { session },
+  } = await cookieClient.auth.getSession();
+  if (!session) {
+    throw new Error("No hay sesión activa — inicia sesión para continuar.");
+  }
+
+  // client.auth.setSession() (no un header de Authorization armado a mano)
+  // es la forma documentada de hidratar un cliente nuevo con una sesión ya
+  // validada: el PostgrestClient interno de supabase-js deriva el header
+  // Authorization de su propio auth.getSession() en cada request, así que
+  // un header puesto a mano en `global.headers` puede quedar pisado por esa
+  // lógica interna — eso fue lo que pasó en el intento anterior.
+  const client = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+  const { error: setSessionError } = await client.auth.setSession({
+    access_token: session.access_token,
+    refresh_token: session.refresh_token,
+  });
+  if (setSessionError) {
+    throw new Error("No se pudo validar la sesión — inicia sesión de nuevo.");
+  }
+
+  return {
+    pairing: createSupabasePairingRepository(client),
+    chat: createSupabaseChatRepository(client),
+    parentId: user.id,
+  };
 }
 
 /**
