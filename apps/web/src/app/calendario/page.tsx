@@ -6,6 +6,14 @@ import { AppNav } from "@/components/AppNav";
 import { confirmCheckinAction, confirmCheckoutAction, removeSlotAction, upsertSlotAction } from "./actions";
 
 const WEEKDAY_LABELS = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+const WEEKDAY_SHORT = ["D", "L", "M", "M", "J", "V", "S"];
+
+/** Color consistente por progenitor en todo el calendario — "Tú" siempre
+ * naranja, el otro progenitor siempre cielo, sin importar el orden en que
+ * vengan de la base. */
+function parentAccent(isCallerSlot: boolean): { avatar: string; chip: string } {
+  return isCallerSlot ? { avatar: "bg-orange", chip: "bg-dawn" } : { avatar: "bg-sky", chip: "bg-sea" };
+}
 
 /** Fecha local "YYYY-MM-DD" — evita el corrimiento de día que da
  * toISOString().slice(0, 10) cuando la zona horaria local no es UTC. */
@@ -32,6 +40,20 @@ function combineDateAndTime(date: Date, time: string): Date {
 
 function formatDay(d: Date): string {
   return d.toLocaleDateString("es-MX", { day: "2-digit", month: "short" });
+}
+
+function ChevronIcon({ direction }: { direction: "left" | "right" }) {
+  return (
+    <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4" aria-hidden="true">
+      <path
+        d={direction === "left" ? "M12.5 15l-5-5 5-5" : "M7.5 15l5-5-5-5"}
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
 }
 
 export default async function CalendarioPage({
@@ -86,22 +108,53 @@ export default async function CalendarioPage({
       <h1 className="text-2xl font-semibold tracking-tight text-ink">Calendario de custodia</h1>
       <p className="mt-2 text-ink-soft">Confirma tus check-in/check-out y revisa el convenio de la semana.</p>
 
-      <div className="mt-6 flex items-center justify-between rounded-full bg-card px-4 py-2 shadow-ambient">
+      <div className="mt-6 flex items-center justify-between rounded-2xl bg-card px-3 py-2.5 shadow-ambient">
         <Link
           href={`/calendario?week=${weekOffset - 1}${asQuery}`}
-          className="text-sm font-medium text-purple underline"
+          aria-label="Semana anterior"
+          className="flex h-8 w-8 items-center justify-center rounded-full text-ink transition-colors hover:bg-sand"
         >
-          ← Anterior
+          <ChevronIcon direction="left" />
         </Link>
-        <span className="text-sm font-medium text-ink">
+        <span className="text-sm font-semibold text-ink">
           {formatDay(weekStartDate)} – {formatDay(new Date(new Date(weekStartDate).setDate(weekStartDate.getDate() + 6)))}
         </span>
         <Link
           href={`/calendario?week=${weekOffset + 1}${asQuery}`}
-          className="text-sm font-medium text-purple underline"
+          aria-label="Semana siguiente"
+          className="flex h-8 w-8 items-center justify-center rounded-full text-ink transition-colors hover:bg-sand"
         >
-          Siguiente →
+          <ChevronIcon direction="right" />
         </Link>
+      </div>
+
+      <div className="mt-4 flex justify-between gap-1.5">
+        {Array.from({ length: 7 }, (_, i) => {
+          const day = new Date(weekStartDate);
+          day.setDate(day.getDate() + i);
+          const dayKey = isoDateLocal(day);
+          const isToday = dayKey === todayKey;
+          const daySlots = agreement.slots.filter((s) => s.weekday === day.getDay());
+          const hasIssue = (issuesByDay.get(dayKey) ?? []).length > 0;
+
+          return (
+            <a
+              key={dayKey}
+              href={`#dia-${dayKey}`}
+              className={`flex flex-1 flex-col items-center gap-1 rounded-xl py-2 transition-colors ${
+                isToday ? "bg-orange text-ink shadow-ambient" : "bg-card text-ink-soft hover:bg-dawn/60"
+              }`}
+            >
+              <span className="text-[10px] font-semibold uppercase tracking-wide">{WEEKDAY_SHORT[day.getDay()]}</span>
+              <span className="text-sm font-semibold">{day.getDate()}</span>
+              <span
+                className={`h-1.5 w-1.5 rounded-full ${
+                  hasIssue ? "bg-danger" : daySlots.length > 0 ? "bg-success" : "bg-transparent"
+                }`}
+              />
+            </a>
+          );
+        })}
       </div>
 
       <div className="mt-6 flex flex-col gap-3">
@@ -116,12 +169,15 @@ export default async function CalendarioPage({
           return (
             <div
               key={dayKey}
-              className={`rounded-xl border p-4 shadow-ambient ${isToday ? "border-orange bg-card" : "border-subtle bg-card"}`}
+              id={`dia-${dayKey}`}
+              className={`scroll-mt-20 rounded-2xl p-4 shadow-ambient ${
+                isToday ? "bg-gradient-to-br from-dawn to-salmon" : "border border-subtle bg-card"
+              }`}
             >
               <p className="flex items-center gap-2 text-sm font-semibold text-ink">
                 {WEEKDAY_LABELS[day.getDay()]} · {formatDay(day)}
                 {isToday && (
-                  <span className="rounded-full bg-orange px-2 py-0.5 text-xs font-semibold text-ink">Hoy</span>
+                  <span className="rounded-full bg-card px-2 py-0.5 text-xs font-semibold text-ink">Hoy</span>
                 )}
               </p>
 
@@ -155,12 +211,19 @@ export default async function CalendarioPage({
                         e.scheduledAt === scheduledOut.toISOString()
                     );
                     const isMySlotToday = isToday && slot.parentId === parentId;
+                    const accent = parentAccent(slot.parentId === parentId);
+                    const parentDisplayName = parentName(slot.parentId);
 
                     return (
-                      <li key={idx} className="rounded-lg bg-sea px-3 py-2">
+                      <li key={idx} className={`rounded-xl px-3 py-2.5 ${isToday ? "bg-card/80" : accent.chip}`}>
                         <div className="flex items-center justify-between gap-2">
-                          <span className="text-sm text-ink">
-                            {childName(slot.childId)} con <strong>{parentName(slot.parentId)}</strong>
+                          <span className="flex items-center gap-2 text-sm text-ink">
+                            <span
+                              className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-ink ${accent.avatar}`}
+                            >
+                              {parentDisplayName.charAt(0).toUpperCase()}
+                            </span>
+                            {childName(slot.childId)} con <strong>{parentDisplayName}</strong>
                           </span>
                           <span className="whitespace-nowrap text-xs text-ink-soft">
                             {slot.startTime}–{slot.endTime}
