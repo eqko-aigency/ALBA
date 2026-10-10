@@ -86,19 +86,18 @@ function NavIcon({ label }: { label: NavLabel }) {
 export function AppNav({ active }: { active?: NavLabel }) {
   return (
     <nav
-      className="fixed inset-x-4 z-20 mx-auto flex max-w-md items-stretch justify-between gap-1 rounded-2xl bg-card px-1.5 py-1.5 shadow-elevated"
+      className="fixed inset-x-2 z-20 mx-auto flex max-w-md items-stretch justify-between rounded-2xl bg-card px-1 py-1.5 shadow-elevated"
       style={{ bottom: "calc(1rem + env(safe-area-inset-bottom))" }}
     >
       {items.map((item) => {
         const isActive = active === item.label;
         if (!item.enabled) {
           return (
-            <span
-              key={item.label}
-              className="flex flex-1 flex-col items-center gap-0.5 rounded-xl px-1 py-1.5 text-ink-faint/60"
-            >
-              <NavIcon label={item.label} />
-              <span className="text-[10px] font-medium">{item.label}</span>
+            <span key={item.label} className="flex flex-1 flex-col items-center gap-0.5 py-1 text-ink-faint/60">
+              <span className="flex h-7 w-7 items-center justify-center">
+                <NavIcon label={item.label} />
+              </span>
+              <span className="text-[9px] font-medium leading-none">{item.label}</span>
             </span>
           );
         }
@@ -106,12 +105,24 @@ export function AppNav({ active }: { active?: NavLabel }) {
           <Link
             key={item.label}
             href={item.href}
-            className={`flex flex-1 flex-col items-center gap-0.5 rounded-xl px-1 py-1.5 transition-colors ${
-              isActive ? "bg-orange text-ink" : "text-ink-soft"
+            className={`flex flex-1 flex-col items-center gap-0.5 py-1 transition-colors ${
+              isActive ? "text-ink" : "text-ink-soft"
             }`}
           >
-            <NavIcon label={item.label} />
-            <span className="text-[10px] font-medium">{item.label}</span>
+            {/* El indicador activo va solo en el círculo del ícono, no en
+                toda la columna — un fondo de ancho completo hacía que el
+                item activo se viera más ancho que sus vecinos y, en
+                pantallas angostas, empujaba al resto fuera del nav. */}
+            <span
+              className={`flex h-7 w-7 items-center justify-center rounded-full transition-colors ${
+                isActive ? "bg-orange" : ""
+              }`}
+            >
+              <NavIcon label={item.label} />
+            </span>
+            <span className={`text-[9px] leading-none ${isActive ? "font-semibold" : "font-medium"}`}>
+              {item.label}
+            </span>
           </Link>
         );
       })}
