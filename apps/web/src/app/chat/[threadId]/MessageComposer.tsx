@@ -98,7 +98,7 @@ export function MessageComposer({ threadId, as }: { threadId: string; as: string
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="flex gap-2">
+      <form onSubmit={handleSubmit} className="flex items-center gap-2">
         <input
           name="body"
           autoComplete="off"
@@ -106,14 +106,24 @@ export function MessageComposer({ threadId, as }: { threadId: string; as: string
           value={body}
           onChange={(e) => setBody(e.target.value)}
           placeholder="Escribir mensaje…"
-          className={`flex-1 rounded-full border-2 bg-card px-4 py-2 text-sm text-ink ${borderClass}`}
+          className={`flex-1 rounded-full border-2 bg-card px-4 py-3 text-sm text-ink ${borderClass}`}
         />
         <button
           type="submit"
           disabled={checking || sending}
-          className="rounded-full bg-orange px-4 py-2 text-sm font-semibold text-ink disabled:opacity-60"
+          aria-label={checking ? "Revisando tono" : "Enviar"}
+          className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-orange text-ink disabled:opacity-60"
         >
-          {checking ? "Revisando…" : "Enviar"}
+          {checking ? (
+            <span className="h-4 w-4 animate-spin rounded-full border-2 border-ink/30 border-t-ink" />
+          ) : (
+            <svg viewBox="0 0 20 20" fill="none" className="h-5 w-5 translate-x-[-1px]" aria-hidden="true">
+              <path
+                d="M3 10l14-7-5 7 5 7-14-7z"
+                fill="currentColor"
+              />
+            </svg>
+          )}
         </button>
       </form>
     </div>
