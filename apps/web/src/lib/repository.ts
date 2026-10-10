@@ -4,14 +4,23 @@ import {
   createHeuristicToneAnalyzer,
   createMockChatRepository,
   createMockCustodyRepository,
+  createMockDocumentRepository,
   createMockExpenseRepository,
   createMockPairingRepository,
   createSupabaseChatRepository,
   createSupabaseCustodyRepository,
+  createSupabaseDocumentRepository,
   createSupabaseExpenseRepository,
   createSupabasePairingRepository,
 } from "@alba/api-client";
-import type { ChatRepository, CustodyRepository, ExpenseRepository, PairingRepository, ToneAnalyzer } from "@alba/core";
+import type {
+  ChatRepository,
+  CustodyRepository,
+  DocumentRepository,
+  ExpenseRepository,
+  PairingRepository,
+  ToneAnalyzer,
+} from "@alba/core";
 import { createSupabaseServerClient } from "./supabaseServerClient";
 
 export const isSupabaseConfigured = Boolean(
@@ -29,6 +38,7 @@ const globalForMock = globalThis as unknown as {
   mockChatRepository?: ChatRepository;
   mockCustodyRepository?: CustodyRepository;
   mockExpenseRepository?: ExpenseRepository;
+  mockDocumentRepository?: DocumentRepository;
 };
 
 function getMockRepositories(): {
@@ -36,16 +46,19 @@ function getMockRepositories(): {
   chat: ChatRepository;
   custody: CustodyRepository;
   expenses: ExpenseRepository;
+  documents: DocumentRepository;
 } {
   globalForMock.mockPairingRepository ??= createMockPairingRepository();
   globalForMock.mockChatRepository ??= createMockChatRepository(globalForMock.mockPairingRepository);
   globalForMock.mockCustodyRepository ??= createMockCustodyRepository(globalForMock.mockPairingRepository);
   globalForMock.mockExpenseRepository ??= createMockExpenseRepository(globalForMock.mockPairingRepository);
+  globalForMock.mockDocumentRepository ??= createMockDocumentRepository(globalForMock.mockPairingRepository);
   return {
     pairing: globalForMock.mockPairingRepository,
     chat: globalForMock.mockChatRepository,
     custody: globalForMock.mockCustodyRepository,
     expenses: globalForMock.mockExpenseRepository,
+    documents: globalForMock.mockDocumentRepository,
   };
 }
 
@@ -110,12 +123,13 @@ export async function getRequestContext(as?: string): Promise<{
   chat: ChatRepository;
   custody: CustodyRepository;
   expenses: ExpenseRepository;
+  documents: DocumentRepository;
   parentId: string;
 }> {
   if (!isSupabaseConfigured) {
     const { resolveDemoParentId } = await import("./demoSession");
-    const { pairing, chat, custody, expenses } = getMockRepositories();
-    return { pairing, chat, custody, expenses, parentId: resolveDemoParentId(as) };
+    const { pairing, chat, custody, expenses, documents } = getMockRepositories();
+    return { pairing, chat, custody, expenses, documents, parentId: resolveDemoParentId(as) };
   }
 
   const { client, userId } = await getAuthedSupabaseClient();
@@ -125,6 +139,7 @@ export async function getRequestContext(as?: string): Promise<{
     chat: createSupabaseChatRepository(client),
     custody: createSupabaseCustodyRepository(client),
     expenses: createSupabaseExpenseRepository(client),
+    documents: createSupabaseDocumentRepository(client),
     parentId: userId,
   };
 }

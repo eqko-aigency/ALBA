@@ -104,3 +104,30 @@ export interface CustodyAgreement {
   /** minutos de tolerancia antes de considerar un check-in tardío como incumplimiento */
   toleranceMinutes: number;
 }
+
+export type AnchorStatus = "pending" | "anchored";
+
+/**
+ * Documento de Bóveda (W-xx) — combina "Documentos y acuerdos básicos" y
+ * "Evidencia digital" de la cotización en una sola entidad. Cuelga de la
+ * FAMILIA (familyId), no de un hijo ni solo del progenitor que lo subió —
+ * ambos progenitores deben poder verlo, mismo criterio que
+ * CustodyAgreement. sha256Hex se calcula en el servidor sobre los bytes
+ * reales del archivo en el momento de la subida (ver README.md, "Reglas de
+ * arquitectura no negociables") — nunca en el cliente. merkleRoot y
+ * anchorReference son null hasta que anchorPendingDocuments (ver
+ * DocumentRepository) ancla el documento junto con el resto de los
+ * documentos "pending" de la familia en ese momento.
+ */
+export interface Document {
+  id: string;
+  familyId: string;
+  uploadedByParentId: string;
+  title: string;
+  fileUrl: string;
+  sha256Hex: string;
+  merkleRoot: string | null;
+  anchorStatus: AnchorStatus;
+  anchorReference: string | null;
+  createdAt: string;
+}

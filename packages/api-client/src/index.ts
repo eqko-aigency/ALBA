@@ -4,6 +4,7 @@ export * from "./chat";
 export * from "./tone";
 export * from "./custody";
 export * from "./expenses";
+export * from "./documents";
 export type {
   Parent,
   Child,
@@ -13,6 +14,8 @@ export type {
   CustodyEvent,
   CustodyAgreement,
   CustodySlot,
+  Document,
+  AnchorStatus,
   Invitation,
   ChatThread,
   Message,

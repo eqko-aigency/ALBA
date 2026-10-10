@@ -4,6 +4,7 @@ import type {
   CustodyAgreement,
   CustodyEvent,
   CustodySlot,
+  Document,
   Expense,
   ExpenseBalance,
   Family,
@@ -113,4 +114,41 @@ export interface ExpenseRepository {
   ): Promise<Expense>;
   /** Balance 50/50 sobre gastos "approved" entre el caller y el otro progenitor de su familia. */
   getBalance(parentId: string): Promise<ExpenseBalance>;
+}
+
+/**
+ * Puerto de dominio para Bóveda — documentos y acuerdos básicos +
+ * evidencia digital (hash SHA-256 + Merkle Tree + anclaje blockchain POC).
+ * Un documento cuelga de la FAMILIA (familyId), nunca de un progenitor
+ * individual — mismo criterio que CustodyAgreement (ver comentario en ese
+ * puerto).
+ *
+ * uploadDocument recibe los BYTES crudos del archivo (fileBytes), no una
+ * URL ya subida desde el cliente — a diferencia de ExpenseInput.receiptUrl
+ * (donde la subida a Storage ya se resolvió en apps/web antes de llamar al
+ * repositorio), acá el hash SHA-256 (computeSha256Hex, ver
+ * packages/core/src/evidence/merkleEngine.ts) y la subida a Storage tienen
+ * que ocurrir sobre los MISMOS bytes, en la MISMA operación — por eso esta
+ * implementación (no el Server Action que la llama) hace ambas cosas,
+ * siguiendo al pie de la letra la regla no negociable de README.md: el
+ * hash se calcula en el servidor, nunca en el cliente.
+ *
+ * anchorPendingDocuments es el "anclaje" — un POC de Merkle Tree +
+ * referencia de blockchain simulada (ver supabaseDocumentRepository.ts
+ * para el detalle y el disclaimer de por qué es un placeholder). Ancla
+ * TODOS los documentos "pending" de la familia del caller bajo una sola
+ * raíz Merkle compartida; se modeló como método de este puerto (en vez de
+ * una función suelta) por el mismo motivo que updateExpenseStatus vive en
+ * ExpenseRepository: es una operación de negocio que necesita acceso
+ * directo a la fuente de datos, no solo lectura/escritura simple.
+ */
+export interface DocumentRepository {
+  listDocuments(parentId: string): Promise<Document[]>;
+  uploadDocument(
+    parentId: string,
+    input: { title: string; fileBytes: Uint8Array; fileName: string; mimeType: string }
+  ): Promise<Document>;
+  getDocument(parentId: string, documentId: string): Promise<Document | null>;
+  /** Devuelve solo los documentos recién anclados (antes estaban "pending"). */
+  anchorPendingDocuments(parentId: string): Promise<Document[]>;
 }

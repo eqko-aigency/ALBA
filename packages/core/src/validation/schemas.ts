@@ -82,3 +82,9 @@ export const signInInputSchema = z.object({
   password: z.string().min(1),
 });
 export type SignInInput = z.infer<typeof signInInputSchema>;
+
+/** Título del documento subido a Bóveda — el archivo en sí se valida por separado (tamaño/tipo) en el Server Action. */
+export const documentUploadInputSchema = z.object({
+  title: z.string().min(3).max(160),
+});
+export type DocumentUploadInput = z.infer<typeof documentUploadInputSchema>;

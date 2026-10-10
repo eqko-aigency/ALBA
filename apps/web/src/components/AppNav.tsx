@@ -8,7 +8,7 @@ const items: { href: string; label: NavLabel; enabled: boolean }[] = [
   { href: "/chat", label: "Chat", enabled: true },
   { href: "/calendario", label: "Calendario", enabled: true },
   { href: "/gastos", label: "Gastos", enabled: true },
-  { href: "#", label: "Bóveda", enabled: false },
+  { href: "/boveda", label: "Bóveda", enabled: true },
 ];
 
 function NavIcon({ label }: { label: NavLabel }) {
