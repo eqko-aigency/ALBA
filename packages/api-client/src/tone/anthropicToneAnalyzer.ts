@@ -13,6 +13,20 @@ Responde ÚNICAMENTE con JSON válido, sin texto adicional, con esta forma exact
 Nunca inventes hechos que no estén en el mensaje original. No agregues explicaciones fuera del JSON.`;
 
 /**
+ * Haiku a veces envuelve el JSON en un bloque de markdown (```json ... ```)
+ * pese a que el prompt pide "ÚNICAMENTE JSON" — eso rompía JSON.parse()
+ * directo y caía siempre al fallback de "neutral" en silencio, dejando
+ * pasar mensajes hostiles sin aviso. Quita el fencing y se queda solo con
+ * el primer bloque {...} del texto.
+ */
+function extractJson(text: string): string {
+  const fenced = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+  const candidate = fenced ? fenced[1] : text;
+  const braces = candidate.match(/\{[\s\S]*\}/);
+  return braces ? braces[0] : candidate;
+}
+
+/**
  * Implementación real — nunca se llama desde el cliente (la API key no
  * puede vivir en un binario/bundle del navegador). Se instancia server-side
  * en apps/web/src/lib/repository.ts cuando existe ANTHROPIC_API_KEY.
@@ -34,7 +48,7 @@ export function createAnthropicToneAnalyzer(apiKey: string): ToneAnalyzer {
 
       let parsed: { level?: string; suggestion?: string | null };
       try {
-        parsed = JSON.parse(text);
+        parsed = JSON.parse(extractJson(text));
       } catch (err) {
         // Fallar hacia "neutral" en vez de bloquear el envío del mensaje
         // por un error de parseo — pero logueando fuerte, porque esto
