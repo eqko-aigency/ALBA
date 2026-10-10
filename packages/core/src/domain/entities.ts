@@ -62,6 +62,20 @@ export interface Expense {
   createdAt: string;
 }
 
+/**
+ * Balance 50/50 de gastos aprobados entre el caller y el otro progenitor de
+ * su familia — agregado para W-xx (Gastos básicos). `otherParentId` es null
+ * cuando el caller todavía no tiene un segundo progenitor emparejado (no
+ * hay con quién calcular un balance). `amountMxnOwedByCaller` positivo
+ * significa que el caller le debe ese monto al otro progenitor; negativo,
+ * que el otro progenitor le debe ese monto (en valor absoluto) al caller;
+ * cero, que están a mano.
+ */
+export interface ExpenseBalance {
+  otherParentId: string | null;
+  amountMxnOwedByCaller: number;
+}
+
 export type CustodyEventType = "checkin" | "checkout";
 
 export interface CustodyEvent {

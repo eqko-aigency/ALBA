@@ -4,6 +4,8 @@ import type {
   CustodyAgreement,
   CustodyEvent,
   CustodySlot,
+  Expense,
+  ExpenseBalance,
   Family,
   Invitation,
   Message,
@@ -13,6 +15,7 @@ import type {
 import type {
   AcceptInvitationInput,
   CreateThreadInput,
+  ExpenseInput,
   SendMessageInput,
   UpdateChildInput,
   UpsertProfileInput,
@@ -89,4 +92,25 @@ export interface CustodyRepository {
   listEventsForWeek(parentId: string, weekStart: string): Promise<CustodyEvent[]>;
   confirmCheckin(parentId: string, childId: string, scheduledAt: string): Promise<CustodyEvent>;
   confirmCheckout(parentId: string, childId: string, scheduledAt: string): Promise<CustodyEvent>;
+}
+
+/**
+ * Puerto de dominio para Gastos básicos con comprobantes + balance. Un
+ * gasto cuelga de un hijo (childId), que a su vez cuelga de una familia —
+ * se filtra por esa cadena, nunca por progenitor individual (mismo
+ * criterio que children/custody). La regla "el pagador no puede aprobar o
+ * rechazar su propio gasto" se aplica tanto en RLS (0010_gastos.sql) como
+ * en la implementación de este puerto, como defensa en profundidad (ver
+ * updateChild en supabasePairingRepository.ts para el mismo patrón).
+ */
+export interface ExpenseRepository {
+  listExpenses(parentId: string): Promise<Expense[]>;
+  createExpense(parentId: string, input: ExpenseInput): Promise<Expense>;
+  updateExpenseStatus(
+    parentId: string,
+    expenseId: string,
+    status: "approved" | "rejected"
+  ): Promise<Expense>;
+  /** Balance 50/50 sobre gastos "approved" entre el caller y el otro progenitor de su familia. */
+  getBalance(parentId: string): Promise<ExpenseBalance>;
 }

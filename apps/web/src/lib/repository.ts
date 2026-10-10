@@ -1,15 +1,17 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import {
   createAnthropicToneAnalyzer,
   createHeuristicToneAnalyzer,
   createMockChatRepository,
   createMockCustodyRepository,
+  createMockExpenseRepository,
   createMockPairingRepository,
   createSupabaseChatRepository,
   createSupabaseCustodyRepository,
+  createSupabaseExpenseRepository,
   createSupabasePairingRepository,
 } from "@alba/api-client";
-import type { ChatRepository, CustodyRepository, PairingRepository, ToneAnalyzer } from "@alba/core";
+import type { ChatRepository, CustodyRepository, ExpenseRepository, PairingRepository, ToneAnalyzer } from "@alba/core";
 import { createSupabaseServerClient } from "./supabaseServerClient";
 
 export const isSupabaseConfigured = Boolean(
@@ -26,21 +28,32 @@ const globalForMock = globalThis as unknown as {
   mockPairingRepository?: PairingRepository;
   mockChatRepository?: ChatRepository;
   mockCustodyRepository?: CustodyRepository;
+  mockExpenseRepository?: ExpenseRepository;
 };
 
-function getMockRepositories(): { pairing: PairingRepository; chat: ChatRepository; custody: CustodyRepository } {
+function getMockRepositories(): {
+  pairing: PairingRepository;
+  chat: ChatRepository;
+  custody: CustodyRepository;
+  expenses: ExpenseRepository;
+} {
   globalForMock.mockPairingRepository ??= createMockPairingRepository();
   globalForMock.mockChatRepository ??= createMockChatRepository(globalForMock.mockPairingRepository);
   globalForMock.mockCustodyRepository ??= createMockCustodyRepository(globalForMock.mockPairingRepository);
+  globalForMock.mockExpenseRepository ??= createMockExpenseRepository(globalForMock.mockPairingRepository);
   return {
     pairing: globalForMock.mockPairingRepository,
     chat: globalForMock.mockChatRepository,
     custody: globalForMock.mockCustodyRepository,
+    expenses: globalForMock.mockExpenseRepository,
   };
 }
 
 /**
- * Repositorios + identidad del caller para ESTA request.
+ * Cliente de Supabase + identidad del caller ya validados, para ESTA
+ * request. Extraído como función propia (antes vivía inline dentro de
+ * getRequestContext) para poder reutilizarlo también en uploadReceiptFile
+ * (comprobantes de gastos vía Supabase Storage) sin duplicar esta lógica.
  *
  * Unificar en un solo cliente cookie-based (en vez de uno para los repos y
  * otro aparte para resolver auth.uid(), como estaba antes) no bastó: en
@@ -54,15 +67,7 @@ function getMockRepositories(): { pairing: PairingRepository; chat: ChatReposito
  * con el access_token de la sesión ya validada puesto explícitamente como
  * header — así el insert nunca depende de esa propagación implícita.
  */
-export async function getRequestContext(
-  as?: string
-): Promise<{ pairing: PairingRepository; chat: ChatRepository; custody: CustodyRepository; parentId: string }> {
-  if (!isSupabaseConfigured) {
-    const { resolveDemoParentId } = await import("./demoSession");
-    const { pairing, chat, custody } = getMockRepositories();
-    return { pairing, chat, custody, parentId: resolveDemoParentId(as) };
-  }
-
+async function getAuthedSupabaseClient(): Promise<{ client: SupabaseClient; userId: string }> {
   const cookieClient = await createSupabaseServerClient();
   const {
     data: { user },
@@ -96,12 +101,55 @@ export async function getRequestContext(
     throw new Error("No se pudo validar la sesión — inicia sesión de nuevo.");
   }
 
+  return { client, userId: user.id };
+}
+
+/** Repositorios + identidad del caller para ESTA request. */
+export async function getRequestContext(as?: string): Promise<{
+  pairing: PairingRepository;
+  chat: ChatRepository;
+  custody: CustodyRepository;
+  expenses: ExpenseRepository;
+  parentId: string;
+}> {
+  if (!isSupabaseConfigured) {
+    const { resolveDemoParentId } = await import("./demoSession");
+    const { pairing, chat, custody, expenses } = getMockRepositories();
+    return { pairing, chat, custody, expenses, parentId: resolveDemoParentId(as) };
+  }
+
+  const { client, userId } = await getAuthedSupabaseClient();
+
   return {
     pairing: createSupabasePairingRepository(client),
     chat: createSupabaseChatRepository(client),
     custody: createSupabaseCustodyRepository(client),
-    parentId: user.id,
+    expenses: createSupabaseExpenseRepository(client),
+    parentId: userId,
   };
+}
+
+/**
+ * Sube un comprobante al bucket de Storage "comprobantes" (ver
+ * 0010_gastos.sql) y devuelve su URL pública. En modo demo (sin Supabase
+ * real) no hay Storage al que subir nada — devuelve null y el formulario de
+ * /gastos cae al campo manual de URL de comprobante (ver GASTOS_DESIGN en
+ * apps/web/src/app/gastos/actions.ts).
+ */
+export async function uploadReceiptFile(file: File): Promise<string | null> {
+  if (!isSupabaseConfigured) return null;
+
+  const { client, userId } = await getAuthedSupabaseClient();
+  const safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, "_");
+  const path = `${userId}/${Date.now()}-${safeName}`;
+
+  const { error } = await client.storage
+    .from("comprobantes")
+    .upload(path, file, { contentType: file.type || undefined });
+  if (error) throw error;
+
+  const { data } = client.storage.from("comprobantes").getPublicUrl(path);
+  return data.publicUrl;
 }
 
 /**
