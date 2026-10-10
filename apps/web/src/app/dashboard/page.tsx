@@ -2,6 +2,8 @@ import Link from "next/link";
 import { getRequestContext } from "@/lib/repository";
 import { isDemoMode } from "@/lib/demoSession";
 import { AppNav } from "@/components/AppNav";
+import { BovedaIcon, CalendarIcon, ChatIcon, ClockIcon, GastosIcon } from "@/components/icons";
+import type { ComponentType } from "react";
 
 const MXN = new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" });
 
@@ -19,11 +21,11 @@ function startOfWeek(reference: Date): Date {
   return d;
 }
 
-const QUICK_LINKS: { href: string; title: string; description: string; accent: string }[] = [
-  { href: "/chat", title: "Chat", description: "Habla con el otro progenitor.", accent: "bg-salmon" },
-  { href: "/calendario", title: "Calendario", description: "Confirma check-in/check-out.", accent: "bg-sky" },
-  { href: "/gastos", title: "Gastos", description: "Registra y aprueba gastos.", accent: "bg-dawn" },
-  { href: "/boveda", title: "Bóveda", description: "Documentos y evidencia.", accent: "bg-purple" },
+const QUICK_LINKS: { href: string; title: string; description: string; accent: string; Icon: ComponentType<{ className?: string }> }[] = [
+  { href: "/chat", title: "Chat", description: "Habla con el otro progenitor.", accent: "bg-salmon", Icon: ChatIcon },
+  { href: "/calendario", title: "Calendario", description: "Confirma check-in/check-out.", accent: "bg-sky", Icon: CalendarIcon },
+  { href: "/gastos", title: "Gastos", description: "Registra y aprueba gastos.", accent: "bg-dawn", Icon: GastosIcon },
+  { href: "/boveda", title: "Bóveda", description: "Documentos y evidencia.", accent: "bg-purple", Icon: BovedaIcon },
 ];
 
 export default async function DashboardPage({
@@ -98,7 +100,9 @@ export default async function DashboardPage({
 
       <div className="mt-6 grid grid-cols-2 gap-3">
         <div className="rounded-2xl border border-subtle bg-card p-4 shadow-ambient">
-          <span className="inline-block h-2 w-8 rounded-full bg-orange" />
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-orange text-ink">
+            <ClockIcon />
+          </span>
           <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-ink-soft">Hoy</p>
           {todayStatus.length === 0 ? (
             <p className="mt-1 text-sm font-medium text-ink">Sin eventos</p>
@@ -114,7 +118,9 @@ export default async function DashboardPage({
         </div>
 
         <div className="rounded-2xl border border-subtle bg-card p-4 shadow-ambient">
-          <span className="inline-block h-2 w-8 rounded-full bg-sky" />
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-sky text-ink">
+            <GastosIcon />
+          </span>
           <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-ink-soft">Balance de gastos</p>
           <p className="mt-1 text-sm font-medium text-ink">{balanceLabel}</p>
           {pendingForMe > 0 && (
@@ -123,7 +129,9 @@ export default async function DashboardPage({
         </div>
 
         <div className="rounded-2xl border border-subtle bg-card p-4 shadow-ambient">
-          <span className="inline-block h-2 w-8 rounded-full bg-purple" />
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-purple text-ink">
+            <BovedaIcon />
+          </span>
           <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-ink-soft">Documentos</p>
           <p className="mt-1 text-sm font-medium text-ink">
             {documentList.length === 0
@@ -133,7 +141,9 @@ export default async function DashboardPage({
         </div>
 
         <div className="rounded-2xl border border-subtle bg-card p-4 shadow-ambient">
-          <span className="inline-block h-2 w-8 rounded-full bg-salmon" />
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-salmon text-ink">
+            <ChatIcon />
+          </span>
           <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-ink-soft">Chats</p>
           <p className="mt-1 text-sm font-medium text-ink">
             {threads.length} hilo{threads.length === 1 ? "" : "s"} activo{threads.length === 1 ? "" : "s"}
@@ -143,13 +153,15 @@ export default async function DashboardPage({
 
       <h2 className="mt-8 text-sm font-semibold uppercase tracking-wide text-ink-soft">Ir a</h2>
       <div className="mt-3 grid grid-cols-2 gap-3">
-        {QUICK_LINKS.map((link) => (
+        {QUICK_LINKS.map(({ Icon, ...link }) => (
           <Link
             key={link.href}
             href={as === "b" ? `${link.href}?as=b` : link.href}
             className="rounded-2xl border border-subtle bg-card p-4 shadow-ambient transition-all hover:-translate-y-0.5 hover:shadow-elevated"
           >
-            <span className={`inline-block h-2 w-8 rounded-full ${link.accent}`} />
+            <span className={`flex h-9 w-9 items-center justify-center rounded-xl text-ink ${link.accent}`}>
+              <Icon />
+            </span>
             <p className="mt-3 text-sm font-semibold text-ink">{link.title}</p>
             <p className="mt-1 text-xs text-ink-soft">{link.description}</p>
           </Link>

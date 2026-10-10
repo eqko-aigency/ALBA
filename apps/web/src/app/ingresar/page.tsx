@@ -17,7 +17,7 @@ export default async function IngresarPage({
 
   return (
     <AuthLayout>
-      <Wordmark className="text-4xl" />
+      <Wordmark className="text-6xl" />
       <h1 className="mt-6 text-2xl font-semibold tracking-tight text-ink">Iniciar sesión</h1>
       <p className="mt-2 text-ink-soft">Entra a tu cuenta de ALBA.</p>
       <LoginForm initialError={initialError} />
