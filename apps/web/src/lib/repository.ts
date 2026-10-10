@@ -55,52 +55,68 @@ export async function getRequestContext(
     return { pairing, chat, parentId: resolveDemoParentId(as) };
   }
 
-  const cookieClient = await createSupabaseServerClient();
-  const {
-    data: { user },
-    error,
-  } = await cookieClient.auth.getUser();
-  if (error || !user) {
-    throw new Error("No hay sesión activa — inicia sesión para continuar.");
+  // DEBUG TEMPORAL — try/catch de blindaje: quitar junto con los
+  // console.error de abajo en cuanto se resuelva el bug de RLS en
+  // producción. Los intentos previos de loguear esto nunca imprimían nada
+  // en los Runtime Logs de Vercel pese a 500s reproducibles, lo que sugiere
+  // que algo está lanzando ANTES de llegar a esas líneas — este try/catch
+  // envuelve TODO el cuerpo para no perder ninguna excepción.
+  try {
+    const cookieClient = await createSupabaseServerClient();
+    const {
+      data: { user },
+      error,
+    } = await cookieClient.auth.getUser();
+    console.error("[DEBUG] getUser", { hasUser: !!user, userId: user?.id, errorMsg: error?.message });
+    if (error || !user) {
+      throw new Error("No hay sesión activa — inicia sesión para continuar.");
+    }
+
+    const {
+      data: { session },
+      error: sessionError,
+    } = await cookieClient.auth.getSession();
+    console.error("[DEBUG] getSession", {
+      hasSession: !!session,
+      sessionUserId: session?.user?.id,
+      accessTokenLen: session?.access_token?.length ?? 0,
+      sessionErrorMsg: sessionError?.message,
+    });
+    if (!session) {
+      throw new Error("No hay sesión activa — inicia sesión para continuar.");
+    }
+
+    const client = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
+      global: { headers: { Authorization: `Bearer ${session.access_token}` } },
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
+
+    const [selfSelect, jwtClaim] = await Promise.all([
+      client.from("profiles").select("id").eq("id", user.id).maybeSingle(),
+      client.rpc("debug_jwt_claims" as never).then(
+        (r) => r,
+        (e) => ({ data: null, error: String(e) })
+      ),
+    ]);
+    console.error("[DEBUG] built client", {
+      userId: user.id,
+      selfSelectData: selfSelect.data,
+      selfSelectError: selfSelect.error,
+      jwtClaim,
+    });
+
+    return {
+      pairing: createSupabasePairingRepository(client),
+      chat: createSupabaseChatRepository(client),
+      parentId: user.id,
+    };
+  } catch (e) {
+    console.error(
+      "[DEBUG] CAUGHT in getRequestContext",
+      e instanceof Error ? { name: e.name, message: e.message, stack: e.stack } : e
+    );
+    throw e;
   }
-
-  const {
-    data: { session },
-  } = await cookieClient.auth.getSession();
-  if (!session) {
-    throw new Error("No hay sesión activa — inicia sesión para continuar.");
-  }
-
-  const client = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
-    global: { headers: { Authorization: `Bearer ${session.access_token}` } },
-    auth: { persistSession: false, autoRefreshToken: false },
-  });
-
-  // DEBUG TEMPORAL — quitar en cuanto se resuelva el bug de RLS en
-  // producción. Confirma, con una query real contra Postgres (no solo
-  // contra el endpoint de Auth), si ESTE cliente llega autenticado.
-  const [selfSelect, jwtClaim] = await Promise.all([
-    client.from("profiles").select("id").eq("id", user.id).maybeSingle(),
-    client.rpc("debug_jwt_claims" as never).then(
-      (r) => r,
-      (e) => ({ data: null, error: String(e) })
-    ),
-  ]);
-  console.error("[DEBUG getRequestContext]", {
-    userId: user.id,
-    sessionUserId: session.user?.id,
-    accessTokenLen: session.access_token?.length ?? 0,
-    accessTokenPrefix: session.access_token?.slice(0, 12),
-    selfSelectData: selfSelect.data,
-    selfSelectError: selfSelect.error,
-    jwtClaim,
-  });
-
-  return {
-    pairing: createSupabasePairingRepository(client),
-    chat: createSupabaseChatRepository(client),
-    parentId: user.id,
-  };
 }
 
 /**
