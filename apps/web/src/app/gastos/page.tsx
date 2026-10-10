@@ -50,7 +50,7 @@ export default async function GastosPage({
   const owedRounded = Math.round(balance.amountMxnOwedByCaller * 100) / 100;
 
   return (
-    <div className="mx-auto min-h-screen max-w-2xl px-6 py-16 bg-sand">
+    <div className="mx-auto min-h-screen max-w-2xl px-6 pb-28 pt-16 bg-sand">
       {isDemoMode && (
         <p className="mb-6 rounded-md border border-orange bg-dawn px-4 py-2 text-sm text-ink">
           Modo de prueba local — viendo como Progenitor {as === "b" ? "B" : "A"}.{" "}
@@ -207,9 +207,7 @@ export default async function GastosPage({
         )}
       </section>
 
-      <div className="mt-8">
-        <AppNav active="Gastos" />
-      </div>
+      <AppNav active="Gastos" />
     </div>
   );
 }
