@@ -3,6 +3,9 @@ import { getRequestContext } from "@/lib/repository";
 import { isDemoMode } from "@/lib/demoSession";
 import { LogoutButton } from "@/components/LogoutButton";
 import { createChildAction, createInvitationAction } from "./actions";
+import { CopyInvitationLink } from "./CopyInvitationLink";
+
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "";
 
 /** Código corto legible derivado del token — estilo W-03 (ej. ALBA-9842-XN23). */
 function formatInvitationCode(token: string): string {
@@ -59,9 +62,8 @@ export default async function RegistroPage() {
               <p className="mt-1 font-mono text-lg font-semibold tracking-wide text-ink">
                 {formatInvitationCode(inv.token)}
               </p>
-              <p className="mt-3 break-all font-mono text-xs text-ink-faint">
-                O comparte el enlace protegido: /invitacion/{inv.token}
-              </p>
+              <p className="mt-3 text-xs text-ink-faint">O comparte el enlace protegido:</p>
+              <CopyInvitationLink url={`${siteUrl}/invitacion/${inv.token}`} />
             </div>
           ))
         ) : (
