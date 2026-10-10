@@ -2,13 +2,19 @@ import Link from "next/link";
 import { LogoutButton } from "./LogoutButton";
 
 const items = [
+  { href: "/registro", label: "Registro", enabled: true },
+  { href: "/perfil", label: "Perfil", enabled: true },
   { href: "/chat", label: "Acuerdo", enabled: true },
   { href: "#", label: "Calendario", enabled: false },
   { href: "#", label: "Gastos", enabled: false },
   { href: "#", label: "Bóveda", enabled: false },
 ] as const;
 
-export function AppNav({ active }: { active?: "Acuerdo" | "Calendario" | "Gastos" | "Bóveda" }) {
+export function AppNav({
+  active,
+}: {
+  active?: "Registro" | "Perfil" | "Acuerdo" | "Calendario" | "Gastos" | "Bóveda";
+}) {
   return (
     <div className="flex items-center gap-2">
       <nav className="flex flex-1 gap-1 rounded-full bg-ink p-1">

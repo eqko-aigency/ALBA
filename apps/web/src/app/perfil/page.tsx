@@ -77,7 +77,7 @@ export default async function PerfilPage() {
       </ul>
 
       <div className="mt-8">
-        <AppNav />
+        <AppNav active="Perfil" />
       </div>
     </div>
   );

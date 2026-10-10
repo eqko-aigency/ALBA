@@ -113,7 +113,7 @@ export default async function RegistroPage() {
       )}
 
       <div className="mt-8">
-        <AppNav active="Acuerdo" />
+        <AppNav active="Registro" />
       </div>
     </div>
   );
