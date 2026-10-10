@@ -19,13 +19,15 @@ export default async function ThreadPage({
   const { as } = await searchParams;
   const { chat, pairing, parentId } = await getRequestContext(as);
 
-  const [threads, messages, children] = await Promise.all([
+  const [threads, messages, children, familyMembers] = await Promise.all([
     chat.listThreads(parentId),
     chat.listMessages(parentId, threadId),
     pairing.getMyChildren(parentId),
+    pairing.listFamilyMembers(parentId),
   ]);
   const thread = threads.find((t) => t.id === threadId);
   const childName = children.find((c) => c.id === thread?.childId)?.fullName ?? null;
+  const senderName = (id: string) => (id === parentId ? "Tú" : familyMembers.find((p) => p.id === id)?.fullName ?? "El otro progenitor");
 
   return (
     <div className="mx-auto flex min-h-screen max-w-2xl flex-col bg-sand">
@@ -66,16 +68,29 @@ export default async function ThreadPage({
         {messages.length === 0 && <p className="text-sm text-ink-soft">Todavía no hay mensajes en este hilo.</p>}
         {messages.map((message) => {
           const isMine = message.senderId === parentId;
+          const initial = senderName(message.senderId).charAt(0).toUpperCase();
+          const avatar = (
+            <span
+              className={`flex h-7 w-7 flex-shrink-0 items-center justify-center self-end rounded-full text-[11px] font-bold text-ink ${
+                isMine ? "bg-orange" : "bg-sky"
+              }`}
+            >
+              {initial}
+            </span>
+          );
           return (
-            <div key={message.id} className={`flex ${isMine ? "justify-end" : "justify-start"}`}>
+            <div key={message.id} className={`flex items-end gap-2 ${isMine ? "justify-end" : "justify-start"}`}>
+              {!isMine && avatar}
               <div
-                className={`max-w-[75%] rounded-2xl px-4 py-2 ${isMine ? "bg-orange" : "bg-card shadow-ambient"}`}
+                className={`max-w-[70%] rounded-2xl px-4 py-2 ${isMine ? "bg-orange" : "border border-subtle bg-card"}`}
               >
+                {!isMine && <p className="text-xs font-semibold text-ink-soft">{senderName(message.senderId)}</p>}
                 <p className="text-sm text-ink">{message.body}</p>
                 <p className={`mt-1 text-right text-[10px] ${isMine ? "text-ink/60" : "text-ink-faint"}`}>
                   {formatTime(message.createdAt)}
                 </p>
               </div>
+              {isMine && avatar}
             </div>
           );
         })}
