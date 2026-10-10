@@ -12,6 +12,12 @@ const HOSTILE_PATTERNS = [
   /\bidiota\b/i,
   /\bestúpid[oa]\b/i,
   /\binútil\b/i,
+  // Lenguaje de amenaza o violencia — la categoría más grave, faltaba por
+  // completo: el heurístico solo cubría insultos, no amenazas.
+  /\bte\s+voy\s+a\s+(matar|golpear|pegar|lastimar)\b/i,
+  /\b(matar|golpear|lastimar)te\b/i,
+  /\bte\s+quiero\s+matar\b/i,
+  /\bamenaza/i,
 ];
 
 const TENSE_PATTERNS = [/\botra\s+vez\b/i, /\bde\s+nuevo\b/i, /\bcomo\s+siempre\b/i, /\bya\s+basta\b/i];
