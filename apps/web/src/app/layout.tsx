@@ -21,6 +21,10 @@ const albaWordmark = localFont({
 });
 
 export const metadata: Metadata = {
+  // Sin esto, Next.js arma la URL de opengraph-image contra localhost en
+  // build — rota en producción (el link preview de WhatsApp/iMessage
+  // apuntaría a una URL que nadie más puede resolver).
+  metadataBase: process.env.NEXT_PUBLIC_SITE_URL ? new URL(process.env.NEXT_PUBLIC_SITE_URL) : undefined,
   title: "ALBA",
   description: "App de coparentalidad",
 };
