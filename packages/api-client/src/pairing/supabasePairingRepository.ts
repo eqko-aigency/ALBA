@@ -14,17 +14,13 @@ export function createSupabasePairingRepository(client: SupabaseClient): Pairing
   const getMyFamilyId = createFamilyIdResolver(client);
 
   return {
-    async getOrCreateMyFamily(parentId) {
-      const existingFamilyId = await getMyFamilyId(parentId);
-      if (existingFamilyId) return { id: existingFamilyId };
-
-      const { data, error } = await client
-        .from("families")
-        .insert({ created_by: parentId })
-        .select()
-        .single();
+    async getOrCreateMyFamily(_parentId) {
+      // RPC security definer en vez de insert directo — ver migración 0008
+      // para el porqué: el insert directo venía rechazado por RLS en
+      // producción (auth_user: null) pese a sesión válida.
+      const { data, error } = await client.rpc("get_or_create_my_family");
       if (error) throw error;
-      return { id: data.id };
+      return { id: data };
     },
 
     async getMyChildren(parentId) {
