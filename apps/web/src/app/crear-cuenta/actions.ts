@@ -38,8 +38,21 @@ export async function signupAction(
   });
 
   if (error) {
+    // El mensaje que ve el usuario siempre fue genérico — pero nunca se
+    // logueaba el error real de Supabase en ningún lado, así que un fallo
+    // que no fuera "ya existe" era imposible de diagnosticar sin esto.
+    console.error("[signupAction] Supabase signUp() falló", {
+      message: error.message,
+      status: error.status,
+      code: (error as { code?: string }).code,
+      email: parsed.data.email,
+    });
+
     if (error.message.includes("already registered") || error.message.includes("already exists")) {
       return { error: "Ya existe una cuenta con ese email." };
+    }
+    if (error.status === 429) {
+      return { error: "Demasiados intentos — espera unos minutos e intenta de nuevo." };
     }
     return { error: "No se pudo crear la cuenta. Intenta de nuevo." };
   }
