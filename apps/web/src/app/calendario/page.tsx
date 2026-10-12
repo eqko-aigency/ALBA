@@ -29,6 +29,19 @@ function parseDateKeyLocal(key: string): Date {
   return new Date(y, (m ?? 1) - 1, d ?? 1);
 }
 
+function addDays(d: Date, n: number): Date {
+  const r = new Date(d);
+  r.setDate(r.getDate() + n);
+  return r;
+}
+
+function startOfWeekDate(d: Date): Date {
+  const r = new Date(d);
+  r.setHours(0, 0, 0, 0);
+  r.setDate(r.getDate() - r.getDay());
+  return r;
+}
+
 function startOfMonth(d: Date): Date {
   return new Date(d.getFullYear(), d.getMonth(), 1);
 }
@@ -83,11 +96,12 @@ function ChevronIcon({ direction }: { direction: "left" | "right" }) {
 export default async function CalendarioPage({
   searchParams,
 }: {
-  searchParams: Promise<{ as?: string; month?: string; day?: string }>;
+  searchParams: Promise<{ as?: string; month?: string; day?: string; view?: string }>;
 }) {
-  const { as, month, day } = await searchParams;
+  const { as, month, day, view: viewParam } = await searchParams;
   const { pairing, custody, parentId } = await getRequestContext(as);
   const asQuery = as === "b" ? "&as=b" : "";
+  const view: "week" | "month" = viewParam === "week" ? "week" : "month";
 
   const now = new Date();
   const todayKey = isoDateLocal(now);
@@ -102,22 +116,18 @@ export default async function CalendarioPage({
   const selectedDayKey = day && /^\d{4}-\d{2}-\d{2}$/.test(day) ? day : defaultDayKey;
   const selectedDate = parseDateKeyLocal(selectedDayKey);
 
-  const gridStart = monthGridStart(refMonthDate);
-  const gridDays = Array.from({ length: 42 }, (_, i) => {
-    const d = new Date(gridStart);
-    d.setDate(d.getDate() + i);
-    return d;
-  });
+  // Mes: grilla de 6 semanas (42 días) arrancando en domingo. Semana: tira
+  // de 7 días arrancando en el domingo de la semana del día seleccionado.
+  // Ambos vistas comparten exactamente el mismo panel de detalle de abajo.
+  const visibleDays =
+    view === "month"
+      ? Array.from({ length: 42 }, (_, i) => addDays(monthGridStart(refMonthDate), i))
+      : Array.from({ length: 7 }, (_, i) => addDays(startOfWeekDate(selectedDate), i));
 
-  // La grilla siempre cubre exactamente 6 semanas (42 días) empezando en
-  // domingo — así que basta pedir eventos de esas 6 semanas puntuales para
-  // tener suficiente data y poder marcar el puntito rojo de incumplimiento
-  // en cualquier día visible, no solo en la semana actual.
-  const weekStarts = Array.from({ length: 6 }, (_, i) => {
-    const d = new Date(gridStart);
-    d.setDate(d.getDate() + i * 7);
-    return isoDateLocal(d);
-  });
+  const weekStarts =
+    view === "month"
+      ? Array.from({ length: 6 }, (_, i) => isoDateLocal(addDays(monthGridStart(refMonthDate), i * 7)))
+      : [isoDateLocal(startOfWeekDate(selectedDate))];
 
   const [agreement, children, familyMembers, eventsPerWeek] = await Promise.all([
     custody.getMyAgreement(parentId),
@@ -132,17 +142,33 @@ export default async function CalendarioPage({
     id === parentId ? "Tú" : familyMembers.find((p) => p.id === id)?.fullName ?? "El otro progenitor";
 
   // findComplianceIssues es 100% determinístico (packages/core) — se corre
-  // una vez por día visible en la grilla, siempre sobre el MISMO arreglo
-  // agreement.slots, para poder comparar por referencia (issue.slot ===
-  // slot) más abajo al renderizar cada slot.
+  // una vez por día visible, siempre sobre el MISMO arreglo agreement.slots,
+  // para poder comparar por referencia (issue.slot === slot) más abajo.
   const issuesByDay = new Map<string, ComplianceIssue[]>();
-  for (const d of gridDays) {
+  for (const d of visibleDays) {
     issuesByDay.set(isoDateLocal(d), findComplianceIssues(agreement, events, d));
   }
 
-  const prevMonthHref = `/calendario?month=${monthKey(addMonths(refMonthDate, -1))}${asQuery}`;
-  const nextMonthHref = `/calendario?month=${monthKey(addMonths(refMonthDate, 1))}${asQuery}`;
-  const todayHref = `/calendario?month=${monthKey(now)}&day=${todayKey}${asQuery}`;
+  const isTodayVisible = visibleDays.some((d) => isoDateLocal(d) === todayKey);
+  const todayHref = `/calendario?view=${view}&month=${monthKey(now)}&day=${todayKey}${asQuery}`;
+
+  const prevHref =
+    view === "month"
+      ? `/calendario?view=month&month=${monthKey(addMonths(refMonthDate, -1))}${asQuery}`
+      : `/calendario?view=week&day=${isoDateLocal(addDays(startOfWeekDate(selectedDate), -7))}${asQuery}`;
+  const nextHref =
+    view === "month"
+      ? `/calendario?view=month&month=${monthKey(addMonths(refMonthDate, 1))}${asQuery}`
+      : `/calendario?view=week&day=${isoDateLocal(addDays(startOfWeekDate(selectedDate), 7))}${asQuery}`;
+  const headerLabel =
+    view === "month"
+      ? formatMonthLabel(refMonthDate)
+      : `${formatDay(visibleDays[0])} – ${formatDay(visibleDays[6])}`;
+
+  const dayCellHref = (dayKey: string) =>
+    view === "month"
+      ? `/calendario?view=month&month=${monthKey(refMonthDate)}&day=${dayKey}${asQuery}`
+      : `/calendario?view=week&day=${dayKey}${asQuery}`;
 
   const selectedSlots = agreement.slots.filter((s) => s.weekday === selectedDate.getDay());
   const selectedIssues = issuesByDay.get(selectedDayKey) ?? [];
@@ -162,25 +188,44 @@ export default async function CalendarioPage({
       <h1 className="text-2xl font-semibold tracking-tight text-ink">Calendario de custodia</h1>
       <p className="mt-2 text-ink-soft">Toca un día para ver y confirmar check-in/check-out.</p>
 
-      <div className="mt-6 flex items-center justify-between rounded-2xl bg-card px-3 py-2.5 shadow-ambient">
+      <div className="mt-4 inline-flex rounded-full border border-subtle bg-sand p-1">
         <Link
-          href={prevMonthHref}
-          aria-label="Mes anterior"
+          href={`/calendario?view=week&day=${selectedDayKey}${asQuery}`}
+          className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-colors ${
+            view === "week" ? "bg-card text-ink shadow-ambient" : "text-ink-soft"
+          }`}
+        >
+          Semana
+        </Link>
+        <Link
+          href={`/calendario?view=month&month=${monthKey(refMonthDate)}&day=${selectedDayKey}${asQuery}`}
+          className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-colors ${
+            view === "month" ? "bg-card text-ink shadow-ambient" : "text-ink-soft"
+          }`}
+        >
+          Mes
+        </Link>
+      </div>
+
+      <div className="mt-4 flex items-center justify-between rounded-2xl bg-card px-3 py-2.5 shadow-ambient">
+        <Link
+          href={prevHref}
+          aria-label={view === "month" ? "Mes anterior" : "Semana anterior"}
           className="flex h-8 w-8 items-center justify-center rounded-full text-ink transition-colors hover:bg-sand"
         >
           <ChevronIcon direction="left" />
         </Link>
-        <span className="text-sm font-semibold text-ink">{formatMonthLabel(refMonthDate)}</span>
+        <span className="text-sm font-semibold text-ink">{headerLabel}</span>
         <Link
-          href={nextMonthHref}
-          aria-label="Mes siguiente"
+          href={nextHref}
+          aria-label={view === "month" ? "Mes siguiente" : "Semana siguiente"}
           className="flex h-8 w-8 items-center justify-center rounded-full text-ink transition-colors hover:bg-sand"
         >
           <ChevronIcon direction="right" />
         </Link>
       </div>
 
-      {!isCurrentMonth && (
+      {!isTodayVisible && (
         <Link href={todayHref} className="mt-2 inline-block text-xs font-semibold text-purple underline">
           Volver a hoy
         </Link>
@@ -192,9 +237,9 @@ export default async function CalendarioPage({
             {label}
           </div>
         ))}
-        {gridDays.map((d) => {
+        {visibleDays.map((d) => {
           const dayKey = isoDateLocal(d);
-          const inMonth = d.getMonth() === refMonthDate.getMonth();
+          const inMonth = view === "week" || d.getMonth() === refMonthDate.getMonth();
           const isToday = dayKey === todayKey;
           const isSelected = dayKey === selectedDayKey;
           const daySlots = agreement.slots.filter((s) => s.weekday === d.getDay());
@@ -203,7 +248,7 @@ export default async function CalendarioPage({
           return (
             <Link
               key={dayKey}
-              href={`/calendario?month=${monthKey(refMonthDate)}&day=${dayKey}${asQuery}`}
+              href={dayCellHref(dayKey)}
               className={`mx-auto flex w-10 flex-col items-center gap-1 rounded-xl py-1.5 text-xs transition-colors ${
                 isSelected
                   ? "bg-orange text-ink shadow-ambient"
