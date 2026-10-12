@@ -30,5 +30,8 @@ export async function loginAction(formData: FormData): Promise<{ error: string }
     return { error: "Email o contraseña incorrectos." };
   }
 
-  redirect("/dashboard");
+  const next = String(formData.get("next") ?? "");
+  // Solo redirigimos a una ruta interna (nunca a una URL externa) — next
+  // viene de un query param que en teoría cualquiera podría manipular.
+  redirect(next.startsWith("/") ? next : "/dashboard");
 }

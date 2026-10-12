@@ -5,7 +5,27 @@ import { topicAvatarClass } from "@/lib/chatAvatar";
 import { MessageComposer } from "./MessageComposer";
 
 function formatTime(iso: string): string {
-  return new Date(iso).toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" });
+  // Este componente renderiza en el servidor (Vercel, UTC) — sin timeZone
+  // explícito, toLocaleTimeString usa la zona del servidor, no la del
+  // usuario, y la hora mostrada queda corrida varias horas.
+  return new Date(iso).toLocaleTimeString("es-MX", {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "America/Mexico_City",
+  });
+}
+
+function formatDayLabel(iso: string): string {
+  return new Date(iso).toLocaleDateString("es-MX", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "America/Mexico_City",
+  });
+}
+
+function dayKey(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-CA", { timeZone: "America/Mexico_City" });
 }
 
 export default async function ThreadPage({
@@ -66,9 +86,10 @@ export default async function ThreadPage({
 
       <div className="flex flex-1 flex-col gap-2 px-4 py-4">
         {messages.length === 0 && <p className="text-sm text-ink-soft">Todavía no hay mensajes en este hilo.</p>}
-        {messages.map((message) => {
+        {messages.map((message, index) => {
           const isMine = message.senderId === parentId;
           const initial = senderName(message.senderId).charAt(0).toUpperCase();
+          const showDaySeparator = index === 0 || dayKey(messages[index - 1].createdAt) !== dayKey(message.createdAt);
           const avatar = (
             <span
               className={`flex h-7 w-7 flex-shrink-0 items-center justify-center self-end rounded-full text-[11px] font-bold text-ink ${
@@ -79,18 +100,25 @@ export default async function ThreadPage({
             </span>
           );
           return (
-            <div key={message.id} className={`flex items-end gap-2 ${isMine ? "justify-end" : "justify-start"}`}>
-              {!isMine && avatar}
-              <div
-                className={`max-w-[70%] rounded-2xl px-4 py-2 ${isMine ? "bg-orange" : "border border-subtle bg-card"}`}
-              >
-                {!isMine && <p className="text-xs font-semibold text-ink-soft">{senderName(message.senderId)}</p>}
-                <p className="text-sm text-ink">{message.body}</p>
-                <p className={`mt-1 text-right text-[10px] ${isMine ? "text-ink/60" : "text-ink-faint"}`}>
-                  {formatTime(message.createdAt)}
+            <div key={message.id} className="flex flex-col gap-2">
+              {showDaySeparator && (
+                <p className="my-2 text-center text-[11px] font-semibold uppercase tracking-wide text-ink-faint">
+                  {formatDayLabel(message.createdAt)}
                 </p>
+              )}
+              <div className={`flex items-end gap-2 ${isMine ? "justify-end" : "justify-start"}`}>
+                {!isMine && avatar}
+                <div
+                  className={`max-w-[70%] rounded-2xl px-4 py-2 ${isMine ? "bg-orange" : "border border-subtle bg-card"}`}
+                >
+                  {!isMine && <p className="text-xs font-semibold text-ink-soft">{senderName(message.senderId)}</p>}
+                  <p className="text-sm text-ink">{message.body}</p>
+                  <p className={`mt-1 text-right text-[10px] ${isMine ? "text-ink/60" : "text-ink-faint"}`}>
+                    {formatTime(message.createdAt)}
+                  </p>
+                </div>
+                {isMine && avatar}
               </div>
-              {isMine && avatar}
             </div>
           );
         })}

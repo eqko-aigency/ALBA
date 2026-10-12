@@ -10,9 +10,9 @@ const CONFIRM_LINK_ERRORS: Record<string, string> = {
 export default async function IngresarPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; next?: string }>;
 }) {
-  const { error } = await searchParams;
+  const { error, next } = await searchParams;
   const initialError = error ? (CONFIRM_LINK_ERRORS[error] ?? null) : null;
 
   return (
@@ -20,7 +20,7 @@ export default async function IngresarPage({
       <Wordmark className="text-6xl" />
       <h1 className="mt-6 text-2xl font-semibold tracking-tight text-ink">Iniciar sesión</h1>
       <p className="mt-2 text-ink-soft">Entra a tu cuenta de ALBA.</p>
-      <LoginForm initialError={initialError} />
+      <LoginForm initialError={initialError} next={next ?? ""} />
     </AuthLayout>
   );
 }

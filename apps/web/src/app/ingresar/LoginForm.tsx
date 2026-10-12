@@ -4,7 +4,13 @@ import { useState } from "react";
 import Link from "next/link";
 import { loginAction } from "./actions";
 
-export function LoginForm({ initialError = null }: { initialError?: string | null }) {
+export function LoginForm({
+  initialError = null,
+  next = "",
+}: {
+  initialError?: string | null;
+  next?: string;
+}) {
   const [error, setError] = useState<string | null>(initialError);
   const [pending, setPending] = useState(false);
 
@@ -23,6 +29,7 @@ export function LoginForm({ initialError = null }: { initialError?: string | nul
       action={handleSubmit}
       className="mt-8 flex w-full flex-col gap-4 rounded-2xl border border-subtle bg-card p-6 text-left shadow-elevated"
     >
+      <input type="hidden" name="next" value={next} />
       <label className="text-sm font-medium text-ink">
         Email
         <div className="relative mt-1.5">

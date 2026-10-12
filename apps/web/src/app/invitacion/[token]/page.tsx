@@ -1,4 +1,6 @@
-import { getPublicPairingRepository, getRequestContext } from "@/lib/repository";
+import Link from "next/link";
+import { getPublicPairingRepository, getRequestContext, isSupabaseConfigured } from "@/lib/repository";
+import { createSupabaseServerClient } from "@/lib/supabaseServerClient";
 import { isDemoMode } from "@/lib/demoSession";
 import { acceptInvitationAction } from "./actions";
 
@@ -28,6 +30,48 @@ export default async function InvitacionPage({ params }: { params: Promise<{ tok
 
   if (invitation.status === "expired" || new Date(invitation.expiresAt) < new Date()) {
     return <StatusPage title="Invitación expirada" message="Pide al otro progenitor que genere un código nuevo." />;
+  }
+
+  // Antes, un invitado sin sesión (ej. un progenitor que todavía no se
+  // registra) tocaba "Aceptar invitación" y el server action reventaba con
+  // "No hay sesión activa" — sin ninguna salida clara. Ahora detectamos eso
+  // acá y mandamos a crear cuenta / iniciar sesión antes de intentar aceptar.
+  let hasSession = true;
+  if (isSupabaseConfigured) {
+    const client = await createSupabaseServerClient();
+    const {
+      data: { user },
+    } = await client.auth.getUser();
+    hasSession = Boolean(user);
+  }
+
+  if (!hasSession) {
+    const nextParam = encodeURIComponent(`/invitacion/${token}`);
+    return (
+      <div className="mx-auto min-h-screen max-w-md px-6 py-16 text-center bg-sand">
+        <h1 className="text-2xl font-semibold tracking-tight text-ink">Te invitaron a coparentar</h1>
+        <p className="mt-2 text-ink-soft">
+          Primero necesitas una cuenta en ALBA para vincularte con el otro progenitor.
+        </p>
+        <div className="mt-8 flex flex-col gap-3">
+          <Link
+            href="/crear-cuenta"
+            className="rounded-full bg-orange px-5 py-2.5 text-sm font-semibold text-ink shadow-elevated"
+          >
+            Crear mi cuenta
+          </Link>
+          <Link
+            href={`/ingresar?next=${nextParam}`}
+            className="rounded-full border border-subtle bg-card px-5 py-2.5 text-sm font-medium text-ink"
+          >
+            Ya tengo cuenta — iniciar sesión
+          </Link>
+        </div>
+        <p className="mt-6 text-xs text-ink-faint">
+          Si creas una cuenta nueva, confirma tu correo y luego vuelve a abrir este mismo link para aceptar la invitación.
+        </p>
+      </div>
+    );
   }
 
   return (
