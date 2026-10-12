@@ -24,11 +24,30 @@ function isoDateLocal(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 
-function startOfWeek(reference: Date, offsetWeeks: number): Date {
-  const d = new Date(reference);
-  d.setHours(0, 0, 0, 0);
-  d.setDate(d.getDate() - d.getDay() + offsetWeeks * 7);
-  return d;
+function parseDateKeyLocal(key: string): Date {
+  const [y, m, d] = key.split("-").map(Number);
+  return new Date(y, (m ?? 1) - 1, d ?? 1);
+}
+
+function startOfMonth(d: Date): Date {
+  return new Date(d.getFullYear(), d.getMonth(), 1);
+}
+
+function addMonths(d: Date, n: number): Date {
+  return new Date(d.getFullYear(), d.getMonth() + n, 1);
+}
+
+function monthKey(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+}
+
+/** Sunday on/before the 1st of the month — primera celda de la grilla, que
+ * siempre arranca en domingo, estilo Google Calendar. */
+function monthGridStart(monthDate: Date): Date {
+  const first = startOfMonth(monthDate);
+  const start = new Date(first);
+  start.setDate(start.getDate() - start.getDay());
+  return start;
 }
 
 function combineDateAndTime(date: Date, time: string): Date {
@@ -40,6 +59,11 @@ function combineDateAndTime(date: Date, time: string): Date {
 
 function formatDay(d: Date): string {
   return d.toLocaleDateString("es-MX", { day: "2-digit", month: "short" });
+}
+
+function formatMonthLabel(d: Date): string {
+  const label = d.toLocaleDateString("es-MX", { month: "long", year: "numeric" });
+  return label.charAt(0).toUpperCase() + label.slice(1);
 }
 
 function ChevronIcon({ direction }: { direction: "left" | "right" }) {
@@ -59,40 +83,70 @@ function ChevronIcon({ direction }: { direction: "left" | "right" }) {
 export default async function CalendarioPage({
   searchParams,
 }: {
-  searchParams: Promise<{ as?: string; week?: string }>;
+  searchParams: Promise<{ as?: string; month?: string; day?: string }>;
 }) {
-  const { as, week } = await searchParams;
+  const { as, month, day } = await searchParams;
   const { pairing, custody, parentId } = await getRequestContext(as);
-  const weekOffset = week ? Number(week) || 0 : 0;
   const asQuery = as === "b" ? "&as=b" : "";
 
   const now = new Date();
-  const weekStartDate = startOfWeek(now, weekOffset);
-  const weekStart = isoDateLocal(weekStartDate);
+  const todayKey = isoDateLocal(now);
 
-  const [agreement, children, events, familyMembers] = await Promise.all([
+  const refMonthDate =
+    month && /^\d{4}-\d{2}$/.test(month)
+      ? new Date(Number(month.slice(0, 4)), Number(month.slice(5, 7)) - 1, 1)
+      : startOfMonth(now);
+
+  const isCurrentMonth = refMonthDate.getFullYear() === now.getFullYear() && refMonthDate.getMonth() === now.getMonth();
+  const defaultDayKey = isCurrentMonth ? todayKey : isoDateLocal(refMonthDate);
+  const selectedDayKey = day && /^\d{4}-\d{2}-\d{2}$/.test(day) ? day : defaultDayKey;
+  const selectedDate = parseDateKeyLocal(selectedDayKey);
+
+  const gridStart = monthGridStart(refMonthDate);
+  const gridDays = Array.from({ length: 42 }, (_, i) => {
+    const d = new Date(gridStart);
+    d.setDate(d.getDate() + i);
+    return d;
+  });
+
+  // La grilla siempre cubre exactamente 6 semanas (42 días) empezando en
+  // domingo — así que basta pedir eventos de esas 6 semanas puntuales para
+  // tener suficiente data y poder marcar el puntito rojo de incumplimiento
+  // en cualquier día visible, no solo en la semana actual.
+  const weekStarts = Array.from({ length: 6 }, (_, i) => {
+    const d = new Date(gridStart);
+    d.setDate(d.getDate() + i * 7);
+    return isoDateLocal(d);
+  });
+
+  const [agreement, children, familyMembers, eventsPerWeek] = await Promise.all([
     custody.getMyAgreement(parentId),
     pairing.getMyChildren(parentId),
-    custody.listEventsForWeek(parentId, weekStart),
     pairing.listFamilyMembers(parentId),
+    Promise.all(weekStarts.map((ws) => custody.listEventsForWeek(parentId, ws))),
   ]);
+  const events = eventsPerWeek.flat();
 
   const childName = (id: string) => children.find((c) => c.id === id)?.fullName ?? "Hijo/a";
   const parentName = (id: string) =>
     id === parentId ? "Tú" : familyMembers.find((p) => p.id === id)?.fullName ?? "El otro progenitor";
 
   // findComplianceIssues es 100% determinístico (packages/core) — se corre
-  // una vez por día de la semana visible, siempre sobre el MISMO arreglo
+  // una vez por día visible en la grilla, siempre sobre el MISMO arreglo
   // agreement.slots, para poder comparar por referencia (issue.slot ===
   // slot) más abajo al renderizar cada slot.
   const issuesByDay = new Map<string, ComplianceIssue[]>();
-  for (let i = 0; i < 7; i++) {
-    const day = new Date(weekStartDate);
-    day.setDate(day.getDate() + i);
-    issuesByDay.set(isoDateLocal(day), findComplianceIssues(agreement, events, day));
+  for (const d of gridDays) {
+    issuesByDay.set(isoDateLocal(d), findComplianceIssues(agreement, events, d));
   }
 
-  const todayKey = isoDateLocal(now);
+  const prevMonthHref = `/calendario?month=${monthKey(addMonths(refMonthDate, -1))}${asQuery}`;
+  const nextMonthHref = `/calendario?month=${monthKey(addMonths(refMonthDate, 1))}${asQuery}`;
+  const todayHref = `/calendario?month=${monthKey(now)}&day=${todayKey}${asQuery}`;
+
+  const selectedSlots = agreement.slots.filter((s) => s.weekday === selectedDate.getDay());
+  const selectedIssues = issuesByDay.get(selectedDayKey) ?? [];
+  const isSelectedToday = selectedDayKey === todayKey;
 
   return (
     <div className="mx-auto min-h-screen max-w-2xl px-6 pb-[calc(7.5rem+env(safe-area-inset-bottom))] pt-16 bg-sand">
@@ -106,188 +160,179 @@ export default async function CalendarioPage({
       )}
 
       <h1 className="text-2xl font-semibold tracking-tight text-ink">Calendario de custodia</h1>
-      <p className="mt-2 text-ink-soft">Confirma tus check-in/check-out y revisa el convenio de la semana.</p>
+      <p className="mt-2 text-ink-soft">Toca un día para ver y confirmar check-in/check-out.</p>
 
       <div className="mt-6 flex items-center justify-between rounded-2xl bg-card px-3 py-2.5 shadow-ambient">
         <Link
-          href={`/calendario?week=${weekOffset - 1}${asQuery}`}
-          aria-label="Semana anterior"
+          href={prevMonthHref}
+          aria-label="Mes anterior"
           className="flex h-8 w-8 items-center justify-center rounded-full text-ink transition-colors hover:bg-sand"
         >
           <ChevronIcon direction="left" />
         </Link>
-        <span className="text-sm font-semibold text-ink">
-          {formatDay(weekStartDate)} – {formatDay(new Date(new Date(weekStartDate).setDate(weekStartDate.getDate() + 6)))}
-        </span>
+        <span className="text-sm font-semibold text-ink">{formatMonthLabel(refMonthDate)}</span>
         <Link
-          href={`/calendario?week=${weekOffset + 1}${asQuery}`}
-          aria-label="Semana siguiente"
+          href={nextMonthHref}
+          aria-label="Mes siguiente"
           className="flex h-8 w-8 items-center justify-center rounded-full text-ink transition-colors hover:bg-sand"
         >
           <ChevronIcon direction="right" />
         </Link>
       </div>
 
-      <div className="mt-4 flex justify-between gap-1.5">
-        {Array.from({ length: 7 }, (_, i) => {
-          const day = new Date(weekStartDate);
-          day.setDate(day.getDate() + i);
-          const dayKey = isoDateLocal(day);
+      {!isCurrentMonth && (
+        <Link href={todayHref} className="mt-2 inline-block text-xs font-semibold text-purple underline">
+          Volver a hoy
+        </Link>
+      )}
+
+      <div className="mt-4 grid grid-cols-7 gap-y-1">
+        {WEEKDAY_SHORT.map((label, i) => (
+          <div key={i} className="pb-1 text-center text-[10px] font-semibold uppercase tracking-wide text-ink-faint">
+            {label}
+          </div>
+        ))}
+        {gridDays.map((d) => {
+          const dayKey = isoDateLocal(d);
+          const inMonth = d.getMonth() === refMonthDate.getMonth();
           const isToday = dayKey === todayKey;
-          const daySlots = agreement.slots.filter((s) => s.weekday === day.getDay());
+          const isSelected = dayKey === selectedDayKey;
+          const daySlots = agreement.slots.filter((s) => s.weekday === d.getDay());
           const hasIssue = (issuesByDay.get(dayKey) ?? []).length > 0;
 
           return (
-            <a
+            <Link
               key={dayKey}
-              href={`#dia-${dayKey}`}
-              className={`flex flex-1 flex-col items-center gap-1 rounded-xl py-2 transition-colors ${
-                isToday ? "bg-orange text-ink shadow-ambient" : "bg-card text-ink-soft hover:bg-dawn/60"
+              href={`/calendario?month=${monthKey(refMonthDate)}&day=${dayKey}${asQuery}`}
+              className={`mx-auto flex w-10 flex-col items-center gap-1 rounded-xl py-1.5 text-xs transition-colors ${
+                isSelected
+                  ? "bg-orange text-ink shadow-ambient"
+                  : isToday
+                    ? "border border-orange text-ink"
+                    : inMonth
+                      ? "text-ink hover:bg-dawn/60"
+                      : "text-ink-faint/60"
               }`}
             >
-              <span className="text-[10px] font-semibold uppercase tracking-wide">{WEEKDAY_SHORT[day.getDay()]}</span>
-              <span className="text-sm font-semibold">{day.getDate()}</span>
+              <span className="font-semibold">{d.getDate()}</span>
               <span
                 className={`h-1.5 w-1.5 rounded-full ${
                   hasIssue ? "bg-danger" : daySlots.length > 0 ? "bg-success" : "bg-transparent"
                 }`}
               />
-            </a>
+            </Link>
           );
         })}
       </div>
 
-      <div className="mt-6 flex flex-col gap-3">
-        {Array.from({ length: 7 }, (_, i) => {
-          const day = new Date(weekStartDate);
-          day.setDate(day.getDate() + i);
-          const dayKey = isoDateLocal(day);
-          const isToday = dayKey === todayKey;
-          const daySlots = agreement.slots.filter((s) => s.weekday === day.getDay());
-          const dayIssues = issuesByDay.get(dayKey) ?? [];
+      <div className="mt-6 rounded-2xl border border-orange bg-card p-4 shadow-ambient">
+        <p className="flex items-center gap-2 text-sm font-semibold text-ink">
+          {WEEKDAY_LABELS[selectedDate.getDay()]} · {formatDay(selectedDate)}
+          {isSelectedToday && (
+            <span className="rounded-full bg-orange px-2 py-0.5 text-xs font-semibold text-ink">Hoy</span>
+          )}
+        </p>
 
-          return (
-            <div
-              key={dayKey}
-              id={`dia-${dayKey}`}
-              className={`scroll-mt-20 rounded-2xl border bg-card p-4 shadow-ambient ${
-                isToday ? "border-orange" : "border-subtle"
-              }`}
-            >
-              <p className="flex items-center gap-2 text-sm font-semibold text-ink">
-                {WEEKDAY_LABELS[day.getDay()]} · {formatDay(day)}
-                {isToday && (
-                  <span className="rounded-full bg-orange px-2 py-0.5 text-xs font-semibold text-ink">Hoy</span>
-                )}
-              </p>
+        {selectedSlots.length === 0 ? (
+          <p className="mt-2 text-sm text-ink-soft">Sin slots configurados para este día.</p>
+        ) : (
+          <ul className="mt-3 flex flex-col gap-2">
+            {selectedSlots.map((slot, idx) => {
+              const scheduledIn = combineDateAndTime(selectedDate, slot.startTime);
+              const scheduledOut = combineDateAndTime(selectedDate, slot.endTime);
+              // El issue solo se muestra si el horario programado ya pasó —
+              // sin este filtro, un slot de más tarde el mismo día
+              // aparecería como "check-in faltante" antes de que tocara
+              // ocurrir (findComplianceIssues no sabe la hora actual, solo
+              // compara contra el día completo).
+              const slotIssue = scheduledIn <= now ? selectedIssues.find((issue) => issue.slot === slot) : undefined;
 
-              {daySlots.length === 0 ? (
-                <p className="mt-2 text-sm text-ink-soft">Sin slots configurados para este día.</p>
-              ) : (
-                <ul className="mt-3 flex flex-col gap-2">
-                  {daySlots.map((slot, idx) => {
-                    const scheduledIn = combineDateAndTime(day, slot.startTime);
-                    const scheduledOut = combineDateAndTime(day, slot.endTime);
-                    // El issue solo se muestra si el horario programado ya
-                    // pasó — sin este filtro, un slot de más tarde el mismo
-                    // día aparecería como "check-in faltante" antes de que
-                    // tocara ocurrir (findComplianceIssues no sabe la hora
-                    // actual, solo compara contra el día completo).
-                    const slotIssue =
-                      scheduledIn <= now ? dayIssues.find((issue) => issue.slot === slot) : undefined;
+              const checkinEvent = events.find(
+                (e) =>
+                  e.type === "checkin" &&
+                  e.childId === slot.childId &&
+                  e.parentId === slot.parentId &&
+                  e.scheduledAt === scheduledIn.toISOString()
+              );
+              const checkoutEvent = events.find(
+                (e) =>
+                  e.type === "checkout" &&
+                  e.childId === slot.childId &&
+                  e.parentId === slot.parentId &&
+                  e.scheduledAt === scheduledOut.toISOString()
+              );
+              const isMySlotToday = isSelectedToday && slot.parentId === parentId;
+              const accent = parentAccent(slot.parentId === parentId);
+              const parentDisplayName = parentName(slot.parentId);
 
-                    const checkinEvent = events.find(
-                      (e) =>
-                        e.type === "checkin" &&
-                        e.childId === slot.childId &&
-                        e.parentId === slot.parentId &&
-                        e.scheduledAt === scheduledIn.toISOString()
-                    );
-                    const checkoutEvent = events.find(
-                      (e) =>
-                        e.type === "checkout" &&
-                        e.childId === slot.childId &&
-                        e.parentId === slot.parentId &&
-                        e.scheduledAt === scheduledOut.toISOString()
-                    );
-                    const isMySlotToday = isToday && slot.parentId === parentId;
-                    const accent = parentAccent(slot.parentId === parentId);
-                    const parentDisplayName = parentName(slot.parentId);
+              return (
+                <li key={idx} className={`rounded-xl px-3 py-2.5 ${accent.chip}`}>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="flex items-center gap-2 text-sm text-ink">
+                      <span
+                        className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-ink ${accent.avatar}`}
+                      >
+                        {parentDisplayName.charAt(0).toUpperCase()}
+                      </span>
+                      {childName(slot.childId)} con <strong>{parentDisplayName}</strong>
+                    </span>
+                    <span className="whitespace-nowrap text-xs text-ink-soft">
+                      {slot.startTime}–{slot.endTime}
+                    </span>
+                  </div>
 
-                    return (
-                      <li key={idx} className={`rounded-xl px-3 py-2.5 ${accent.chip}`}>
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="flex items-center gap-2 text-sm text-ink">
-                            <span
-                              className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-ink ${accent.avatar}`}
-                            >
-                              {parentDisplayName.charAt(0).toUpperCase()}
-                            </span>
-                            {childName(slot.childId)} con <strong>{parentDisplayName}</strong>
-                          </span>
-                          <span className="whitespace-nowrap text-xs text-ink-soft">
-                            {slot.startTime}–{slot.endTime}
-                          </span>
-                        </div>
+                  {slotIssue && (
+                    <p
+                      className={`mt-1 text-xs font-semibold ${
+                        slotIssue.type === "late_checkin" ? "text-orange-deep" : "text-danger"
+                      }`}
+                    >
+                      {slotIssue.type === "missed_checkin" && "⚠ Check-in sin confirmar"}
+                      {slotIssue.type === "late_checkin" && `⚠ Check-in tardío (${slotIssue.minutesLate} min)`}
+                    </p>
+                  )}
 
-                        {slotIssue && (
-                          <p
-                            className={`mt-1 text-xs font-semibold ${
-                              slotIssue.type === "late_checkin" ? "text-orange-deep" : "text-danger"
-                            }`}
+                  {isMySlotToday && (
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {checkinEvent?.confirmedAt ? (
+                        <span className="rounded-full bg-success/20 px-3 py-1.5 text-xs font-semibold text-ink">
+                          ✓ Check-in confirmado
+                        </span>
+                      ) : (
+                        <form action={confirmCheckinAction}>
+                          <input type="hidden" name="as" value={as ?? ""} />
+                          <input type="hidden" name="childId" value={slot.childId} />
+                          <input type="hidden" name="scheduledAt" value={scheduledIn.toISOString()} />
+                          <button type="submit" className="rounded-full bg-orange px-3 py-1.5 text-xs font-semibold text-ink">
+                            Confirmar check-in
+                          </button>
+                        </form>
+                      )}
+
+                      {checkoutEvent?.confirmedAt ? (
+                        <span className="rounded-full bg-success/20 px-3 py-1.5 text-xs font-semibold text-ink">
+                          ✓ Check-out confirmado
+                        </span>
+                      ) : (
+                        <form action={confirmCheckoutAction}>
+                          <input type="hidden" name="as" value={as ?? ""} />
+                          <input type="hidden" name="childId" value={slot.childId} />
+                          <input type="hidden" name="scheduledAt" value={scheduledOut.toISOString()} />
+                          <button
+                            type="submit"
+                            className="rounded-full border border-subtle bg-card px-3 py-1.5 text-xs font-medium text-ink"
                           >
-                            {slotIssue.type === "missed_checkin" && "⚠ Check-in sin confirmar"}
-                            {slotIssue.type === "late_checkin" && `⚠ Check-in tardío (${slotIssue.minutesLate} min)`}
-                          </p>
-                        )}
-
-                        {isMySlotToday && (
-                          <div className="mt-2 flex flex-wrap gap-2">
-                            {checkinEvent?.confirmedAt ? (
-                              <span className="rounded-full bg-success/20 px-3 py-1.5 text-xs font-semibold text-ink">
-                                ✓ Check-in confirmado
-                              </span>
-                            ) : (
-                              <form action={confirmCheckinAction}>
-                                <input type="hidden" name="as" value={as ?? ""} />
-                                <input type="hidden" name="childId" value={slot.childId} />
-                                <input type="hidden" name="scheduledAt" value={scheduledIn.toISOString()} />
-                                <button
-                                  type="submit"
-                                  className="rounded-full bg-orange px-3 py-1.5 text-xs font-semibold text-ink"
-                                >
-                                  Confirmar check-in
-                                </button>
-                              </form>
-                            )}
-
-                            {checkoutEvent?.confirmedAt ? (
-                              <span className="rounded-full bg-success/20 px-3 py-1.5 text-xs font-semibold text-ink">
-                                ✓ Check-out confirmado
-                              </span>
-                            ) : (
-                              <form action={confirmCheckoutAction}>
-                                <input type="hidden" name="as" value={as ?? ""} />
-                                <input type="hidden" name="childId" value={slot.childId} />
-                                <input type="hidden" name="scheduledAt" value={scheduledOut.toISOString()} />
-                                <button
-                                  type="submit"
-                                  className="rounded-full border border-subtle bg-card px-3 py-1.5 text-xs font-medium text-ink"
-                                >
-                                  Confirmar check-out
-                                </button>
-                              </form>
-                            )}
-                          </div>
-                        )}
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </div>
-          );
-        })}
+                            Confirmar check-out
+                          </button>
+                        </form>
+                      )}
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </div>
 
       <section className="mt-8 rounded-lg border border-subtle bg-card p-5 shadow-ambient">
