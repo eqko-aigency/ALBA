@@ -64,6 +64,7 @@ export function createSupabaseDocumentRepository(client: SupabaseClient): Docume
         .insert({
           family_id: familyId,
           uploaded_by_parent_id: parentId,
+          child_id: input.childId,
           title: input.title,
           file_url: publicUrlData.publicUrl,
           sha256_hex: sha256Hex,
@@ -132,6 +133,7 @@ function mapDocument(row: any): Document {
     id: row.id,
     familyId: row.family_id,
     uploadedByParentId: row.uploaded_by_parent_id,
+    childId: row.child_id ?? null,
     title: row.title,
     fileUrl: row.file_url,
     sha256Hex: row.sha256_hex,

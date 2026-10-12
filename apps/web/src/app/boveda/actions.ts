@@ -21,6 +21,8 @@ export async function uploadDocumentAction(formData: FormData) {
   if (!(file instanceof File) || file.size === 0) {
     throw new Error("Selecciona un archivo — en Bóveda el documento siempre se sube de verdad.");
   }
+  const rawChildId = String(formData.get("childId") ?? "");
+  const childId = rawChildId.length > 0 ? rawChildId : null;
 
   const fileBytes = new Uint8Array(await file.arrayBuffer());
 
@@ -30,6 +32,7 @@ export async function uploadDocumentAction(formData: FormData) {
     fileBytes,
     fileName: file.name,
     mimeType: file.type,
+    childId,
   });
 
   revalidatePath("/boveda");

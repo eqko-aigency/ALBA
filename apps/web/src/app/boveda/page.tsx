@@ -15,20 +15,38 @@ function truncateHash(hash: string): string {
 export default async function BovedaPage({
   searchParams,
 }: {
-  searchParams: Promise<{ as?: string }>;
+  searchParams: Promise<{ as?: string; child?: string }>;
 }) {
-  const { as } = await searchParams;
+  const { as, child } = await searchParams;
   const { documents, pairing, parentId } = await getRequestContext(as);
 
-  const [documentList, familyMembers] = await Promise.all([
+  const [allDocuments, familyMembers, children] = await Promise.all([
     documents.listDocuments(parentId),
     pairing.listFamilyMembers(parentId),
+    pairing.getMyChildren(parentId),
   ]);
 
   const parentName = (id: string) =>
     id === parentId ? "Tú" : familyMembers.find((p) => p.id === id)?.fullName ?? "El otro progenitor";
+  const childLabel = (childId: string | null) =>
+    childId ? (children.find((c) => c.id === childId)?.fullName ?? "Hijo/a") : "General";
 
-  const pendingCount = documentList.filter((d) => d.anchorStatus === "pending").length;
+  // "" (default) = todos; "general" = solo documentos sin hijo asociado;
+  // un uuid = solo ese hijo.
+  const childFilter = child ?? "";
+  const documentList =
+    childFilter === ""
+      ? allDocuments
+      : childFilter === "general"
+        ? allDocuments.filter((d) => d.childId === null)
+        : allDocuments.filter((d) => d.childId === childFilter);
+
+  const asQuery = as === "b" ? "&as=b" : "";
+  const filterHref = (value: string) => `/boveda?child=${value}${asQuery}`;
+
+  // El anclaje opera sobre TODOS los pendientes de la familia, no solo los
+  // que el filtro actual muestra — el contador usa allDocuments a propósito.
+  const pendingCount = allDocuments.filter((d) => d.anchorStatus === "pending").length;
 
   return (
     <div className="mx-auto min-h-screen max-w-2xl px-6 pb-[calc(7.5rem+env(safe-area-inset-bottom))] pt-16 bg-sand">
@@ -45,6 +63,38 @@ export default async function BovedaPage({
       <p className="mt-2 text-ink-soft">
         Documentos y acuerdos básicos, con evidencia digital — hash SHA-256 y anclaje (POC) de Merkle Tree.
       </p>
+
+      {children.length > 0 && (
+        <div className="mt-6 flex gap-1.5 overflow-x-auto">
+          <Link
+            href={filterHref("")}
+            className={`flex-shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold ${
+              childFilter === "" ? "bg-orange text-ink" : "border border-subtle bg-card text-ink-soft"
+            }`}
+          >
+            Todos
+          </Link>
+          <Link
+            href={filterHref("general")}
+            className={`flex-shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold ${
+              childFilter === "general" ? "bg-orange text-ink" : "border border-subtle bg-card text-ink-soft"
+            }`}
+          >
+            General
+          </Link>
+          {children.map((c) => (
+            <Link
+              key={c.id}
+              href={filterHref(c.id)}
+              className={`flex-shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold ${
+                childFilter === c.id ? "bg-orange text-ink" : "border border-subtle bg-card text-ink-soft"
+              }`}
+            >
+              {c.fullName}
+            </Link>
+          ))}
+        </div>
+      )}
 
       {pendingCount > 0 && (
         <form action={anchorPendingDocumentsAction} className="mt-6">
@@ -70,6 +120,9 @@ export default async function BovedaPage({
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="text-sm font-semibold text-ink">{doc.title}</p>
+                  <span className="mt-1 inline-block rounded-full bg-sand px-2 py-0.5 text-[11px] font-semibold text-ink-soft">
+                    {childLabel(doc.childId)}
+                  </span>
                   <p className="mt-1 text-xs text-ink-faint">
                     Subió {parentName(doc.uploadedByParentId)} · {formatDate(doc.createdAt)}
                   </p>
@@ -124,6 +177,17 @@ export default async function BovedaPage({
             placeholder="Título (ej. Convenio de custodia firmado, acta de nacimiento...)"
             className="rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink"
           />
+
+          {children.length > 0 && (
+            <select name="childId" className="rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink">
+              <option value="">General (toda la familia)</option>
+              {children.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.fullName}
+                </option>
+              ))}
+            </select>
+          )}
 
           <div className="flex min-w-0 flex-col gap-1">
             <label className="text-xs font-medium text-ink-soft">Archivo (PDF, imagen o Word)</label>

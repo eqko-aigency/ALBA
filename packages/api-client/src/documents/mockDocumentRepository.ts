@@ -46,6 +46,7 @@ export function createMockDocumentRepository(pairingRepository: PairingRepositor
         id: crypto.randomUUID(),
         familyId,
         uploadedByParentId: parentId,
+        childId: input.childId,
         title: input.title,
         // Sin Storage real en modo demo — referencia simulada, nunca un
         // archivo descargable de verdad (ver comentario arriba).

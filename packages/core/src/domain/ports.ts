@@ -160,7 +160,7 @@ export interface DocumentRepository {
   listDocuments(parentId: string): Promise<Document[]>;
   uploadDocument(
     parentId: string,
-    input: { title: string; fileBytes: Uint8Array; fileName: string; mimeType: string }
+    input: { title: string; fileBytes: Uint8Array; fileName: string; mimeType: string; childId: string | null }
   ): Promise<Document>;
   getDocument(parentId: string, documentId: string): Promise<Document | null>;
   /** Devuelve solo los documentos recién anclados (antes estaban "pending"). */

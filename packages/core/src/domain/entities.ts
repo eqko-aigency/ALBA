@@ -148,6 +148,8 @@ export interface Document {
   id: string;
   familyId: string;
   uploadedByParentId: string;
+  /** Hijo al que aplica el documento — null para documentos de la familia en general (ej. convenio). */
+  childId: string | null;
   title: string;
   fileUrl: string;
   sha256Hex: string;
