@@ -7,11 +7,13 @@ import {
   createMockDocumentRepository,
   createMockExpenseRepository,
   createMockPairingRepository,
+  createMockVerbalAgreementRepository,
   createSupabaseChatRepository,
   createSupabaseCustodyRepository,
   createSupabaseDocumentRepository,
   createSupabaseExpenseRepository,
   createSupabasePairingRepository,
+  createSupabaseVerbalAgreementRepository,
 } from "@alba/api-client";
 import type {
   ChatRepository,
@@ -20,6 +22,7 @@ import type {
   ExpenseRepository,
   PairingRepository,
   ToneAnalyzer,
+  VerbalAgreementRepository,
 } from "@alba/core";
 import { createSupabaseServerClient } from "./supabaseServerClient";
 
@@ -39,6 +42,7 @@ const globalForMock = globalThis as unknown as {
   mockCustodyRepository?: CustodyRepository;
   mockExpenseRepository?: ExpenseRepository;
   mockDocumentRepository?: DocumentRepository;
+  mockVerbalAgreementRepository?: VerbalAgreementRepository;
 };
 
 function getMockRepositories(): {
@@ -47,18 +51,23 @@ function getMockRepositories(): {
   custody: CustodyRepository;
   expenses: ExpenseRepository;
   documents: DocumentRepository;
+  verbalAgreements: VerbalAgreementRepository;
 } {
   globalForMock.mockPairingRepository ??= createMockPairingRepository();
   globalForMock.mockChatRepository ??= createMockChatRepository(globalForMock.mockPairingRepository);
   globalForMock.mockCustodyRepository ??= createMockCustodyRepository(globalForMock.mockPairingRepository);
   globalForMock.mockExpenseRepository ??= createMockExpenseRepository(globalForMock.mockPairingRepository);
   globalForMock.mockDocumentRepository ??= createMockDocumentRepository(globalForMock.mockPairingRepository);
+  globalForMock.mockVerbalAgreementRepository ??= createMockVerbalAgreementRepository(
+    globalForMock.mockPairingRepository
+  );
   return {
     pairing: globalForMock.mockPairingRepository,
     chat: globalForMock.mockChatRepository,
     custody: globalForMock.mockCustodyRepository,
     expenses: globalForMock.mockExpenseRepository,
     documents: globalForMock.mockDocumentRepository,
+    verbalAgreements: globalForMock.mockVerbalAgreementRepository,
   };
 }
 
@@ -124,12 +133,13 @@ export async function getRequestContext(as?: string): Promise<{
   custody: CustodyRepository;
   expenses: ExpenseRepository;
   documents: DocumentRepository;
+  verbalAgreements: VerbalAgreementRepository;
   parentId: string;
 }> {
   if (!isSupabaseConfigured) {
     const { resolveDemoParentId } = await import("./demoSession");
-    const { pairing, chat, custody, expenses, documents } = getMockRepositories();
-    return { pairing, chat, custody, expenses, documents, parentId: resolveDemoParentId(as) };
+    const { pairing, chat, custody, expenses, documents, verbalAgreements } = getMockRepositories();
+    return { pairing, chat, custody, expenses, documents, verbalAgreements, parentId: resolveDemoParentId(as) };
   }
 
   const { client, userId } = await getAuthedSupabaseClient();
@@ -140,6 +150,7 @@ export async function getRequestContext(as?: string): Promise<{
     custody: createSupabaseCustodyRepository(client),
     expenses: createSupabaseExpenseRepository(client),
     documents: createSupabaseDocumentRepository(client),
+    verbalAgreements: createSupabaseVerbalAgreementRepository(client),
     parentId: userId,
   };
 }

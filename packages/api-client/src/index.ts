@@ -5,6 +5,7 @@ export * from "./tone";
 export * from "./custody";
 export * from "./expenses";
 export * from "./documents";
+export * from "./verbalAgreements";
 export type {
   Parent,
   Child,
@@ -21,4 +22,5 @@ export type {
   Message,
   ToneAnalysis,
   ToneLevel,
+  VerbalAgreement,
 } from "@alba/core";

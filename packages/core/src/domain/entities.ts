@@ -144,6 +144,30 @@ export type AnchorStatus = "pending" | "anchored";
  * DocumentRepository) ancla el documento junto con el resto de los
  * documentos "pending" de la familia en ese momento.
  */
+/**
+ * Acuerdo verbal (W-xx) — pedido explícito de la clienta: un registro
+ * liviano de algo que los progenitores acordaron de palabra (teléfono,
+ * en persona), sin archivo ni firma. A diferencia de CustodyAgreement
+ * (slots recurrentes estructurados) o Document (archivo con hash), esto es
+ * solo texto + fecha. Igual que Document, es INMUTABLE una vez creado —
+ * tiene valor como registro solo si nadie puede editarlo después. El otro
+ * progenitor puede "confirmarlo" (confirmedByParentId/confirmedAt), lo que
+ * refuerza que ambos lo recuerdan igual — pero no puede editarlo tampoco.
+ */
+export interface VerbalAgreement {
+  id: string;
+  familyId: string;
+  createdByParentId: string;
+  /** Hijo al que aplica — null si es un acuerdo general de la familia. */
+  childId: string | null;
+  description: string;
+  /** Fecha en que se acordó (no necesariamente la fecha en que se registró), "YYYY-MM-DD". */
+  agreedAt: string;
+  confirmedByParentId: string | null;
+  confirmedAt: string | null;
+  createdAt: string;
+}
+
 export interface Document {
   id: string;
   familyId: string;

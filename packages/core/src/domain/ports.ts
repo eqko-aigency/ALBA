@@ -12,6 +12,7 @@ import type {
   Message,
   Parent,
   ToneAnalysis,
+  VerbalAgreement,
 } from "./entities";
 import type {
   AcceptInvitationInput,
@@ -23,6 +24,7 @@ import type {
   UpdateChildDetailsInput,
   UpdateChildInput,
   UpsertProfileInput,
+  VerbalAgreementInput,
 } from "../validation/schemas";
 
 /**
@@ -165,4 +167,18 @@ export interface DocumentRepository {
   getDocument(parentId: string, documentId: string): Promise<Document | null>;
   /** Devuelve solo los documentos recién anclados (antes estaban "pending"). */
   anchorPendingDocuments(parentId: string): Promise<Document[]>;
+}
+
+/**
+ * Puerto de dominio para Acuerdos verbales (W-xx) — registro liviano de
+ * algo que los progenitores acordaron de palabra, sin archivo. Cuelga de
+ * la FAMILIA (mismo criterio que Document/CustodyAgreement). Inmutable una
+ * vez creado; confirmVerbalAgreement es la única escritura posterior
+ * permitida, y solo la puede hacer el progenitor que NO lo creó (ver nota
+ * de inmutabilidad en entities.ts).
+ */
+export interface VerbalAgreementRepository {
+  listVerbalAgreements(parentId: string): Promise<VerbalAgreement[]>;
+  createVerbalAgreement(parentId: string, input: VerbalAgreementInput): Promise<VerbalAgreement>;
+  confirmVerbalAgreement(parentId: string, agreementId: string): Promise<VerbalAgreement>;
 }

@@ -131,3 +131,13 @@ export const documentUploadInputSchema = z.object({
   title: z.string().min(3).max(160),
 });
 export type DocumentUploadInput = z.infer<typeof documentUploadInputSchema>;
+
+export const verbalAgreementInputSchema = z.object({
+  childId: z
+    .union([z.string().uuid(), z.literal("")])
+    .transform((v) => (v === "" ? null : v))
+    .nullable(),
+  description: z.string().min(5).max(1000),
+  agreedAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Fecha inválida"),
+});
+export type VerbalAgreementInput = z.infer<typeof verbalAgreementInputSchema>;
