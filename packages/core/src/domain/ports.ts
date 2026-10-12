@@ -17,6 +17,7 @@ import type {
   AcceptInvitationInput,
   CreateThreadInput,
   ExpenseInput,
+  RenameThreadInput,
   SendMessageInput,
   SetUsageModeInput,
   UpdateChildDetailsInput,
@@ -69,6 +70,8 @@ export interface PairingRepository {
 export interface ChatRepository {
   listThreads(parentId: string): Promise<ChatThread[]>;
   createThread(parentId: string, input: CreateThreadInput): Promise<ChatThread>;
+  /** Cambiar el título/categoría de un hilo existente — pedido explícito de la clienta. */
+  renameThread(parentId: string, input: RenameThreadInput): Promise<ChatThread>;
   listMessages(parentId: string, threadId: string): Promise<Message[]>;
   sendMessage(parentId: string, input: SendMessageInput): Promise<Message>;
 }

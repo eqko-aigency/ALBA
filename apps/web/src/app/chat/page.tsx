@@ -35,31 +35,41 @@ export default async function ChatPage({
 
       <details className="mt-6 rounded-xl border border-subtle bg-card p-4 shadow-ambient [&_summary::-webkit-details-marker]:hidden">
         <summary className="cursor-pointer text-sm font-semibold text-ink">+ Nuevo hilo</summary>
-        <form action={createThreadAction} className="mt-3 flex flex-col gap-2 sm:flex-row">
+        <form action={createThreadAction} className="mt-3 flex flex-col gap-2">
           <input type="hidden" name="as" value={as ?? ""} />
-          <select
-            name="topic"
-            required
-            className="flex-1 rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink"
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <select
+              name="topic"
+              className="flex-1 rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink"
+            >
+              {CHAT_TOPICS.map((topic) => (
+                <option key={topic} value={topic}>
+                  {topic}
+                </option>
+              ))}
+            </select>
+            <select
+              name="childId"
+              className="flex-1 rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink"
+            >
+              <option value="">General (toda la familia)</option>
+              {children.map((child) => (
+                <option key={child.id} value={child.id}>
+                  {child.fullName}
+                </option>
+              ))}
+            </select>
+          </div>
+          <input
+            name="customTopic"
+            placeholder="O escribe tu propia categoría (opcional)"
+            maxLength={60}
+            className="rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink"
+          />
+          <button
+            type="submit"
+            className="self-start rounded-full bg-orange px-4 py-2 text-sm font-semibold text-ink"
           >
-            {CHAT_TOPICS.map((topic) => (
-              <option key={topic} value={topic}>
-                {topic}
-              </option>
-            ))}
-          </select>
-          <select
-            name="childId"
-            className="flex-1 rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink"
-          >
-            <option value="">General (toda la familia)</option>
-            {children.map((child) => (
-              <option key={child.id} value={child.id}>
-                {child.fullName}
-              </option>
-            ))}
-          </select>
-          <button type="submit" className="rounded-full bg-orange px-4 py-2 text-sm font-semibold text-ink">
             Abrir hilo
           </button>
         </form>

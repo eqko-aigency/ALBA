@@ -4,6 +4,7 @@ import type {
   CreateThreadInput,
   Message,
   PairingRepository,
+  RenameThreadInput,
   SendMessageInput,
 } from "@alba/core";
 
@@ -40,6 +41,14 @@ export function createMockChatRepository(pairingRepository: PairingRepository): 
       return thread;
     },
 
+    async renameThread(parentId, input: RenameThreadInput) {
+      const family = await pairingRepository.getOrCreateMyFamily(parentId);
+      const thread = threads.get(input.threadId);
+      if (!thread || thread.familyId !== family.id) throw new Error("hilo no encontrado");
+      thread.topic = input.topic;
+      return thread;
+    },
+
     async listMessages(parentId, threadId) {
       const family = await pairingRepository.getOrCreateMyFamily(parentId);
       const thread = threads.get(threadId);
@@ -56,6 +65,7 @@ export function createMockChatRepository(pairingRepository: PairingRepository): 
         threadId: input.threadId,
         senderId: parentId,
         body: input.body,
+        attachmentUrl: input.attachmentUrl ?? null,
         createdAt: new Date().toISOString(),
       };
       const list = messagesByThread.get(input.threadId) ?? [];

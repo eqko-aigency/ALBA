@@ -55,12 +55,17 @@ export const setUsageModeInputSchema = z.object({
 });
 export type SetUsageModeInput = z.infer<typeof setUsageModeInputSchema>;
 
-/** Categorías fijas de W-06 (Chat por Temas) — Manual Sandstone Sanctuary §4. */
+/** Categorías sugeridas de W-06 (Chat por Temas) — Manual Sandstone Sanctuary
+ * §4. Son solo el default del <select>: el topic en sí es texto libre
+ * (2-60 caracteres, igual que valida la base) para que se pueda escribir
+ * una categoría propia ("Otro") o renombrar el hilo después. */
 export const CHAT_TOPICS = ["Salud", "Escuela", "Pensiones", "Vacaciones"] as const;
 export type ChatTopic = (typeof CHAT_TOPICS)[number];
 
+const freeTopicSchema = z.string().trim().min(2).max(60);
+
 export const createThreadInputSchema = z.object({
-  topic: z.enum(CHAT_TOPICS),
+  topic: freeTopicSchema,
   /** "" desde el <select> significa "hilo general" — se normaliza a null. */
   childId: z
     .union([z.string().uuid(), z.literal("")])
@@ -69,9 +74,16 @@ export const createThreadInputSchema = z.object({
 });
 export type CreateThreadInput = z.infer<typeof createThreadInputSchema>;
 
+export const renameThreadInputSchema = z.object({
+  threadId: z.string().uuid(),
+  topic: freeTopicSchema,
+});
+export type RenameThreadInput = z.infer<typeof renameThreadInputSchema>;
+
 export const sendMessageInputSchema = z.object({
   threadId: z.string().uuid(),
   body: z.string().min(1).max(2000),
+  attachmentUrl: z.string().url().nullable().optional(),
 });
 export type SendMessageInput = z.infer<typeof sendMessageInputSchema>;
 

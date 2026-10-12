@@ -168,6 +168,27 @@ export async function uploadReceiptFile(file: File): Promise<string | null> {
 }
 
 /**
+ * Sube una foto adjunta a un mensaje de chat al bucket público "chat-fotos"
+ * (ver 0013_chat_mejoras.sql) — mismo patrón que uploadReceiptFile. En modo
+ * demo no hay Storage real: devuelve null y el mensaje se manda sin foto.
+ */
+export async function uploadChatPhoto(file: File): Promise<string | null> {
+  if (!isSupabaseConfigured) return null;
+
+  const { client, userId } = await getAuthedSupabaseClient();
+  const safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, "_");
+  const path = `${userId}/${Date.now()}-${safeName}`;
+
+  const { error } = await client.storage
+    .from("chat-fotos")
+    .upload(path, file, { contentType: file.type || undefined });
+  if (error) throw error;
+
+  const { data } = client.storage.from("chat-fotos").getPublicUrl(path);
+  return data.publicUrl;
+}
+
+/**
  * Repositorio de pairing SIN exigir sesión — para vistas públicas como
  * /invitacion/[token], donde cualquiera con el link debe poder ver el
  * estado de la invitación (pending/expired) sin haber iniciado sesión.

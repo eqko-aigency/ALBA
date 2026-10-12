@@ -1,5 +1,12 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { ChatRepository, ChatThread, CreateThreadInput, Message, SendMessageInput } from "@alba/core";
+import type {
+  ChatRepository,
+  ChatThread,
+  CreateThreadInput,
+  Message,
+  RenameThreadInput,
+  SendMessageInput,
+} from "@alba/core";
 import { createFamilyIdResolver } from "../family/resolveFamilyId";
 
 export function createSupabaseChatRepository(client: SupabaseClient): ChatRepository {
@@ -42,6 +49,20 @@ export function createSupabaseChatRepository(client: SupabaseClient): ChatReposi
       return mapThread(data);
     },
 
+    async renameThread(parentId, input: RenameThreadInput) {
+      const familyId = await getMyFamilyId(parentId);
+      if (!familyId) throw new Error("el progenitor no pertenece a ninguna familia todavía");
+      const { data, error } = await client
+        .from("chat_threads")
+        .update({ topic: input.topic })
+        .eq("id", input.threadId)
+        .eq("family_id", familyId)
+        .select()
+        .single();
+      if (error) throw error;
+      return mapThread(data);
+    },
+
     async listMessages(parentId, threadId) {
       // RLS ya scopea messages por family_id vía chat_threads, pero chequear
       // también acá da defensa en profundidad (mismo criterio que
@@ -79,7 +100,12 @@ export function createSupabaseChatRepository(client: SupabaseClient): ChatReposi
 
       const { data, error } = await client
         .from("messages")
-        .insert({ thread_id: input.threadId, sender_id: parentId, body: input.body })
+        .insert({
+          thread_id: input.threadId,
+          sender_id: parentId,
+          body: input.body,
+          attachment_url: input.attachmentUrl ?? null,
+        })
         .select()
         .single();
       if (error) throw error;
@@ -99,5 +125,12 @@ function mapThread(row: any): ChatThread {
 }
 
 function mapMessage(row: any): Message {
-  return { id: row.id, threadId: row.thread_id, senderId: row.sender_id, body: row.body, createdAt: row.created_at };
+  return {
+    id: row.id,
+    threadId: row.thread_id,
+    senderId: row.sender_id,
+    body: row.body,
+    attachmentUrl: row.attachment_url ?? null,
+    createdAt: row.created_at,
+  };
 }

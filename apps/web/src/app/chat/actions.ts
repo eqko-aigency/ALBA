@@ -5,8 +5,11 @@ import { createThreadInputSchema } from "@alba/core";
 import { getRequestContext } from "@/lib/repository";
 
 export async function createThreadAction(formData: FormData) {
+  // customTopic (texto libre) gana sobre el <select> si viene con algo —
+  // así "Otro" no es una opción más en la lista, es escribir lo que sea.
+  const customTopic = String(formData.get("customTopic") ?? "").trim();
   const input = createThreadInputSchema.parse({
-    topic: formData.get("topic"),
+    topic: customTopic.length > 0 ? customTopic : formData.get("topic"),
     childId: formData.get("childId"),
   });
   const { chat, parentId } = await getRequestContext(String(formData.get("as") ?? ""));

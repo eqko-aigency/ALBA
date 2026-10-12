@@ -20,6 +20,7 @@ const TONE_BANNER: Record<ToneAnalysis["level"], string> = {
 
 export function MessageComposer({ threadId, as }: { threadId: string; as: string }) {
   const [body, setBody] = useState("");
+  const [photo, setPhoto] = useState<File | null>(null);
   const [checking, setChecking] = useState(false);
   const [analysis, setAnalysis] = useState<ToneAnalysis | null>(null);
   const [sending, setSending] = useState(false);
@@ -30,15 +31,24 @@ export function MessageComposer({ threadId, as }: { threadId: string; as: string
     formData.set("threadId", threadId);
     formData.set("as", as);
     formData.set("body", finalBody);
+    if (photo) formData.set("file", photo);
     await sendMessageAction(formData);
     setBody("");
+    setPhoto(null);
     setAnalysis(null);
     setSending(false);
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!body.trim()) return;
+    if (!body.trim() && !photo) return;
+
+    // El Tone Meter solo tiene sentido si hay texto — una foto sola (sin
+    // caption) se manda directo, no hay nada que analizar.
+    if (!body.trim()) {
+      await send("");
+      return;
+    }
 
     setChecking(true);
     const result = await checkToneAction(body);
@@ -98,11 +108,32 @@ export function MessageComposer({ threadId, as }: { threadId: string; as: string
         </div>
       )}
 
+      {photo && (
+        <div className="mb-2 flex items-center gap-2 rounded-full border border-subtle bg-card px-3 py-1.5 text-xs text-ink">
+          <span className="truncate">📷 {photo.name}</span>
+          <button type="button" onClick={() => setPhoto(null)} className="font-semibold text-danger">
+            Quitar
+          </button>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="flex items-center gap-2">
+        <label className="flex h-11 w-11 flex-shrink-0 cursor-pointer items-center justify-center rounded-full border border-subtle bg-card text-ink-soft">
+          <input
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(e) => setPhoto(e.target.files?.[0] ?? null)}
+          />
+          <svg viewBox="0 0 20 20" fill="none" className="h-5 w-5" aria-hidden="true">
+            <rect x="2.5" y="4.5" width="15" height="12" rx="2" stroke="currentColor" strokeWidth="1.6" />
+            <circle cx="7.2" cy="8.7" r="1.3" fill="currentColor" />
+            <path d="M3 14l4.5-4 3 2.8L14 9l3 4" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+          </svg>
+        </label>
         <input
           name="body"
           autoComplete="off"
-          required
           value={body}
           onChange={(e) => setBody(e.target.value)}
           placeholder="Escribir mensaje…"

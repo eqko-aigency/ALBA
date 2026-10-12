@@ -64,6 +64,7 @@ export interface Message {
   threadId: string;
   senderId: string;
   body: string;
+  attachmentUrl: string | null;
   createdAt: string;
 }
 
