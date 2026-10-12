@@ -11,6 +11,8 @@ import type {
   Invitation,
   Message,
   Parent,
+  PensionPayment,
+  PensionSettings,
   ToneAnalysis,
   VerbalAgreement,
 } from "./entities";
@@ -18,6 +20,8 @@ import type {
   AcceptInvitationInput,
   CreateThreadInput,
   ExpenseInput,
+  PensionPaymentInput,
+  PensionSettingsInput,
   RenameThreadInput,
   SendMessageInput,
   SetUsageModeInput,
@@ -167,6 +171,23 @@ export interface DocumentRepository {
   getDocument(parentId: string, documentId: string): Promise<Document | null>;
   /** Devuelve solo los documentos recién anclados (antes estaban "pending"). */
   anchorPendingDocuments(parentId: string): Promise<Document[]>;
+}
+
+/**
+ * Puerto de dominio para Pensión (W-xx) — pago fijo mensual, separado de
+ * Gastos (ExpenseRepository). getSettings/upsertSettings son a nivel
+ * FAMILIA (ambos progenitores lo configuran juntos, mismo criterio que
+ * CustodyRepository.upsertSlots). registerPayment es inmutable una vez
+ * creado; confirmPayment es la única escritura posterior, y solo la puede
+ * hacer el progenitor que NO pagó (mismo patrón que
+ * VerbalAgreementRepository.confirmVerbalAgreement).
+ */
+export interface PensionRepository {
+  getSettings(parentId: string): Promise<PensionSettings | null>;
+  upsertSettings(parentId: string, input: PensionSettingsInput): Promise<PensionSettings>;
+  listPayments(parentId: string): Promise<PensionPayment[]>;
+  registerPayment(parentId: string, input: PensionPaymentInput): Promise<PensionPayment>;
+  confirmPayment(parentId: string, paymentId: string): Promise<PensionPayment>;
 }
 
 /**

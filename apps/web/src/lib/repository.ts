@@ -7,12 +7,14 @@ import {
   createMockDocumentRepository,
   createMockExpenseRepository,
   createMockPairingRepository,
+  createMockPensionRepository,
   createMockVerbalAgreementRepository,
   createSupabaseChatRepository,
   createSupabaseCustodyRepository,
   createSupabaseDocumentRepository,
   createSupabaseExpenseRepository,
   createSupabasePairingRepository,
+  createSupabasePensionRepository,
   createSupabaseVerbalAgreementRepository,
 } from "@alba/api-client";
 import type {
@@ -21,6 +23,7 @@ import type {
   DocumentRepository,
   ExpenseRepository,
   PairingRepository,
+  PensionRepository,
   ToneAnalyzer,
   VerbalAgreementRepository,
 } from "@alba/core";
@@ -43,6 +46,7 @@ const globalForMock = globalThis as unknown as {
   mockExpenseRepository?: ExpenseRepository;
   mockDocumentRepository?: DocumentRepository;
   mockVerbalAgreementRepository?: VerbalAgreementRepository;
+  mockPensionRepository?: PensionRepository;
 };
 
 function getMockRepositories(): {
@@ -52,6 +56,7 @@ function getMockRepositories(): {
   expenses: ExpenseRepository;
   documents: DocumentRepository;
   verbalAgreements: VerbalAgreementRepository;
+  pension: PensionRepository;
 } {
   globalForMock.mockPairingRepository ??= createMockPairingRepository();
   globalForMock.mockChatRepository ??= createMockChatRepository(globalForMock.mockPairingRepository);
@@ -61,6 +66,7 @@ function getMockRepositories(): {
   globalForMock.mockVerbalAgreementRepository ??= createMockVerbalAgreementRepository(
     globalForMock.mockPairingRepository
   );
+  globalForMock.mockPensionRepository ??= createMockPensionRepository(globalForMock.mockPairingRepository);
   return {
     pairing: globalForMock.mockPairingRepository,
     chat: globalForMock.mockChatRepository,
@@ -68,6 +74,7 @@ function getMockRepositories(): {
     expenses: globalForMock.mockExpenseRepository,
     documents: globalForMock.mockDocumentRepository,
     verbalAgreements: globalForMock.mockVerbalAgreementRepository,
+    pension: globalForMock.mockPensionRepository,
   };
 }
 
@@ -134,12 +141,22 @@ export async function getRequestContext(as?: string): Promise<{
   expenses: ExpenseRepository;
   documents: DocumentRepository;
   verbalAgreements: VerbalAgreementRepository;
+  pension: PensionRepository;
   parentId: string;
 }> {
   if (!isSupabaseConfigured) {
     const { resolveDemoParentId } = await import("./demoSession");
-    const { pairing, chat, custody, expenses, documents, verbalAgreements } = getMockRepositories();
-    return { pairing, chat, custody, expenses, documents, verbalAgreements, parentId: resolveDemoParentId(as) };
+    const { pairing, chat, custody, expenses, documents, verbalAgreements, pension } = getMockRepositories();
+    return {
+      pairing,
+      chat,
+      custody,
+      expenses,
+      documents,
+      verbalAgreements,
+      pension,
+      parentId: resolveDemoParentId(as),
+    };
   }
 
   const { client, userId } = await getAuthedSupabaseClient();
@@ -151,6 +168,7 @@ export async function getRequestContext(as?: string): Promise<{
     expenses: createSupabaseExpenseRepository(client),
     documents: createSupabaseDocumentRepository(client),
     verbalAgreements: createSupabaseVerbalAgreementRepository(client),
+    pension: createSupabasePensionRepository(client),
     parentId: userId,
   };
 }

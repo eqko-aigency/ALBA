@@ -1,9 +1,10 @@
 import Link from "next/link";
-import type { Expense } from "@alba/core";
+import { periodKey, type Expense } from "@alba/core";
 import { getRequestContext } from "@/lib/repository";
 import { isDemoMode } from "@/lib/demoSession";
 import { AppNav } from "@/components/AppNav";
 import { createExpenseAction, updateExpenseStatusAction } from "./actions";
+import { PensionSection } from "./PensionSection";
 
 const MXN = new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" });
 
@@ -28,16 +29,20 @@ function formatDate(iso: string): string {
 export default async function GastosPage({
   searchParams,
 }: {
-  searchParams: Promise<{ as?: string }>;
+  searchParams: Promise<{ as?: string; tab?: string; period?: string }>;
 }) {
-  const { as } = await searchParams;
-  const { pairing, expenses, parentId } = await getRequestContext(as);
+  const { as, tab: tabParam, period: periodParam } = await searchParams;
+  const tab: "gastos" | "pension" = tabParam === "pension" ? "pension" : "gastos";
+  const period = periodParam && /^\d{4}-\d{2}$/.test(periodParam) ? periodParam : periodKey(new Date());
+  const { pairing, expenses, pension, parentId } = await getRequestContext(as);
 
-  const [expenseList, children, familyMembers, balance] = await Promise.all([
+  const [expenseList, children, familyMembers, balance, pensionSettings, pensionPayments] = await Promise.all([
     expenses.listExpenses(parentId),
     pairing.getMyChildren(parentId),
     pairing.listFamilyMembers(parentId),
     expenses.getBalance(parentId),
+    pension.getSettings(parentId),
+    pension.listPayments(parentId),
   ]);
 
   const childName = (childId: string) => children.find((c) => c.id === childId)?.fullName ?? "Hijo/a";
@@ -48,6 +53,7 @@ export default async function GastosPage({
   // Redondeo de centavos — evita mostrar "Están a mano" como "$0.00 de
   // diferencia" por errores de punto flotante al dividir /2.
   const owedRounded = Math.round(balance.amountMxnOwedByCaller * 100) / 100;
+  const asQuery = as === "b" ? "&as=b" : "";
 
   return (
     <div className="mx-auto min-h-screen max-w-2xl px-6 pb-[calc(7.5rem+env(safe-area-inset-bottom))] pt-16 bg-sand">
@@ -61,8 +67,42 @@ export default async function GastosPage({
       )}
 
       <h1 className="text-2xl font-semibold tracking-tight text-ink">Gastos</h1>
-      <p className="mt-2 text-ink-soft">Registra gastos, aprueba los del otro progenitor y lleva el balance.</p>
+      <p className="mt-2 text-ink-soft">
+        {tab === "pension"
+          ? "Pagos fijos mensuales de pensión, con historial y confirmación."
+          : "Registra gastos, aprueba los del otro progenitor y lleva el balance."}
+      </p>
 
+      <div className="mt-4 inline-flex rounded-full border border-subtle bg-sand p-1">
+        <Link
+          href={`/gastos?tab=pension&period=${period}${asQuery}`}
+          className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-colors ${
+            tab === "pension" ? "bg-card text-ink shadow-ambient" : "text-ink-soft"
+          }`}
+        >
+          Pensión
+        </Link>
+        <Link
+          href={`/gastos?tab=gastos${asQuery}`}
+          className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-colors ${
+            tab === "gastos" ? "bg-card text-ink shadow-ambient" : "text-ink-soft"
+          }`}
+        >
+          Gastos
+        </Link>
+      </div>
+
+      {tab === "pension" ? (
+        <PensionSection
+          as={as}
+          period={period}
+          parentId={parentId}
+          settings={pensionSettings}
+          payments={pensionPayments}
+          familyMembers={familyMembers}
+        />
+      ) : (
+        <>
       <section className="mt-6 rounded-xl border border-subtle bg-card p-5 text-center shadow-ambient">
         {!otherParentName ? (
           <p className="text-sm text-ink-soft">
@@ -206,6 +246,8 @@ export default async function GastosPage({
           </form>
         )}
       </section>
+        </>
+      )}
 
       <AppNav active="Gastos" />
     </div>

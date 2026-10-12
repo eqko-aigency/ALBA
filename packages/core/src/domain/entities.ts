@@ -101,6 +101,38 @@ export interface ExpenseBalance {
   amountMxnOwedByCaller: number;
 }
 
+/**
+ * Pensión (W-xx) — pago fijo mensual recurrente (ej. pensión alimenticia),
+ * distinto de Expense (ítems puntuales, 50/50, aprobar/rechazar). Un solo
+ * progenitor de la familia es el pagador; monto y día de vencimiento se
+ * configuran una vez (PensionSettings) y cada mes es un registro de pago
+ * (PensionPayment) separado e inmutable, que el otro progenitor confirma.
+ */
+export interface PensionSettings {
+  id: string;
+  familyId: string;
+  payerParentId: string;
+  amountMxn: number;
+  /** Día del mes en que vence (1-28, para que exista en todos los meses). */
+  dueDay: number;
+}
+
+export interface PensionPayment {
+  id: string;
+  familyId: string;
+  /** "YYYY-MM" */
+  period: string;
+  /** Snapshot del monto al momento de pagar — no cambia si luego se edita PensionSettings.amountMxn. */
+  amountMxn: number;
+  paidByParentId: string;
+  paidAt: string;
+  confirmedByParentId: string | null;
+  confirmedAt: string | null;
+  createdAt: string;
+}
+
+export type PensionPeriodStatus = "paid_confirmed" | "paid_unconfirmed" | "overdue" | "upcoming";
+
 export type CustodyEventType = "checkin" | "checkout";
 
 export interface CustodyEvent {

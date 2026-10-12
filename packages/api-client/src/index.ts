@@ -6,6 +6,7 @@ export * from "./custody";
 export * from "./expenses";
 export * from "./documents";
 export * from "./verbalAgreements";
+export * from "./pension";
 export type {
   Parent,
   Child,
@@ -23,4 +24,7 @@ export type {
   ToneAnalysis,
   ToneLevel,
   VerbalAgreement,
+  PensionSettings,
+  PensionPayment,
+  PensionPeriodStatus,
 } from "@alba/core";

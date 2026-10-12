@@ -132,6 +132,18 @@ export const documentUploadInputSchema = z.object({
 });
 export type DocumentUploadInput = z.infer<typeof documentUploadInputSchema>;
 
+export const pensionSettingsInputSchema = z.object({
+  payerParentId: z.string().uuid(),
+  amountMxn: z.number().positive(),
+  dueDay: z.coerce.number().int().min(1).max(28),
+});
+export type PensionSettingsInput = z.infer<typeof pensionSettingsInputSchema>;
+
+export const pensionPaymentInputSchema = z.object({
+  period: z.string().regex(/^\d{4}-\d{2}$/, "Período inválido"),
+});
+export type PensionPaymentInput = z.infer<typeof pensionPaymentInputSchema>;
+
 export const verbalAgreementInputSchema = z.object({
   childId: z
     .union([z.string().uuid(), z.literal("")])
