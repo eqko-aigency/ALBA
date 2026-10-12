@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { getRequestContext } from "@/lib/repository";
 import { isDemoMode } from "@/lib/demoSession";
 import { AppNav } from "@/components/AppNav";
@@ -38,12 +39,23 @@ export default async function DashboardPage({
 
   await pairing.getOrCreateMyFamily(parentId);
 
+  const profile = await pairing.getProfile(parentId);
+
+  // Pedido explícito de la clienta: la primera vez, preguntar si la app la
+  // van a usar los dos progenitores o solo uno, antes de mostrar el resto.
+  // Se revisa ANTES de pedir el resto del dashboard (threads, convenio,
+  // gastos, documentos...) para no gastar esas queries en un usuario que de
+  // todos modos va a ser redirigido.
+  if (!profile?.usageMode) {
+    redirect(as === "b" ? "/onboarding?as=b" : "/onboarding");
+  }
+
   const weekStart = isoDateLocal(startOfWeek(new Date()));
 
-  const [profile, children, threads, agreement, todayEvents, balance, expenseList, documentList] =
+  const [children, familyMembers, threads, agreement, todayEvents, balance, expenseList, documentList] =
     await Promise.all([
-      pairing.getProfile(parentId),
       pairing.getMyChildren(parentId),
+      pairing.listFamilyMembers(parentId),
       chat.listThreads(parentId),
       custody.getMyAgreement(parentId),
       custody.listEventsForWeek(parentId, weekStart),
@@ -52,6 +64,7 @@ export default async function DashboardPage({
       documents.listDocuments(parentId),
     ]);
 
+  const isPaired = familyMembers.length > 1;
   const childName = (id: string) => children.find((c) => c.id === id)?.fullName ?? "Hijo/a";
   const firstName = profile?.fullName?.split(" ")[0] ?? "";
 
@@ -168,13 +181,23 @@ export default async function DashboardPage({
         ))}
       </div>
 
-      <Link
-        href="/registro"
-        className="mt-4 inline-flex items-center gap-1.5 rounded-full border-2 border-subtle bg-card px-4 py-2 text-sm font-semibold text-ink shadow-ambient transition-all hover:-translate-y-0.5 hover:shadow-elevated"
-      >
-        Invitar al otro progenitor o agregar hijos
-        <span aria-hidden="true">→</span>
-      </Link>
+      {profile?.usageMode === "bilateral" && !isPaired ? (
+        <Link
+          href={as === "b" ? "/registro?as=b" : "/registro"}
+          className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-orange px-4 py-2.5 text-sm font-semibold text-ink shadow-elevated transition-all hover:-translate-y-0.5"
+        >
+          Vincular al otro progenitor
+          <span aria-hidden="true">→</span>
+        </Link>
+      ) : (
+        <Link
+          href={as === "b" ? "/registro?as=b" : "/registro"}
+          className="mt-4 inline-flex items-center gap-1.5 rounded-full border-2 border-subtle bg-card px-4 py-2 text-sm font-semibold text-ink shadow-ambient transition-all hover:-translate-y-0.5 hover:shadow-elevated"
+        >
+          Agregar hijos
+          <span aria-hidden="true">→</span>
+        </Link>
+      )}
 
       <AppNav active="Dashboard" />
     </div>

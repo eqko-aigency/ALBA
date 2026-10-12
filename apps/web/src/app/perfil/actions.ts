@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { updateChildInputSchema, upsertProfileInputSchema } from "@alba/core";
+import { updateChildDetailsInputSchema, updateChildInputSchema, upsertProfileInputSchema } from "@alba/core";
 import { getRequestContext } from "@/lib/repository";
 
 export async function upsertProfileAction(formData: FormData) {
@@ -34,4 +34,34 @@ export async function updateChildAction(formData: FormData) {
   const { pairing, parentId } = await getRequestContext();
   await pairing.updateChild(parentId, childId, input);
   revalidatePath("/perfil");
+}
+
+/**
+ * contactsJson llega como JSON armado client-side (ChildDetailsForm) — la
+ * lista de contactos es dinámica (agregar/quitar filas), así que un <form>
+ * sin JS no alcanza para mandarla como campos sueltos.
+ */
+export async function updateChildDetailsAction(formData: FormData) {
+  const childId = String(formData.get("childId") ?? "");
+  let contacts: unknown = [];
+  try {
+    contacts = JSON.parse(String(formData.get("contactsJson") ?? "[]"));
+  } catch {
+    contacts = [];
+  }
+
+  const input = updateChildDetailsInputSchema.parse({
+    contacts,
+    therapistName: formData.get("therapistName"),
+    therapistPhone: formData.get("therapistPhone"),
+    schoolName: formData.get("schoolName"),
+    schoolContact: formData.get("schoolContact"),
+    allergies: formData.get("allergies"),
+    specialNotes: formData.get("specialNotes"),
+    sleepRoutine: formData.get("sleepRoutine"),
+  });
+
+  const { pairing, parentId } = await getRequestContext();
+  await pairing.updateChildDetails(parentId, childId, input);
+  revalidatePath(`/perfil/hijo/${childId}`);
 }

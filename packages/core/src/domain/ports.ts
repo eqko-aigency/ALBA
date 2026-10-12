@@ -18,6 +18,8 @@ import type {
   CreateThreadInput,
   ExpenseInput,
   SendMessageInput,
+  SetUsageModeInput,
+  UpdateChildDetailsInput,
   UpdateChildInput,
   UpsertProfileInput,
 } from "../validation/schemas";
@@ -36,12 +38,21 @@ export interface PairingRepository {
   getMyChildren(parentId: string): Promise<Child[]>;
   createChild(parentId: string, input: { fullName: string; birthDate: string }): Promise<Child>;
   updateChild(parentId: string, childId: string, input: UpdateChildInput): Promise<Child>;
+  /**
+   * Campos extendidos del perfil de hijo (contactos, terapeuta, escuela,
+   * alergias, notas) — separado de updateChild (nombre/fecha de nacimiento)
+   * a propósito: así el form corto de /perfil nunca manda estos campos y no
+   * corre riesgo de pisarlos con null por accidente.
+   */
+  updateChildDetails(parentId: string, childId: string, input: UpdateChildDetailsInput): Promise<Child>;
   getInvitationByToken(token: string): Promise<Invitation | null>;
   listPendingInvitations(parentId: string): Promise<Invitation[]>;
   createInvitation(parentId: string): Promise<Invitation>;
   acceptInvitation(parentId: string, input: AcceptInvitationInput): Promise<Family>;
   getProfile(parentId: string): Promise<Parent | null>;
   upsertProfile(parentId: string, input: UpsertProfileInput): Promise<Parent>;
+  /** Onboarding (W-xx) — elegir si la app se usa unilateral o bilateral. */
+  setUsageMode(parentId: string, input: SetUsageModeInput): Promise<Parent>;
   /**
    * Los dos progenitores de la familia (incluyendo al caller) — agregado
    * para el Calendario (W-xx), que necesita poder asignar un slot del

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { getRequestContext } from "@/lib/repository";
 import { isDemoMode } from "@/lib/demoSession";
 import { AppNav } from "@/components/AppNav";
@@ -55,9 +56,14 @@ export default async function PerfilPage() {
                   className="mt-1 w-full rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink"
                 />
               </label>
-              <button type="submit" className="self-start rounded-full border border-subtle px-3 py-1.5 text-sm font-medium text-ink">
-                Guardar cambios
-              </button>
+              <div className="flex items-center gap-3">
+                <button type="submit" className="self-start rounded-full border border-subtle px-3 py-1.5 text-sm font-medium text-ink">
+                  Guardar cambios
+                </button>
+                <Link href={`/perfil/hijo/${child.id}`} className="text-sm font-medium text-purple underline">
+                  Contactos, salud y notas →
+                </Link>
+              </div>
             </form>
           </li>
         ))}

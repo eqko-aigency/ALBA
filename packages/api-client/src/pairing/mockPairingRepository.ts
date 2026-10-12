@@ -5,6 +5,8 @@ import type {
   Invitation,
   PairingRepository,
   Parent,
+  SetUsageModeInput,
+  UpdateChildDetailsInput,
   UpdateChildInput,
   UpsertProfileInput,
 } from "@alba/core";
@@ -44,7 +46,19 @@ export function createMockPairingRepository(): PairingRepository {
     async createChild(parentId, input) {
       const familyId = memberOf.get(parentId);
       if (!familyId) throw new Error("el progenitor no pertenece a ninguna familia todavía");
-      const child: Child = { id: crypto.randomUUID(), familyId, ...input };
+      const child: Child = {
+        id: crypto.randomUUID(),
+        familyId,
+        ...input,
+        contacts: [],
+        therapistName: null,
+        therapistPhone: null,
+        schoolName: null,
+        schoolContact: null,
+        allergies: null,
+        specialNotes: null,
+        sleepRoutine: null,
+      };
       children.set(child.id, child);
       return child;
     },
@@ -58,6 +72,14 @@ export function createMockPairingRepository(): PairingRepository {
       return child;
     },
 
+    async updateChildDetails(parentId, childId, input: UpdateChildDetailsInput) {
+      const familyId = memberOf.get(parentId);
+      const child = children.get(childId);
+      if (!child || child.familyId !== familyId) throw new Error("hijo no encontrado");
+      Object.assign(child, input);
+      return child;
+    },
+
     async getProfile(parentId) {
       return profiles.get(parentId) ?? null;
     },
@@ -67,6 +89,19 @@ export function createMockPairingRepository(): PairingRepository {
         id: parentId,
         fullName: input.fullName,
         email: profiles.get(parentId)?.email ?? `${parentId}@demo.local`,
+        usageMode: profiles.get(parentId)?.usageMode ?? null,
+      };
+      profiles.set(parentId, profile);
+      return profile;
+    },
+
+    async setUsageMode(parentId, input: SetUsageModeInput) {
+      const existing = profiles.get(parentId);
+      const profile: Parent = {
+        id: parentId,
+        fullName: existing?.fullName ?? "",
+        email: existing?.email ?? `${parentId}@demo.local`,
+        usageMode: input.usageMode,
       };
       profiles.set(parentId, profile);
       return profile;
@@ -102,7 +137,13 @@ export function createMockPairingRepository(): PairingRepository {
       if (!familyId) return [];
       const memberIds = familyMembers.get(familyId) ?? new Set<string>();
       return [...memberIds].map(
-        (id) => profiles.get(id) ?? { id, fullName: id === parentId ? "Tú" : "El otro progenitor", email: `${id}@demo.local` }
+        (id) =>
+          profiles.get(id) ?? {
+            id,
+            fullName: id === parentId ? "Tú" : "El otro progenitor",
+            email: `${id}@demo.local`,
+            usageMode: null,
+          }
       );
     },
 

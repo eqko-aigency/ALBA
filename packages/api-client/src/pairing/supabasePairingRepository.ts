@@ -5,6 +5,8 @@ import type {
   Family,
   Invitation,
   PairingRepository,
+  SetUsageModeInput,
+  UpdateChildDetailsInput,
   UpdateChildInput,
   UpsertProfileInput,
 } from "@alba/core";
@@ -61,6 +63,29 @@ export function createSupabasePairingRepository(client: SupabaseClient): Pairing
       return mapChild(data);
     },
 
+    async updateChildDetails(parentId, childId, input: UpdateChildDetailsInput) {
+      const familyId = await getMyFamilyId(parentId);
+      if (!familyId) throw new Error("el progenitor no pertenece a ninguna familia todavía");
+      const { data, error } = await client
+        .from("children")
+        .update({
+          contacts: input.contacts,
+          therapist_name: input.therapistName,
+          therapist_phone: input.therapistPhone,
+          school_name: input.schoolName,
+          school_contact: input.schoolContact,
+          allergies: input.allergies,
+          special_notes: input.specialNotes,
+          sleep_routine: input.sleepRoutine,
+        })
+        .eq("id", childId)
+        .eq("family_id", familyId)
+        .select()
+        .single();
+      if (error) throw error;
+      return mapChild(data);
+    },
+
     async getProfile(parentId) {
       const { data, error } = await client.from("profiles").select().eq("id", parentId).maybeSingle();
       if (error) throw error;
@@ -72,7 +97,7 @@ export function createSupabasePairingRepository(client: SupabaseClient): Pairing
       // arriba; esto solo necesita leer el email que ya trae la sesión.
       const { data: sessionData } = await client.auth.getSession();
       const email = sessionData.session?.user.id === parentId ? (sessionData.session?.user.email ?? "") : "";
-      return { id: data.id, fullName: data.full_name, email };
+      return { id: data.id, fullName: data.full_name, email, usageMode: data.usage_mode ?? null };
     },
 
     async upsertProfile(parentId, input: UpsertProfileInput) {
@@ -84,7 +109,30 @@ export function createSupabasePairingRepository(client: SupabaseClient): Pairing
       if (error) throw error;
 
       const { data: sessionData } = await client.auth.getSession();
-      return { id: data.id, fullName: data.full_name, email: sessionData.session?.user.email ?? "" };
+      return {
+        id: data.id,
+        fullName: data.full_name,
+        email: sessionData.session?.user.email ?? "",
+        usageMode: data.usage_mode ?? null,
+      };
+    },
+
+    async setUsageMode(parentId, input: SetUsageModeInput) {
+      const { data, error } = await client
+        .from("profiles")
+        .update({ usage_mode: input.usageMode })
+        .eq("id", parentId)
+        .select()
+        .single();
+      if (error) throw error;
+
+      const { data: sessionData } = await client.auth.getSession();
+      return {
+        id: data.id,
+        fullName: data.full_name,
+        email: sessionData.session?.user.email ?? "",
+        usageMode: data.usage_mode ?? null,
+      };
     },
 
     async getInvitationByToken(token) {
@@ -136,6 +184,7 @@ export function createSupabasePairingRepository(client: SupabaseClient): Pairing
         id: row.parent_id,
         fullName: row.profiles?.full_name ?? "Progenitor",
         email: "",
+        usageMode: null,
       }));
     },
 
@@ -150,7 +199,20 @@ export function createSupabasePairingRepository(client: SupabaseClient): Pairing
 }
 
 function mapChild(row: any): Child {
-  return { id: row.id, familyId: row.family_id, fullName: row.full_name, birthDate: row.birth_date };
+  return {
+    id: row.id,
+    familyId: row.family_id,
+    fullName: row.full_name,
+    birthDate: row.birth_date,
+    contacts: row.contacts ?? [],
+    therapistName: row.therapist_name ?? null,
+    therapistPhone: row.therapist_phone ?? null,
+    schoolName: row.school_name ?? null,
+    schoolContact: row.school_contact ?? null,
+    allergies: row.allergies ?? null,
+    specialNotes: row.special_notes ?? null,
+    sleepRoutine: row.sleep_routine ?? null,
+  };
 }
 
 function mapInvitation(row: any): Invitation {

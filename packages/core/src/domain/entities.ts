@@ -1,18 +1,42 @@
+/** null = todavía no eligió en el onboarding (W-xx). */
+export type UsageMode = "unilateral" | "bilateral" | null;
+
 export interface Parent {
   id: string;
   fullName: string;
   email: string;
+  usageMode: UsageMode;
 }
 
 export interface Family {
   id: string;
 }
 
+export interface ChildContact {
+  name: string;
+  relation: string;
+  phone: string;
+}
+
+/**
+ * Campos de W-xx (perfil de hijo extendido) — pedido explícito de la
+ * clienta: contactos, terapeuta, escuela, alergias, notas especiales (ej.
+ * "duerme con el conejo azul", rutina de sueño). Todos nullable/vacíos por
+ * default porque se completan con el tiempo, no en el alta inicial.
+ */
 export interface Child {
   id: string;
   familyId: string;
   fullName: string;
   birthDate: string;
+  contacts: ChildContact[];
+  therapistName: string | null;
+  therapistPhone: string | null;
+  schoolName: string | null;
+  schoolContact: string | null;
+  allergies: string | null;
+  specialNotes: string | null;
+  sleepRoutine: string | null;
 }
 
 export type InvitationStatus = "pending" | "accepted" | "expired";

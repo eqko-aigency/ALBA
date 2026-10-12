@@ -24,6 +24,37 @@ export const updateChildInputSchema = z.object({
 });
 export type UpdateChildInput = z.infer<typeof updateChildInputSchema>;
 
+const childContactSchema = z.object({
+  name: z.string().min(1).max(120),
+  relation: z.string().min(1).max(80),
+  phone: z.string().max(40),
+});
+
+/** Campos nullable: string vacío del form se normaliza a null (sin dato). */
+const optionalNote = (max: number) =>
+  z
+    .string()
+    .max(max)
+    .nullable()
+    .transform((v) => (v && v.trim().length > 0 ? v.trim() : null));
+
+export const updateChildDetailsInputSchema = z.object({
+  contacts: z.array(childContactSchema).max(10),
+  therapistName: optionalNote(160),
+  therapistPhone: optionalNote(40),
+  schoolName: optionalNote(160),
+  schoolContact: optionalNote(160),
+  allergies: optionalNote(1000),
+  specialNotes: optionalNote(2000),
+  sleepRoutine: optionalNote(2000),
+});
+export type UpdateChildDetailsInput = z.infer<typeof updateChildDetailsInputSchema>;
+
+export const setUsageModeInputSchema = z.object({
+  usageMode: z.enum(["unilateral", "bilateral"]),
+});
+export type SetUsageModeInput = z.infer<typeof setUsageModeInputSchema>;
+
 /** Categorías fijas de W-06 (Chat por Temas) — Manual Sandstone Sanctuary §4. */
 export const CHAT_TOPICS = ["Salud", "Escuela", "Pensiones", "Vacaciones"] as const;
 export type ChatTopic = (typeof CHAT_TOPICS)[number];
