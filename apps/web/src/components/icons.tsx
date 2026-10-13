@@ -58,3 +58,79 @@ export function BovedaIcon({ className = "h-5 w-5" }: IconProps) {
     </svg>
   );
 }
+
+export function ContactsIcon({ className = "h-5 w-5" }: IconProps) {
+  return (
+    <svg {...common} className={className}>
+      <circle cx="9" cy="8.5" r="3" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M3.5 19c.9-3 3-4.5 5.5-4.5s4.6 1.5 5.5 4.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M15.5 6a3 3 0 010 6M18 19c-.6-2-1.6-3.4-3-4.1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function HealthIcon({ className = "h-5 w-5" }: IconProps) {
+  return (
+    <svg {...common} className={className}>
+      <path
+        d="M12 19s-7-4.2-7-9.3C5 6.7 7 5 9.2 5c1.2 0 2.2.6 2.8 1.6C12.6 5.6 13.6 5 14.8 5 17 5 19 6.7 19 9.7 19 14.8 12 19 12 19z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+      <path d="M9.5 10h2l1-2 1.5 4 1-2h1.5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function SchoolIcon({ className = "h-5 w-5" }: IconProps) {
+  return (
+    <svg {...common} className={className}>
+      <path d="M3 9.5L12 5l9 4.5-9 4.5-9-4.5z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
+      <path d="M7 11.5V16c0 1.1 2.2 2 5 2s5-.9 5-2v-4.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      <path d="M20 9.5V15" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function NotesIcon({ className = "h-5 w-5" }: IconProps) {
+  return (
+    <svg {...common} className={className}>
+      <rect x="5" y="4" width="14" height="16" rx="2" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M8 9h8M8 12.5h8M8 16h5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function UserIcon({ className = "h-5 w-5" }: IconProps) {
+  return (
+    <svg {...common} className={className}>
+      <circle cx="12" cy="8.5" r="3.3" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M5 19.5c1.3-3.2 4-4.8 7-4.8s5.7 1.6 7 4.8" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function UsageModeIcon({ className = "h-5 w-5" }: IconProps) {
+  return (
+    <svg {...common} className={className}>
+      <circle cx="8" cy="9" r="2.6" stroke="currentColor" strokeWidth="1.8" />
+      <circle cx="16" cy="9" r="2.6" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M3 18c.8-2.6 2.6-4 5-4s4.2 1.4 5 4M11 18c.8-2.6 2.6-4 5-4s4.2 1.4 5 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function BellIcon({ className = "h-5 w-5" }: IconProps) {
+  return (
+    <svg {...common} className={className}>
+      <path
+        d="M6 10a6 6 0 1112 0c0 4 1.5 5.5 1.5 5.5H4.5S6 14 6 10z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+      <path d="M10 18.5a2 2 0 004 0" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}

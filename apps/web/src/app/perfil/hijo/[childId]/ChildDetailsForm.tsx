@@ -57,7 +57,7 @@ export function ChildDetailsForm({
     <form action={handleSubmit} onChange={() => setSaved(false)} className="mt-6 flex flex-col gap-6">
       <input type="hidden" name="childId" value={childId} />
 
-      <section className="rounded-lg border border-subtle bg-card p-5 shadow-ambient">
+      <section id="contactos" className="scroll-mt-24 rounded-lg border border-subtle bg-card p-5 shadow-ambient">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-ink">Contactos</h2>
         <p className="mt-1 text-xs text-ink-soft">Terapeuta, maestra, familiares — cualquiera relevante para este hijo/a.</p>
         <div className="mt-4 flex flex-col gap-3">
@@ -103,7 +103,7 @@ export function ChildDetailsForm({
         </div>
       </section>
 
-      <section className="rounded-lg border border-subtle bg-card p-5 shadow-ambient">
+      <section id="salud" className="scroll-mt-24 rounded-lg border border-subtle bg-card p-5 shadow-ambient">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-ink">Salud</h2>
         <div className="mt-4 flex flex-col gap-3">
           <label className={labelClass}>
@@ -121,7 +121,7 @@ export function ChildDetailsForm({
         </div>
       </section>
 
-      <section className="rounded-lg border border-subtle bg-card p-5 shadow-ambient">
+      <section id="escuela" className="scroll-mt-24 rounded-lg border border-subtle bg-card p-5 shadow-ambient">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-ink">Escuela</h2>
         <div className="mt-4 flex flex-col gap-3">
           <label className={labelClass}>
@@ -135,7 +135,7 @@ export function ChildDetailsForm({
         </div>
       </section>
 
-      <section className="rounded-lg border border-subtle bg-card p-5 shadow-ambient">
+      <section id="notas" className="scroll-mt-24 rounded-lg border border-subtle bg-card p-5 shadow-ambient">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-ink">Notas especiales</h2>
         <div className="mt-4 flex flex-col gap-3">
           <label className={labelClass}>

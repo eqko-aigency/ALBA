@@ -2,7 +2,16 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getRequestContext } from "@/lib/repository";
 import { AppNav } from "@/components/AppNav";
+import { SectionMenu } from "@/components/SectionMenu";
+import { ContactsIcon, HealthIcon, NotesIcon, SchoolIcon } from "@/components/icons";
 import { ChildDetailsForm } from "./ChildDetailsForm";
+
+const MENU_ITEMS = [
+  { href: "#contactos", label: "Contactos", accent: "bg-salmon", Icon: ContactsIcon },
+  { href: "#salud", label: "Salud", accent: "bg-sky", Icon: HealthIcon },
+  { href: "#escuela", label: "Escuela", accent: "bg-dawn", Icon: SchoolIcon },
+  { href: "#notas", label: "Notas especiales", accent: "bg-purple", Icon: NotesIcon },
+];
 
 export default async function ChildDetailPage({
   params,
@@ -28,6 +37,8 @@ export default async function ChildDetailPage({
       <p className="mt-2 text-ink-soft">
         Datos que ayudan al otro progenitor (y a quien cuide a {child.fullName.split(" ")[0]}) a hacer bien su parte.
       </p>
+
+      <SectionMenu items={MENU_ITEMS} />
 
       <ChildDetailsForm
         childId={child.id}

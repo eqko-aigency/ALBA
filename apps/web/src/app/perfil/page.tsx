@@ -3,10 +3,18 @@ import { getRequestContext } from "@/lib/repository";
 import { isDemoMode } from "@/lib/demoSession";
 import { AppNav } from "@/components/AppNav";
 import { LogoutButton } from "@/components/LogoutButton";
+import { SectionMenu } from "@/components/SectionMenu";
+import { BellIcon, UsageModeIcon, UserIcon } from "@/components/icons";
 import { createChildAction, updateChildAction } from "./actions";
 import { SaveProfileForm } from "./SaveProfileForm";
 import { PushToggle } from "./PushToggle";
 import { setUsageModeAction } from "@/app/onboarding/actions";
+
+const MENU_ITEMS = [
+  { href: "#mi-informacion", label: "Mi información", accent: "bg-salmon", Icon: UserIcon },
+  { href: "#como-uso", label: "Cómo uso ALBA", accent: "bg-sky", Icon: UsageModeIcon },
+  { href: "#notificaciones", label: "Notificaciones", accent: "bg-dawn", Icon: BellIcon },
+];
 
 export default async function PerfilPage() {
   const { pairing, parentId } = await getRequestContext();
@@ -25,9 +33,13 @@ export default async function PerfilPage() {
 
       <h1 className="text-2xl font-semibold tracking-tight text-ink">Mi perfil</h1>
 
-      <SaveProfileForm initialFullName={profile?.fullName ?? ""} />
+      <SectionMenu items={MENU_ITEMS} />
 
-      <section className="mt-6 rounded-lg border border-subtle bg-card p-5 shadow-ambient">
+      <div id="mi-informacion" className="scroll-mt-24">
+        <SaveProfileForm initialFullName={profile?.fullName ?? ""} />
+      </div>
+
+      <section id="como-uso" className="mt-6 scroll-mt-24 rounded-lg border border-subtle bg-card p-5 shadow-ambient">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-ink">Cómo usas ALBA</h2>
         <p className="mt-1 text-xs text-ink-soft">
           {profile?.usageMode === "bilateral"
@@ -122,7 +134,7 @@ export default async function PerfilPage() {
         </form>
       </section>
 
-      <div className="mt-10">
+      <div id="notificaciones" className="mt-10 scroll-mt-24">
         <PushToggle />
       </div>
 
