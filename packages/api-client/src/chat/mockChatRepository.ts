@@ -95,6 +95,19 @@ export function createMockChatRepository(pairingRepository: PairingRepository): 
       return message;
     },
 
+    async listRecentMessages(parentId, sinceIso) {
+      const family = await pairingRepository.getOrCreateMyFamily(parentId);
+      const myThreadIds = new Set([...threads.values()].filter((t) => t.familyId === family.id).map((t) => t.id));
+      const result: Message[] = [];
+      for (const [threadId, msgs] of messagesByThread) {
+        if (!myThreadIds.has(threadId)) continue;
+        for (const m of msgs) {
+          if (m.createdAt >= sinceIso) result.push(m);
+        }
+      }
+      return result.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    },
+
     async sealThread(parentId, threadId) {
       const family = await pairingRepository.getOrCreateMyFamily(parentId);
       const thread = threads.get(threadId);

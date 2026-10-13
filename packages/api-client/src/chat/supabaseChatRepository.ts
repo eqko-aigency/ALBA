@@ -120,6 +120,31 @@ export function createSupabaseChatRepository(client: SupabaseClient): ChatReposi
       return mapMessage(data);
     },
 
+    async listRecentMessages(parentId, sinceIso) {
+      const familyId = await getMyFamilyId(parentId);
+      if (!familyId) return [];
+
+      // Dos consultas en total (hilos de la familia, luego mensajes en
+      // esos hilos) sin importar cuántos hilos haya — nunca una consulta
+      // por hilo.
+      const { data: threadRows, error: threadsError } = await client
+        .from("chat_threads")
+        .select("id")
+        .eq("family_id", familyId);
+      if (threadsError) throw threadsError;
+      const threadIds = (threadRows ?? []).map((t: any) => t.id);
+      if (threadIds.length === 0) return [];
+
+      const { data, error } = await client
+        .from("messages")
+        .select()
+        .in("thread_id", threadIds)
+        .gte("created_at", sinceIso)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data ?? []).map(mapMessage);
+    },
+
     async sealThread(parentId, threadId) {
       const familyId = await getMyFamilyId(parentId);
       if (!familyId) throw new Error("el progenitor no pertenece a ninguna familia todavía");

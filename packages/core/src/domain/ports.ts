@@ -83,6 +83,15 @@ export interface ChatRepository {
   listMessages(parentId: string, threadId: string): Promise<Message[]>;
   sendMessage(parentId: string, input: SendMessageInput): Promise<Message>;
   /**
+   * Mensajes de TODOS los hilos de la familia desde `sinceIso`, en una sola
+   * consulta — para notificaciones (W-xx). A propósito NO es "leer cada
+   * hilo completo": eso fue justo el patrón N+1 que hizo lenta la app
+   * antes (mismo criterio que el fix de listEventsForRange en Calendario/
+   * Dashboard). sinceIso es un timestamp ISO; el resultado no viene
+   * ordenado por hilo, solo por fecha.
+   */
+  listRecentMessages(parentId: string, sinceIso: string): Promise<Message[]>;
+  /**
    * Sella la conversación para evidencia (W-xx): calcula una raíz Merkle
    * sobre los hashes de TODOS los mensajes actuales del hilo y la guarda.
    * Se puede volver a llamar más tarde para cubrir mensajes nuevos — cada

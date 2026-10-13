@@ -11,6 +11,7 @@ const ICON_CLASS: Record<NotificationItem["icon"], string> = {
   boveda: "bg-purple",
   acuerdos: "bg-purple",
   calendario: "bg-salmon",
+  chat: "bg-salmon",
 };
 
 const ICON_SYMBOL: Record<NotificationItem["icon"], string> = {
@@ -19,6 +20,7 @@ const ICON_SYMBOL: Record<NotificationItem["icon"], string> = {
   boveda: "🔒",
   acuerdos: "✎",
   calendario: "📅",
+  chat: "💬",
 };
 
 function isoDateLocal(d: Date): string {
@@ -47,13 +49,14 @@ export default async function NotificacionesPage({
   searchParams: Promise<{ as?: string }>;
 }) {
   const { as } = await searchParams;
-  const { pairing, expenses, pension, documents, verbalAgreements, custody, parentId } = await getRequestContext(as);
+  const { pairing, expenses, pension, documents, verbalAgreements, custody, chat, parentId } = await getRequestContext(as);
 
   const now = new Date();
-  const rangeStart = isoDateLocal(new Date(now.getFullYear(), now.getMonth(), now.getDate() - 30));
+  const since = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 30);
+  const rangeStart = isoDateLocal(since);
   const rangeEnd = isoDateLocal(new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1));
 
-  const [profile, children, familyMembers, expenseList, pensionPayments, documentList, agreements, custodyEvents] =
+  const [profile, children, familyMembers, expenseList, pensionPayments, documentList, agreements, custodyEvents, threads, messages] =
     await Promise.all([
       pairing.getProfile(parentId),
       pairing.getMyChildren(parentId),
@@ -63,20 +66,25 @@ export default async function NotificacionesPage({
       documents.listDocuments(parentId),
       verbalAgreements.listVerbalAgreements(parentId),
       custody.listEventsForRange(parentId, rangeStart, rangeEnd),
+      chat.listThreads(parentId),
+      chat.listRecentMessages(parentId, since.toISOString()),
     ]);
 
   const nameOf = (id: string) => (id === parentId ? "Tú" : familyMembers.find((p) => p.id === id)?.fullName ?? "El otro progenitor");
   const childNameOf = (id: string | null) => (id ? (children.find((c) => c.id === id)?.fullName ?? "Hijo/a") : "General");
+  const threadTopicOf = (threadId: string) => threads.find((t) => t.id === threadId)?.topic ?? "Chat";
 
   const items = buildNotifications({
     parentId,
     nameOf,
     childNameOf,
+    threadTopicOf,
     expenses: expenseList,
     pensionPayments,
     documents: documentList,
     verbalAgreements: agreements,
     custodyEvents,
+    messages,
   });
 
   const lastSeen = profile?.lastNotificationsSeenAt ? new Date(profile.lastNotificationsSeenAt) : null;

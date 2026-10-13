@@ -1,8 +1,8 @@
-import type { CustodyEvent, Document, Expense, PensionPayment, VerbalAgreement } from "@alba/core";
+import type { CustodyEvent, Document, Expense, Message, PensionPayment, VerbalAgreement } from "@alba/core";
 
 export type NotificationItem = {
   id: string;
-  icon: "gastos" | "pension" | "boveda" | "acuerdos" | "calendario";
+  icon: "gastos" | "pension" | "boveda" | "acuerdos" | "calendario" | "chat";
   title: string;
   subtitle: string;
   href: string;
@@ -14,29 +14,35 @@ export type NotificationItem = {
  * timestamp confiable en sus propias tablas — no hay una tabla de
  * "notificaciones" aparte (ver 0018_notificaciones.sql). Solo incluye
  * eventos causados por el OTRO progenitor: nunca te notificamos de tus
- * propias acciones. Deliberadamente NO incluye mensajes de chat nuevos —
- * eso requeriría leer los mensajes de CADA hilo (N llamadas extra), el
- * mismo patrón de N+1 que ya causó la lentitud que se corrigió en
- * Calendario/Dashboard.
+ * propias acciones.
+ *
+ * Los mensajes de chat (`messages`) llegan YA resueltos en una sola
+ * consulta por el caller (ChatRepository.listRecentMessages) — este
+ * archivo nunca lee hilo por hilo, ese fue justo el patrón N+1 que hizo
+ * lenta la app antes.
  */
 export function buildNotifications({
   parentId,
   nameOf,
   childNameOf,
+  threadTopicOf,
   expenses,
   pensionPayments,
   documents,
   verbalAgreements,
   custodyEvents,
+  messages,
 }: {
   parentId: string;
   nameOf: (id: string) => string;
   childNameOf: (id: string | null) => string;
+  threadTopicOf: (threadId: string) => string;
   expenses: Expense[];
   pensionPayments: PensionPayment[];
   documents: Document[];
   verbalAgreements: VerbalAgreement[];
   custodyEvents: CustodyEvent[];
+  messages: Message[];
 }): NotificationItem[] {
   const MXN = new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" });
   const items: NotificationItem[] = [];
@@ -118,6 +124,18 @@ export function buildNotifications({
       subtitle: `${childNameOf(ev.childId)} — ${nameOf(ev.parentId)}`,
       href: "/calendario",
       createdAt: ev.confirmedAt,
+    });
+  }
+
+  for (const m of messages) {
+    if (m.senderId === parentId) continue;
+    items.push({
+      id: `message-${m.id}`,
+      icon: "chat",
+      title: `Nuevo mensaje — ${threadTopicOf(m.threadId)}`,
+      subtitle: `${nameOf(m.senderId)}: ${m.body.slice(0, 80)}`,
+      href: `/chat/${m.threadId}`,
+      createdAt: m.createdAt,
     });
   }
 

@@ -91,7 +91,9 @@ export default async function DashboardPage({
   const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
   const monthKeyPrefix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 
-  const [children, familyMembers, threads, agreement, monthEvents, balance, expenseList, documentList, agreements, pensionPayments] =
+  const notificationsSince = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 30);
+
+  const [children, familyMembers, threads, agreement, monthEvents, balance, expenseList, documentList, agreements, pensionPayments, recentMessages] =
     await Promise.all([
       pairing.getMyChildren(parentId),
       pairing.listFamilyMembers(parentId),
@@ -103,6 +105,7 @@ export default async function DashboardPage({
       documents.listDocuments(parentId),
       verbalAgreements.listVerbalAgreements(parentId),
       pension.listPayments(parentId),
+      chat.listRecentMessages(parentId, notificationsSince.toISOString()),
     ]);
 
   const isPaired = familyMembers.length > 1;
@@ -114,13 +117,16 @@ export default async function DashboardPage({
   // nuevo los últimos 30 días; en la práctica casi siempre son los mismos
   // eventos, y evita otra consulta más solo para el badge.
   const nameOf = (id: string) => (id === parentId ? "Tú" : familyMembers.find((p) => p.id === id)?.fullName ?? "El otro progenitor");
+  const threadTopicOf = (threadId: string) => threads.find((t) => t.id === threadId)?.topic ?? "Chat";
   const notifications = buildNotifications({
     parentId,
     nameOf,
     childNameOf: (id) => (id ? childName(id) : "General"),
+    threadTopicOf,
     expenses: expenseList,
     pensionPayments,
     documents: documentList,
+    messages: recentMessages,
     verbalAgreements: agreements,
     custodyEvents: monthEvents,
   });
