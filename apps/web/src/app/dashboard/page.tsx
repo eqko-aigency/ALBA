@@ -73,9 +73,11 @@ export default async function DashboardPage({
   const { as } = await searchParams;
   const { pairing, chat, custody, expenses, documents, verbalAgreements, pension, parentId } = await getRequestContext(as);
 
-  await pairing.getOrCreateMyFamily(parentId);
-
-  const profile = await pairing.getProfile(parentId);
+  // getOrCreateMyFamily y getProfile no dependen una de la otra — antes se
+  // esperaban en serie (2 vueltas de red completas) antes de siquiera llegar
+  // al Promise.all grande de abajo. En paralelo, el dashboard completo pasa
+  // de 3 "oleadas" secuenciales de red a 2.
+  const [, profile] = await Promise.all([pairing.getOrCreateMyFamily(parentId), pairing.getProfile(parentId)]);
 
   // Pedido explícito de la clienta: la primera vez, preguntar si la app la
   // van a usar los dos progenitores o solo uno, antes de mostrar el resto.
