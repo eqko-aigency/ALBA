@@ -10,6 +10,7 @@ const PROTECTED_PREFIXES = [
   "/calendario",
   "/gastos",
   "/boveda",
+  "/notificaciones",
 ];
 const AUTH_PAGES = ["/ingresar", "/crear-cuenta"];
 

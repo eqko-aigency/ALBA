@@ -5,6 +5,7 @@ import { getRequestContext } from "@/lib/repository";
 import { isDemoMode } from "@/lib/demoSession";
 import { AppNav } from "@/components/AppNav";
 import { confirmCheckinAction } from "@/app/calendario/actions";
+import { buildNotifications } from "@/lib/notifications";
 import { BovedaIcon, CalendarIcon, ChatIcon, ClockIcon, GastosIcon } from "@/components/icons";
 import type { ComponentType } from "react";
 
@@ -70,7 +71,7 @@ export default async function DashboardPage({
   searchParams: Promise<{ as?: string }>;
 }) {
   const { as } = await searchParams;
-  const { pairing, chat, custody, expenses, documents, verbalAgreements, parentId } = await getRequestContext(as);
+  const { pairing, chat, custody, expenses, documents, verbalAgreements, pension, parentId } = await getRequestContext(as);
 
   await pairing.getOrCreateMyFamily(parentId);
 
@@ -90,7 +91,7 @@ export default async function DashboardPage({
   const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
   const monthKeyPrefix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 
-  const [children, familyMembers, threads, agreement, monthEvents, balance, expenseList, documentList, agreements] =
+  const [children, familyMembers, threads, agreement, monthEvents, balance, expenseList, documentList, agreements, pensionPayments] =
     await Promise.all([
       pairing.getMyChildren(parentId),
       pairing.listFamilyMembers(parentId),
@@ -101,11 +102,30 @@ export default async function DashboardPage({
       expenses.listExpenses(parentId),
       documents.listDocuments(parentId),
       verbalAgreements.listVerbalAgreements(parentId),
+      pension.listPayments(parentId),
     ]);
 
   const isPaired = familyMembers.length > 1;
   const childName = (id: string) => children.find((c) => c.id === id)?.fullName ?? "Hijo/a";
   const firstName = profile?.fullName?.split(" ")[0] ?? "";
+
+  // monthEvents ya está cargado para las cifras del mes de más abajo — se
+  // reutiliza acá para el contador de la campanita en vez de pedir de
+  // nuevo los últimos 30 días; en la práctica casi siempre son los mismos
+  // eventos, y evita otra consulta más solo para el badge.
+  const nameOf = (id: string) => (id === parentId ? "Tú" : familyMembers.find((p) => p.id === id)?.fullName ?? "El otro progenitor");
+  const notifications = buildNotifications({
+    parentId,
+    nameOf,
+    childNameOf: (id) => (id ? childName(id) : "General"),
+    expenses: expenseList,
+    pensionPayments,
+    documents: documentList,
+    verbalAgreements: agreements,
+    custodyEvents: monthEvents,
+  });
+  const lastSeen = profile?.lastNotificationsSeenAt ? new Date(profile.lastNotificationsSeenAt) : null;
+  const unseenCount = notifications.filter((n) => !lastSeen || new Date(n.createdAt) > lastSeen).length;
 
   // Cifras del mes: cuántos check-ins estaban esperados (por el patrón
   // recurrente del convenio) vs. cuántos se confirmaron de verdad.
@@ -194,10 +214,34 @@ export default async function DashboardPage({
         </p>
       )}
 
-      <h1 className="text-2xl font-semibold tracking-tight text-ink">
-        Hola{firstName ? `, ${firstName}` : ""}
-      </h1>
-      <p className="mt-2 text-ink-soft">Esto es lo que está pasando en tu familia hoy.</p>
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-ink">
+            Hola{firstName ? `, ${firstName}` : ""}
+          </h1>
+          <p className="mt-2 text-ink-soft">Esto es lo que está pasando en tu familia hoy.</p>
+        </div>
+        <Link
+          href={as === "b" ? "/notificaciones?as=b" : "/notificaciones"}
+          aria-label="Notificaciones"
+          className="relative flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border border-subtle bg-card shadow-ambient"
+        >
+          <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5 text-ink" aria-hidden="true">
+            <path
+              d="M6 10a6 6 0 1112 0c0 4 1.5 5.5 1.5 5.5H4.5S6 14 6 10z"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinejoin="round"
+            />
+            <path d="M10 18.5a2 2 0 004 0" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+          </svg>
+          {unseenCount > 0 && (
+            <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1 text-[10px] font-bold text-white">
+              {unseenCount > 9 ? "9+" : unseenCount}
+            </span>
+          )}
+        </Link>
+      </div>
 
       {/* Próxima visita — hero card */}
       <div className="mt-6 overflow-hidden rounded-2xl bg-gradient-to-br from-dawn to-salmon shadow-elevated">

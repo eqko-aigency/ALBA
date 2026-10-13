@@ -97,7 +97,13 @@ export function createSupabasePairingRepository(client: SupabaseClient): Pairing
       // arriba; esto solo necesita leer el email que ya trae la sesión.
       const { data: sessionData } = await client.auth.getSession();
       const email = sessionData.session?.user.id === parentId ? (sessionData.session?.user.email ?? "") : "";
-      return { id: data.id, fullName: data.full_name, email, usageMode: data.usage_mode ?? null };
+      return {
+        id: data.id,
+        fullName: data.full_name,
+        email,
+        usageMode: data.usage_mode ?? null,
+        lastNotificationsSeenAt: data.last_notifications_seen_at ?? null,
+      };
     },
 
     async upsertProfile(parentId, input: UpsertProfileInput) {
@@ -114,6 +120,7 @@ export function createSupabasePairingRepository(client: SupabaseClient): Pairing
         fullName: data.full_name,
         email: sessionData.session?.user.email ?? "",
         usageMode: data.usage_mode ?? null,
+        lastNotificationsSeenAt: data.last_notifications_seen_at ?? null,
       };
     },
 
@@ -132,6 +139,26 @@ export function createSupabasePairingRepository(client: SupabaseClient): Pairing
         fullName: data.full_name,
         email: sessionData.session?.user.email ?? "",
         usageMode: data.usage_mode ?? null,
+        lastNotificationsSeenAt: data.last_notifications_seen_at ?? null,
+      };
+    },
+
+    async markNotificationsSeen(parentId) {
+      const { data, error } = await client
+        .from("profiles")
+        .update({ last_notifications_seen_at: new Date().toISOString() })
+        .eq("id", parentId)
+        .select()
+        .single();
+      if (error) throw error;
+
+      const { data: sessionData } = await client.auth.getSession();
+      return {
+        id: data.id,
+        fullName: data.full_name,
+        email: sessionData.session?.user.email ?? "",
+        usageMode: data.usage_mode ?? null,
+        lastNotificationsSeenAt: data.last_notifications_seen_at ?? null,
       };
     },
 
@@ -185,6 +212,7 @@ export function createSupabasePairingRepository(client: SupabaseClient): Pairing
         fullName: row.profiles?.full_name ?? "Progenitor",
         email: "",
         usageMode: null,
+        lastNotificationsSeenAt: null,
       }));
     },
 

@@ -60,6 +60,8 @@ export interface PairingRepository {
   upsertProfile(parentId: string, input: UpsertProfileInput): Promise<Parent>;
   /** Onboarding (W-xx) — elegir si la app se usa unilateral o bilateral. */
   setUsageMode(parentId: string, input: SetUsageModeInput): Promise<Parent>;
+  /** Notificaciones (W-xx) — marca "ya vi mis notificaciones hasta ahora". */
+  markNotificationsSeen(parentId: string): Promise<Parent>;
   /**
    * Los dos progenitores de la familia (incluyendo al caller) — agregado
    * para el Calendario (W-xx), que necesita poder asignar un slot del

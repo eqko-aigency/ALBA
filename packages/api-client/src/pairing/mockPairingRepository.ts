@@ -90,6 +90,7 @@ export function createMockPairingRepository(): PairingRepository {
         fullName: input.fullName,
         email: profiles.get(parentId)?.email ?? `${parentId}@demo.local`,
         usageMode: profiles.get(parentId)?.usageMode ?? null,
+        lastNotificationsSeenAt: profiles.get(parentId)?.lastNotificationsSeenAt ?? null,
       };
       profiles.set(parentId, profile);
       return profile;
@@ -102,6 +103,20 @@ export function createMockPairingRepository(): PairingRepository {
         fullName: existing?.fullName ?? "",
         email: existing?.email ?? `${parentId}@demo.local`,
         usageMode: input.usageMode,
+        lastNotificationsSeenAt: existing?.lastNotificationsSeenAt ?? null,
+      };
+      profiles.set(parentId, profile);
+      return profile;
+    },
+
+    async markNotificationsSeen(parentId) {
+      const existing = profiles.get(parentId);
+      const profile: Parent = {
+        id: parentId,
+        fullName: existing?.fullName ?? "",
+        email: existing?.email ?? `${parentId}@demo.local`,
+        usageMode: existing?.usageMode ?? null,
+        lastNotificationsSeenAt: new Date().toISOString(),
       };
       profiles.set(parentId, profile);
       return profile;
@@ -143,6 +158,7 @@ export function createMockPairingRepository(): PairingRepository {
             fullName: id === parentId ? "Tú" : "El otro progenitor",
             email: `${id}@demo.local`,
             usageMode: null,
+            lastNotificationsSeenAt: null,
           }
       );
     },

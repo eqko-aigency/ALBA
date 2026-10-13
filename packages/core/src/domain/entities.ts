@@ -6,6 +6,8 @@ export interface Parent {
   fullName: string;
   email: string;
   usageMode: UsageMode;
+  /** Último momento en que el progenitor abrió /notificaciones — null = nunca. */
+  lastNotificationsSeenAt: string | null;
 }
 
 export interface Family {
