@@ -406,7 +406,7 @@ export default async function CalendarioPage({
             {agreement.slots.map((slot, idx) => (
               <li
                 key={idx}
-                className="flex items-center justify-between gap-2 rounded-md bg-sand px-3 py-2 text-sm text-ink"
+                className="flex items-center justify-between gap-2 rounded-md bg-sand px-3 py-2 text-base text-ink"
               >
                 <span>
                   {WEEKDAY_LABELS[slot.weekday]} {slot.startTime}–{slot.endTime} · {childName(slot.childId)} ·{" "}
@@ -436,7 +436,7 @@ export default async function CalendarioPage({
               <select
                 name="childId"
                 required
-                className="flex-1 rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink"
+                className="flex-1 rounded-md border border-subtle bg-card px-3 py-2 text-base text-ink"
               >
                 {children.map((c) => (
                   <option key={c.id} value={c.id}>
@@ -447,7 +447,7 @@ export default async function CalendarioPage({
               <select
                 name="parentId"
                 required
-                className="flex-1 rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink"
+                className="flex-1 rounded-md border border-subtle bg-card px-3 py-2 text-base text-ink"
               >
                 {familyMembers.map((p) => (
                   <option key={p.id} value={p.id}>
@@ -460,7 +460,7 @@ export default async function CalendarioPage({
               <select
                 name="weekday"
                 required
-                className="flex-1 rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink"
+                className="flex-1 rounded-md border border-subtle bg-card px-3 py-2 text-base text-ink"
               >
                 {WEEKDAY_LABELS.map((label, idx) => (
                   <option key={idx} value={idx}>
@@ -472,16 +472,16 @@ export default async function CalendarioPage({
                 type="time"
                 name="startTime"
                 required
-                className="flex-1 rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink"
+                className="flex-1 rounded-md border border-subtle bg-card px-3 py-2 text-base text-ink"
               />
               <input
                 type="time"
                 name="endTime"
                 required
-                className="flex-1 rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink"
+                className="flex-1 rounded-md border border-subtle bg-card px-3 py-2 text-base text-ink"
               />
             </div>
-            <select name="placeId" className="rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink">
+            <select name="placeId" className="rounded-md border border-subtle bg-card px-3 py-2 text-base text-ink">
               <option value="">Sin lugar específico</option>
               {meetingPlaces.map((place) => (
                 <option key={place.id} value={place.id}>
@@ -510,7 +510,7 @@ export default async function CalendarioPage({
             {meetingPlaces.map((place) => (
               <li
                 key={place.id}
-                className="flex items-center justify-between gap-2 rounded-md bg-sand px-3 py-2 text-sm text-ink"
+                className="flex items-center justify-between gap-2 rounded-md bg-sand px-3 py-2 text-base text-ink"
               >
                 <span>📍 {place.name}</span>
                 <form action={deleteMeetingPlaceAction}>
@@ -534,7 +534,7 @@ export default async function CalendarioPage({
             minLength={2}
             maxLength={80}
             placeholder="Ej. Casa de Progenitor A, Parque..."
-            className="flex-1 rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink"
+            className="flex-1 rounded-md border border-subtle bg-card px-3 py-2 text-base text-ink"
           />
           <SubmitButton pendingText="Agregando…" className="shrink-0 rounded-full bg-salmon px-4 py-2 text-sm font-semibold text-ink">
             Agregar

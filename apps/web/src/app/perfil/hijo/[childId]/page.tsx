@@ -43,7 +43,7 @@ export default async function ChildDetailPage({
               required
               minLength={2}
               defaultValue={child.fullName}
-              className="mt-1 w-full rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink"
+              className="mt-1 w-full rounded-md border border-subtle bg-card px-3 py-2 text-base text-ink"
             />
           </label>
           <label className="text-sm font-medium text-ink">
@@ -60,7 +60,7 @@ export default async function ChildDetailPage({
                 autoComplete="off"
                 required
                 defaultValue={child.birthDate}
-                className="w-full min-w-0 bg-card px-3 py-2 text-sm text-ink"
+                className="w-full min-w-0 bg-card px-3 py-2 text-base text-ink"
               />
             </div>
           </label>

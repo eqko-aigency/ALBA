@@ -124,7 +124,7 @@ export default async function AcuerdosVerbalesPage({
             maxLength={1000}
             rows={3}
             placeholder="Ej. Acordamos por teléfono que el viernes 17 el pickup se mueve a las 6pm por la junta escolar."
-            className="rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink"
+            className="rounded-md border border-subtle bg-card px-3 py-2 text-base text-ink"
           />
 
           <div className="flex flex-col gap-2 sm:flex-row">
@@ -134,11 +134,11 @@ export default async function AcuerdosVerbalesPage({
                 name="agreedAt"
                 required
                 defaultValue={todayLocal()}
-                className="w-full min-w-0 bg-card px-3 py-2 text-sm text-ink"
+                className="w-full min-w-0 bg-card px-3 py-2 text-base text-ink"
               />
             </div>
             {children.length > 0 && (
-              <select name="childId" className="flex-1 rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink">
+              <select name="childId" className="flex-1 rounded-md border border-subtle bg-card px-3 py-2 text-base text-ink">
                 <option value="">General (toda la familia)</option>
                 {children.map((c) => (
                   <option key={c.id} value={c.id}>

@@ -65,7 +65,7 @@ export async function PensionSection({
         ) : (
           <form action={upsertPensionSettingsAction} className="mt-4 flex flex-col gap-3">
             <input type="hidden" name="as" value={as ?? ""} />
-            <select name="payerParentId" required className="rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink">
+            <select name="payerParentId" required className="rounded-md border border-subtle bg-card px-3 py-2 text-base text-ink">
               {familyMembers.map((p) => (
                 <option key={p.id} value={p.id}>
                   Paga: {p.id === parentId ? "Tú" : p.fullName}
@@ -79,7 +79,7 @@ export async function PensionSection({
               min="0.01"
               required
               placeholder="Monto mensual en MXN"
-              className="rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink"
+              className="rounded-md border border-subtle bg-card px-3 py-2 text-base text-ink"
             />
             <label className="text-xs font-medium text-ink-soft">
               Día del mes en que vence (1-28)
@@ -90,7 +90,7 @@ export async function PensionSection({
                 max="28"
                 required
                 defaultValue={1}
-                className="mt-1 w-full rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink"
+                className="mt-1 w-full rounded-md border border-subtle bg-card px-3 py-2 text-base text-ink"
               />
             </label>
             <button type="submit" className="mt-1 self-start rounded-full bg-salmon px-4 py-2 text-sm font-semibold text-ink">
@@ -202,7 +202,7 @@ export async function PensionSection({
         <summary className="cursor-pointer text-xs font-medium text-ink-soft">Editar configuración de pensión</summary>
         <form action={upsertPensionSettingsAction} className="mt-3 flex flex-col gap-3">
           <input type="hidden" name="as" value={as ?? ""} />
-          <select name="payerParentId" defaultValue={settings.payerParentId} className="rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink">
+          <select name="payerParentId" defaultValue={settings.payerParentId} className="rounded-md border border-subtle bg-card px-3 py-2 text-base text-ink">
             {familyMembers.map((p) => (
               <option key={p.id} value={p.id}>
                 Paga: {p.id === parentId ? "Tú" : p.fullName}
@@ -216,7 +216,7 @@ export async function PensionSection({
             min="0.01"
             required
             defaultValue={settings.amountMxn}
-            className="rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink"
+            className="rounded-md border border-subtle bg-card px-3 py-2 text-base text-ink"
           />
           <input
             type="number"
@@ -225,7 +225,7 @@ export async function PensionSection({
             max="28"
             required
             defaultValue={settings.dueDay}
-            className="rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink"
+            className="rounded-md border border-subtle bg-card px-3 py-2 text-base text-ink"
           />
           <button type="submit" className="self-start rounded-full border border-subtle px-3 py-1.5 text-xs font-semibold text-ink">
             Guardar cambios

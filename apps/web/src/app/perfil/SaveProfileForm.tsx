@@ -25,7 +25,7 @@ export function SaveProfileForm({ initialFullName }: { initialFullName: string }
           required
           minLength={2}
           defaultValue={initialFullName}
-          className="mt-1 w-full rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink"
+          className="mt-1 w-full rounded-md border border-subtle bg-card px-3 py-2 text-base text-ink"
         />
       </label>
       <div className="mt-2 flex items-center gap-3">

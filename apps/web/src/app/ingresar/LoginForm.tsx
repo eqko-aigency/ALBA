@@ -39,7 +39,7 @@ export function LoginForm({
             type="email"
             autoComplete="email"
             required
-            className="w-full rounded-xl border border-subtle bg-card py-2.5 pl-10 pr-3 text-sm text-ink transition-colors outline-none focus:border-orange focus:ring-2 focus:ring-orange/25"
+            className="w-full rounded-xl border border-subtle bg-card py-2.5 pl-10 pr-3 text-base text-ink transition-colors outline-none focus:border-orange focus:ring-2 focus:ring-orange/25"
           />
         </div>
       </label>
@@ -52,7 +52,7 @@ export function LoginForm({
             type="password"
             autoComplete="current-password"
             required
-            className="w-full rounded-xl border border-subtle bg-card py-2.5 pl-10 pr-3 text-sm text-ink transition-colors outline-none focus:border-orange focus:ring-2 focus:ring-orange/25"
+            className="w-full rounded-xl border border-subtle bg-card py-2.5 pl-10 pr-3 text-base text-ink transition-colors outline-none focus:border-orange focus:ring-2 focus:ring-orange/25"
           />
         </div>
       </label>

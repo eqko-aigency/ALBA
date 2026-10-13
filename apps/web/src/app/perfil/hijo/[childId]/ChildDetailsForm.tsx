@@ -6,7 +6,7 @@ import { ContactsIcon, HealthIcon, NotesIcon, SchoolIcon } from "@/components/ic
 import { updateChildDetailsAction } from "../../actions";
 
 const inputClass =
-  "mt-1 w-full rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink";
+  "mt-1 w-full rounded-md border border-subtle bg-card px-3 py-2 text-base text-ink";
 const labelClass = "text-sm font-medium text-ink";
 
 function AccordionHeader({

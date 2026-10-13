@@ -194,7 +194,7 @@ export default async function GastosPage({
           <form action={createExpenseAction} className="mt-4 flex flex-col gap-3" encType="multipart/form-data">
             <input type="hidden" name="as" value={as ?? ""} />
 
-            <select name="childId" required className="rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink">
+            <select name="childId" required className="rounded-md border border-subtle bg-card px-3 py-2 text-base text-ink">
               {children.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.fullName}
@@ -209,7 +209,7 @@ export default async function GastosPage({
               min="0.01"
               required
               placeholder="Monto en MXN"
-              className="rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink"
+              className="rounded-md border border-subtle bg-card px-3 py-2 text-base text-ink"
             />
 
             <textarea
@@ -219,7 +219,7 @@ export default async function GastosPage({
               maxLength={280}
               rows={2}
               placeholder="Descripción (ej. Consulta pediatra, útiles escolares...)"
-              className="rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink"
+              className="rounded-md border border-subtle bg-card px-3 py-2 text-base text-ink"
             />
 
             <div className="flex flex-col gap-1">
@@ -228,7 +228,7 @@ export default async function GastosPage({
                 type="file"
                 name="receipt"
                 accept="image/*,application/pdf"
-                className="w-full min-w-0 rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink file:mr-3 file:rounded-full file:border-0 file:bg-sand file:px-3 file:py-1 file:text-xs file:font-semibold file:text-ink"
+                className="w-full min-w-0 rounded-md border border-subtle bg-card px-3 py-2 text-base text-ink file:mr-3 file:rounded-full file:border-0 file:bg-sand file:px-3 file:py-1 file:text-xs file:font-semibold file:text-ink"
               />
               <p className="text-xs text-ink-faint">
                 O pega una URL si ya tienes el comprobante subido en otro lado:
@@ -237,7 +237,7 @@ export default async function GastosPage({
                 type="url"
                 name="receiptUrlManual"
                 placeholder="https://..."
-                className="rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink"
+                className="rounded-md border border-subtle bg-card px-3 py-2 text-base text-ink"
               />
             </div>
 

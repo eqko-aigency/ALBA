@@ -40,7 +40,7 @@ export default async function ChatPage({
           <div className="flex flex-col gap-2 sm:flex-row">
             <select
               name="topic"
-              className="flex-1 rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink"
+              className="flex-1 rounded-md border border-subtle bg-card px-3 py-2 text-base text-ink"
             >
               {CHAT_TOPICS.map((topic) => (
                 <option key={topic} value={topic}>
@@ -50,7 +50,7 @@ export default async function ChatPage({
             </select>
             <select
               name="childId"
-              className="flex-1 rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink"
+              className="flex-1 rounded-md border border-subtle bg-card px-3 py-2 text-base text-ink"
             >
               <option value="">General (toda la familia)</option>
               {children.map((child) => (
@@ -64,7 +64,7 @@ export default async function ChatPage({
             name="customTopic"
             placeholder="O escribe tu propia categoría (opcional)"
             maxLength={60}
-            className="rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink"
+            className="rounded-md border border-subtle bg-card px-3 py-2 text-base text-ink"
           />
           <button
             type="submit"

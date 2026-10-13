@@ -184,11 +184,11 @@ export default async function BovedaPage({
             minLength={3}
             maxLength={160}
             placeholder="Título (ej. Convenio de custodia firmado, acta de nacimiento...)"
-            className="rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink"
+            className="rounded-md border border-subtle bg-card px-3 py-2 text-base text-ink"
           />
 
           {children.length > 0 && (
-            <select name="childId" className="rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink">
+            <select name="childId" className="rounded-md border border-subtle bg-card px-3 py-2 text-base text-ink">
               <option value="">General (toda la familia)</option>
               {children.map((c) => (
                 <option key={c.id} value={c.id}>
@@ -205,7 +205,7 @@ export default async function BovedaPage({
               name="file"
               required
               accept="application/pdf,image/*,.doc,.docx"
-              className="w-full min-w-0 rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink file:mr-3 file:rounded-full file:border-0 file:bg-sand file:px-3 file:py-1 file:text-xs file:font-semibold file:text-ink"
+              className="w-full min-w-0 rounded-md border border-subtle bg-card px-3 py-2 text-base text-ink file:mr-3 file:rounded-full file:border-0 file:bg-sand file:px-3 file:py-1 file:text-xs file:font-semibold file:text-ink"
             />
           </div>
 
