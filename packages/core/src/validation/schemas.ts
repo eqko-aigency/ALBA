@@ -132,6 +132,15 @@ export const documentUploadInputSchema = z.object({
 });
 export type DocumentUploadInput = z.infer<typeof documentUploadInputSchema>;
 
+export const pushSubscriptionInputSchema = z.object({
+  endpoint: z.string().url(),
+  keys: z.object({
+    p256dh: z.string().min(1),
+    auth: z.string().min(1),
+  }),
+});
+export type PushSubscriptionInput = z.infer<typeof pushSubscriptionInputSchema>;
+
 export const pensionSettingsInputSchema = z.object({
   payerParentId: z.string().uuid(),
   amountMxn: z.number().positive(),

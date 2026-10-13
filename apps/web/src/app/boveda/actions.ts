@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { documentUploadInputSchema } from "@alba/core";
 import { getRequestContext } from "@/lib/repository";
+import { notifyFamilyMembers } from "@/lib/push";
 
 /**
  * A diferencia de Gastos (createExpenseAction), acá NO hay fallback de
@@ -26,7 +27,7 @@ export async function uploadDocumentAction(formData: FormData) {
 
   const fileBytes = new Uint8Array(await file.arrayBuffer());
 
-  const { documents, parentId } = await getRequestContext(as);
+  const { documents, pairing, parentId } = await getRequestContext(as);
   await documents.uploadDocument(parentId, {
     title,
     fileBytes,
@@ -36,6 +37,15 @@ export async function uploadDocumentAction(formData: FormData) {
   });
 
   revalidatePath("/boveda");
+
+  const family = await pairing.getOrCreateMyFamily(parentId);
+  await notifyFamilyMembers({
+    familyId: family.id,
+    excludeParentId: parentId,
+    title: "Nuevo documento en Bóveda",
+    body: title,
+    url: "/boveda",
+  });
 }
 
 /**

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { custodyEventInputSchema, custodySlotInputSchema } from "@alba/core";
 import { getRequestContext } from "@/lib/repository";
+import { notifyFamilyMembers } from "@/lib/push";
 
 export async function upsertSlotAction(formData: FormData) {
   const input = custodySlotInputSchema.parse({
@@ -44,9 +45,19 @@ export async function confirmCheckinAction(formData: FormData) {
     scheduledAt: formData.get("scheduledAt"),
     location: null,
   });
-  const { custody, parentId } = await getRequestContext(String(formData.get("as") ?? ""));
+  const { custody, pairing, parentId } = await getRequestContext(String(formData.get("as") ?? ""));
   await custody.confirmCheckin(parentId, input.childId, input.scheduledAt);
   revalidatePath("/calendario");
+
+  const [family, children] = await Promise.all([pairing.getOrCreateMyFamily(parentId), pairing.getMyChildren(parentId)]);
+  const childName = children.find((c) => c.id === input.childId)?.fullName ?? "tu hijo/a";
+  await notifyFamilyMembers({
+    familyId: family.id,
+    excludeParentId: parentId,
+    title: "Check-in confirmado",
+    body: childName,
+    url: "/calendario",
+  });
 }
 
 export async function confirmCheckoutAction(formData: FormData) {
@@ -56,7 +67,17 @@ export async function confirmCheckoutAction(formData: FormData) {
     scheduledAt: formData.get("scheduledAt"),
     location: null,
   });
-  const { custody, parentId } = await getRequestContext(String(formData.get("as") ?? ""));
+  const { custody, pairing, parentId } = await getRequestContext(String(formData.get("as") ?? ""));
   await custody.confirmCheckout(parentId, input.childId, input.scheduledAt);
   revalidatePath("/calendario");
+
+  const [family, children] = await Promise.all([pairing.getOrCreateMyFamily(parentId), pairing.getMyChildren(parentId)]);
+  const childName = children.find((c) => c.id === input.childId)?.fullName ?? "tu hijo/a";
+  await notifyFamilyMembers({
+    familyId: family.id,
+    excludeParentId: parentId,
+    title: "Check-out confirmado",
+    body: childName,
+    url: "/calendario",
+  });
 }

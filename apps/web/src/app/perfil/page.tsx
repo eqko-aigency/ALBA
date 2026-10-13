@@ -5,6 +5,7 @@ import { AppNav } from "@/components/AppNav";
 import { LogoutButton } from "@/components/LogoutButton";
 import { createChildAction, updateChildAction } from "./actions";
 import { SaveProfileForm } from "./SaveProfileForm";
+import { PushToggle } from "./PushToggle";
 
 export default async function PerfilPage() {
   const { pairing, parentId } = await getRequestContext();
@@ -101,7 +102,11 @@ export default async function PerfilPage() {
         </form>
       </section>
 
-      <div className="mt-10 border-t border-subtle pt-6">
+      <div className="mt-10">
+        <PushToggle />
+      </div>
+
+      <div className="mt-6 border-t border-subtle pt-6">
         <LogoutButton />
       </div>
 

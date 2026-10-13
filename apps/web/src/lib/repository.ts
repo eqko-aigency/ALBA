@@ -106,7 +106,7 @@ function getMockRepositories(): {
  * y este era un costo fijo en CADA Server Action / Server Component que
  * toca la base, no solo en algunos.
  */
-async function getAuthedSupabaseClient(): Promise<{ client: SupabaseClient; userId: string }> {
+export async function getAuthedSupabaseClient(): Promise<{ client: SupabaseClient; userId: string }> {
   const cookieClient = await createSupabaseServerClient();
   const {
     data: { session },

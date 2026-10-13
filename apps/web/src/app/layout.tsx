@@ -27,6 +27,14 @@ export const metadata: Metadata = {
   metadataBase: process.env.NEXT_PUBLIC_SITE_URL ? new URL(process.env.NEXT_PUBLIC_SITE_URL) : undefined,
   title: "ALBA",
   description: "App de coparentalidad",
+  // Necesario para que iOS trate la app como instalable y, ya instalada,
+  // le mande push notifications — Safari no lo hace nunca sobre una
+  // pestaña normal (ver apps/web/src/app/perfil/PushToggle.tsx).
+  appleWebApp: {
+    capable: true,
+    title: "ALBA",
+    statusBarStyle: "default",
+  },
 };
 
 // viewportFit "cover" es lo que hace que env(safe-area-inset-bottom) deje de

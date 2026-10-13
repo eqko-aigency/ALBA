@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { analyzeToneInputSchema, renameThreadInputSchema, sendMessageInputSchema, type ToneAnalysis } from "@alba/core";
 import { getRequestContext, toneAnalyzer, uploadChatPhoto } from "@/lib/repository";
+import { notifyFamilyMembers } from "@/lib/push";
 
 export async function checkToneAction(body: string): Promise<ToneAnalysis> {
   const input = analyzeToneInputSchema.parse({ body });
@@ -24,9 +25,18 @@ export async function sendMessageAction(formData: FormData) {
     body,
     attachmentUrl,
   });
-  const { chat, parentId } = await getRequestContext(String(formData.get("as") ?? ""));
+  const { chat, pairing, parentId } = await getRequestContext(String(formData.get("as") ?? ""));
   await chat.sendMessage(parentId, input);
   revalidatePath(`/chat/${input.threadId}`);
+
+  const family = await pairing.getOrCreateMyFamily(parentId);
+  await notifyFamilyMembers({
+    familyId: family.id,
+    excludeParentId: parentId,
+    title: "Nuevo mensaje",
+    body: body.slice(0, 120),
+    url: `/chat/${input.threadId}`,
+  });
 }
 
 export async function renameThreadAction(formData: FormData) {
