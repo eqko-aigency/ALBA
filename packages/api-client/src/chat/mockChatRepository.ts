@@ -12,8 +12,8 @@ import type {
 /** Mismo cálculo que la columna GENERATED de messages.sha256_hex en
  * 0017_chat_hash.sql — se duplica acá porque en modo demo no hay Postgres
  * que lo calcule por nosotros. */
-function computeMessageHash(threadId: string, senderId: string, body: string, createdAt: string): string {
-  return computeSha256Hex(new TextEncoder().encode(`${threadId}|${senderId}|${body}|${createdAt}`));
+function computeMessageHash(id: string, threadId: string, senderId: string, body: string): string {
+  return computeSha256Hex(new TextEncoder().encode(`${id}|${threadId}|${senderId}|${body}`));
 }
 
 /** POC de referencia de "sellado" — mismo criterio que buildAnchorReference en supabaseDocumentRepository.ts. */
@@ -79,15 +79,15 @@ export function createMockChatRepository(pairingRepository: PairingRepository): 
       const family = await pairingRepository.getOrCreateMyFamily(parentId);
       const thread = threads.get(input.threadId);
       if (!thread || thread.familyId !== family.id) throw new Error("hilo no encontrado");
-      const createdAt = new Date().toISOString();
+      const id = crypto.randomUUID();
       const message: Message = {
-        id: crypto.randomUUID(),
+        id,
         threadId: input.threadId,
         senderId: parentId,
         body: input.body,
         attachmentUrl: input.attachmentUrl ?? null,
-        sha256Hex: computeMessageHash(input.threadId, parentId, input.body, createdAt),
-        createdAt,
+        sha256Hex: computeMessageHash(id, input.threadId, parentId, input.body),
+        createdAt: new Date().toISOString(),
       };
       const list = messagesByThread.get(input.threadId) ?? [];
       list.push(message);

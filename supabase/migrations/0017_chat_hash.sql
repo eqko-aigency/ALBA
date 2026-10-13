@@ -2,11 +2,18 @@
 -- la clienta: poder usar el chat como evidencia en juicio. Dos niveles:
 --
 -- 1) Cada mensaje lleva su propio SHA-256, calculado por la BASE DE DATOS
---    (columna GENERATED, no por la app) sobre thread_id|sender_id|body|
---    created_at — así el hash nunca depende de que el código de la app lo
---    calcule bien, y queda atado a quién, qué, cuándo y en qué hilo, no
---    solo al texto (dos mensajes con el mismo texto de gente distinta o en
---    momentos distintos dan hashes distintos).
+--    (columna GENERATED, no por la app) sobre id|thread_id|sender_id|body
+--    — así el hash nunca depende de que el código de la app lo calcule
+--    bien, y queda atado a un mensaje específico (su id, único e
+--    inmutable), no solo al texto (dos mensajes con el mismo texto de
+--    gente distinta dan hashes distintos). No se usa created_at acá: un
+--    timestamptz no tiene una representación en texto "determinística"
+--    para Postgres (depende de la zona horaria de la sesión), así que una
+--    columna GENERATED que lo use revienta con "generation expression is
+--    not immutable" (42P17) — el created_at del mensaje ya es una columna
+--    propia, sin política de UPDATE/DELETE (igual que el resto de la
+--    fila), así que no hace falta meterlo también dentro del hash para
+--    que quede protegido contra alteraciones.
 --
 -- 2) Un hilo se puede "sellar" en cualquier momento: se calcula una raíz
 --    Merkle (packages/core/src/evidence/merkleEngine.ts, mismo motor que
@@ -31,7 +38,7 @@ create extension if not exists pgcrypto;
 alter table public.messages
   add column if not exists sha256_hex text generated always as (
     encode(
-      digest(thread_id::text || '|' || sender_id::text || '|' || body || '|' || created_at::text, 'sha256'),
+      digest(id::text || '|' || thread_id::text || '|' || sender_id::text || '|' || body, 'sha256'),
       'hex'
     )
   ) stored;
