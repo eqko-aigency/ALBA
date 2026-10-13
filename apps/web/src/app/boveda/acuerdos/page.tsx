@@ -128,13 +128,15 @@ export default async function AcuerdosVerbalesPage({
           />
 
           <div className="flex flex-col gap-2 sm:flex-row">
-            <input
-              type="date"
-              name="agreedAt"
-              required
-              defaultValue={todayLocal()}
-              className="min-w-0 flex-1 rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink"
-            />
+            <div className="min-w-0 flex-1 overflow-hidden rounded-md border border-subtle bg-card">
+              <input
+                type="date"
+                name="agreedAt"
+                required
+                defaultValue={todayLocal()}
+                className="w-full min-w-0 bg-card px-3 py-2 text-sm text-ink"
+              />
+            </div>
             {children.length > 0 && (
               <select name="childId" className="flex-1 rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink">
                 <option value="">General (toda la familia)</option>

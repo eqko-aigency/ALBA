@@ -48,14 +48,21 @@ export default async function ChildDetailPage({
           </label>
           <label className="text-sm font-medium text-ink">
             Fecha de nacimiento
-            <input
-              name="childBirthDate"
-              type="date"
-              autoComplete="off"
-              required
-              defaultValue={child.birthDate}
-              className="mt-1 w-full min-w-0 rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink"
-            />
+            {/* iOS Safari a veces renderiza el control nativo de type="date"
+                más ancho que su caja (ignora width:100%) — el borde/rounded
+                vive en este wrapper con overflow-hidden en vez de en el
+                input, así lo que Safari dibuje de más queda recortado y
+                nunca se sale de la tarjeta, sea cual sea la causa exacta. */}
+            <div className="mt-1 w-full overflow-hidden rounded-md border border-subtle bg-card">
+              <input
+                name="childBirthDate"
+                type="date"
+                autoComplete="off"
+                required
+                defaultValue={child.birthDate}
+                className="w-full min-w-0 bg-card px-3 py-2 text-sm text-ink"
+              />
+            </div>
           </label>
           <SubmitButton pendingText="Guardando…" className="mt-1 self-start rounded-full border border-subtle px-4 py-2 text-sm font-semibold text-ink">
             Guardar cambios

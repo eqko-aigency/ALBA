@@ -132,13 +132,15 @@ export default async function PerfilPage() {
           </label>
           <label className="text-sm font-medium text-ink">
             Fecha de nacimiento
-            <input
-              name="childBirthDate"
-              type="date"
-              autoComplete="off"
-              required
-              className="mt-1 w-full min-w-0 rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink"
-            />
+            <div className="mt-1 w-full overflow-hidden rounded-md border border-subtle bg-card">
+              <input
+                name="childBirthDate"
+                type="date"
+                autoComplete="off"
+                required
+                className="w-full min-w-0 bg-card px-3 py-2 text-sm text-ink"
+              />
+            </div>
           </label>
           <button
             type="submit"
