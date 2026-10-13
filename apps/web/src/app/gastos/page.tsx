@@ -137,7 +137,7 @@ export default async function GastosPage({
                     <p className="text-sm font-semibold text-ink">
                       {childName(expense.childId)} · {MXN.format(expense.amountMxn)}
                     </p>
-                    <p className="mt-0.5 text-sm text-ink-soft">{expense.description}</p>
+                    <p className="mt-0.5 break-words text-sm text-ink-soft">{expense.description}</p>
                     <p className="mt-1 text-xs text-ink-faint">
                       Pagó {parentName(expense.paidByParentId)} · {formatDate(expense.createdAt)}
                     </p>

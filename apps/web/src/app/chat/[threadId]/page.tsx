@@ -225,7 +225,7 @@ export default async function ThreadPage({
                       />
                     </a>
                   )}
-                  <p className="text-sm text-ink">{message.body}</p>
+                  <p className="break-words text-sm text-ink">{message.body}</p>
                   <p className={`mt-1 text-right text-[10px] ${isMine ? "text-ink/60" : "text-ink-faint"}`}>
                     {formatTime(message.createdAt)}
                   </p>
