@@ -38,9 +38,9 @@ export async function updateChildAction(formData: FormData) {
 }
 
 /**
- * contactsJson llega como JSON armado client-side (ChildDetailsForm) — la
- * lista de contactos es dinámica (agregar/quitar filas), así que un <form>
- * sin JS no alcanza para mandarla como campos sueltos.
+ * contactsJson y healthProvidersJson llegan como JSON armado client-side
+ * (ChildDetailsForm) — ambas listas son dinámicas (agregar/quitar filas),
+ * así que un <form> sin JS no alcanza para mandarlas como campos sueltos.
  */
 export async function updateChildDetailsAction(formData: FormData) {
   const childId = String(formData.get("childId") ?? "");
@@ -50,11 +50,16 @@ export async function updateChildDetailsAction(formData: FormData) {
   } catch {
     contacts = [];
   }
+  let healthProviders: unknown = [];
+  try {
+    healthProviders = JSON.parse(String(formData.get("healthProvidersJson") ?? "[]"));
+  } catch {
+    healthProviders = [];
+  }
 
   const input = updateChildDetailsInputSchema.parse({
     contacts,
-    therapistName: formData.get("therapistName"),
-    therapistPhone: formData.get("therapistPhone"),
+    healthProviders,
     schoolName: formData.get("schoolName"),
     schoolContact: formData.get("schoolContact"),
     allergies: formData.get("allergies"),

@@ -21,8 +21,19 @@ export interface ChildContact {
 }
 
 /**
+ * Profesional de salud del hijo/a — rubro libre ("Terapeuta", "Pediatra",
+ * "Dentista"...), no un enum cerrado: la clienta pidió explícitamente poder
+ * agregar cualquier especialidad, no solo terapeuta.
+ */
+export interface ChildHealthProvider {
+  role: string;
+  name: string;
+  phone: string;
+}
+
+/**
  * Campos de W-xx (perfil de hijo extendido) — pedido explícito de la
- * clienta: contactos, terapeuta, escuela, alergias, notas especiales (ej.
+ * clienta: contactos, salud, escuela, alergias, notas especiales (ej.
  * "duerme con el conejo azul", rutina de sueño). Todos nullable/vacíos por
  * default porque se completan con el tiempo, no en el alta inicial.
  */
@@ -32,8 +43,7 @@ export interface Child {
   fullName: string;
   birthDate: string;
   contacts: ChildContact[];
-  therapistName: string | null;
-  therapistPhone: string | null;
+  healthProviders: ChildHealthProvider[];
   schoolName: string | null;
   schoolContact: string | null;
   allergies: string | null;

@@ -73,8 +73,7 @@ export function createSupabasePairingRepository(
         .from("children")
         .update({
           contacts: input.contacts,
-          therapist_name: input.therapistName,
-          therapist_phone: input.therapistPhone,
+          health_providers: input.healthProviders,
           school_name: input.schoolName,
           school_contact: input.schoolContact,
           allergies: input.allergies,
@@ -238,8 +237,7 @@ function mapChild(row: any): Child {
     fullName: row.full_name,
     birthDate: row.birth_date,
     contacts: row.contacts ?? [],
-    therapistName: row.therapist_name ?? null,
-    therapistPhone: row.therapist_phone ?? null,
+    healthProviders: row.health_providers ?? [],
     schoolName: row.school_name ?? null,
     schoolContact: row.school_contact ?? null,
     allergies: row.allergies ?? null,

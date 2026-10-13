@@ -74,8 +74,7 @@ export default async function ChildDetailPage({
         childId={child.id}
         initial={{
           contacts: child.contacts,
-          therapistName: child.therapistName,
-          therapistPhone: child.therapistPhone,
+          healthProviders: child.healthProviders,
           schoolName: child.schoolName,
           schoolContact: child.schoolContact,
           allergies: child.allergies,

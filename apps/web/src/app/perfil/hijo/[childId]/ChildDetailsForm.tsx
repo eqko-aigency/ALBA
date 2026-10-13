@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { ChildContact } from "@alba/core";
+import type { ChildContact, ChildHealthProvider } from "@alba/core";
 import { ContactsIcon, HealthIcon, NotesIcon, SchoolIcon } from "@/components/icons";
 import { updateChildDetailsAction } from "../../actions";
 
@@ -36,8 +36,7 @@ export function ChildDetailsForm({
   childId: string;
   initial: {
     contacts: ChildContact[];
-    therapistName: string | null;
-    therapistPhone: string | null;
+    healthProviders: ChildHealthProvider[];
     schoolName: string | null;
     schoolContact: string | null;
     allergies: string | null;
@@ -46,6 +45,7 @@ export function ChildDetailsForm({
   };
 }) {
   const [contacts, setContacts] = useState<ChildContact[]>(initial.contacts);
+  const [healthProviders, setHealthProviders] = useState<ChildHealthProvider[]>(initial.healthProviders);
   const [pending, setPending] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -64,9 +64,26 @@ export function ChildDetailsForm({
     setSaved(false);
   }
 
+  function updateHealthProvider(index: number, field: keyof ChildHealthProvider, value: string) {
+    setHealthProviders((prev) => prev.map((p, i) => (i === index ? { ...p, [field]: value } : p)));
+    setSaved(false);
+  }
+
+  function addHealthProvider() {
+    setHealthProviders((prev) => [...prev, { role: "", name: "", phone: "" }]);
+    setSaved(false);
+  }
+
+  function removeHealthProvider(index: number) {
+    setHealthProviders((prev) => prev.filter((_, i) => i !== index));
+    setSaved(false);
+  }
+
   async function handleSubmit(formData: FormData) {
     const cleanContacts = contacts.filter((c) => c.name.trim().length > 0);
+    const cleanHealthProviders = healthProviders.filter((p) => p.role.trim().length > 0 && p.name.trim().length > 0);
     formData.set("contactsJson", JSON.stringify(cleanContacts));
+    formData.set("healthProvidersJson", JSON.stringify(cleanHealthProviders));
     setPending(true);
     setSaved(false);
     await updateChildDetailsAction(formData);
@@ -132,20 +149,54 @@ export function ChildDetailsForm({
         <details className="group border-t border-subtle">
           <AccordionHeader label="Salud" accent="bg-sky" Icon={HealthIcon} />
           <div className="border-t border-subtle px-4 pb-5 pt-4">
-            <div className="flex flex-col gap-3">
-              <label className={labelClass}>
-                Terapeuta — nombre
-                <input name="therapistName" defaultValue={initial.therapistName ?? ""} className={inputClass} />
-              </label>
-              <label className={labelClass}>
-                Terapeuta — teléfono
-                <input name="therapistPhone" defaultValue={initial.therapistPhone ?? ""} className={inputClass} />
-              </label>
-              <label className={labelClass}>
-                Alergias
-                <textarea name="allergies" defaultValue={initial.allergies ?? ""} rows={2} className={inputClass} />
-              </label>
+            <p className="text-xs text-ink-soft">
+              Pediatra, dentista, terapeuta... agrega los rubros que necesites, no solo uno fijo.
+            </p>
+            <div className="mt-4 flex flex-col gap-3">
+              {healthProviders.map((provider, i) => (
+                <div key={i} className="flex flex-col gap-2 rounded-md border border-subtle p-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-ink-soft">Profesional {i + 1}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeHealthProvider(i)}
+                      className="text-xs font-medium text-danger underline"
+                    >
+                      Quitar
+                    </button>
+                  </div>
+                  <input
+                    value={provider.role}
+                    onChange={(e) => updateHealthProvider(i, "role", e.target.value)}
+                    placeholder="Rubro (ej. Pediatra, Dentista, Terapeuta)"
+                    className={inputClass}
+                  />
+                  <input
+                    value={provider.name}
+                    onChange={(e) => updateHealthProvider(i, "name", e.target.value)}
+                    placeholder="Nombre"
+                    className={inputClass}
+                  />
+                  <input
+                    value={provider.phone}
+                    onChange={(e) => updateHealthProvider(i, "phone", e.target.value)}
+                    placeholder="Teléfono"
+                    className={inputClass}
+                  />
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={addHealthProvider}
+                className="self-start rounded-full border border-subtle px-3 py-1.5 text-xs font-semibold text-ink"
+              >
+                + Agregar profesional
+              </button>
             </div>
+            <label className={`${labelClass} mt-4 block`}>
+              Alergias
+              <textarea name="allergies" defaultValue={initial.allergies ?? ""} rows={2} className={inputClass} />
+            </label>
           </div>
         </details>
 
