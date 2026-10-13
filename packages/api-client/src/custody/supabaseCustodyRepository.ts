@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { CustodyAgreement, CustodyEvent, CustodyEventType, CustodyRepository, CustodySlot } from "@alba/core";
+import type { CustodyAgreement, CustodyEvent, CustodyEventType, CustodyRepository, CustodySlot, MeetingPlace } from "@alba/core";
 import { createFamilyIdResolver, type FamilyIdResolver } from "../family/resolveFamilyId";
 
 export function createSupabaseCustodyRepository(
@@ -87,6 +87,7 @@ export function createSupabaseCustodyRepository(
             weekday: s.weekday,
             start_time: s.startTime,
             end_time: s.endTime,
+            place_id: s.placeId,
           }))
         );
         if (insertError) throw insertError;
@@ -118,6 +119,41 @@ export function createSupabaseCustodyRepository(
 
     async confirmCheckout(parentId, childId, scheduledAt) {
       return confirmEvent(client, parentId, childId, "checkout", scheduledAt);
+    },
+
+    async listMeetingPlaces(parentId) {
+      const familyId = await getMyFamilyId(parentId);
+      if (!familyId) return [];
+      const { data, error } = await client
+        .from("meeting_places")
+        .select()
+        .eq("family_id", familyId)
+        .order("created_at", { ascending: true });
+      if (error) throw error;
+      return (data ?? []).map(mapPlace);
+    },
+
+    async createMeetingPlace(parentId, name) {
+      const familyId = await getMyFamilyId(parentId);
+      if (!familyId) throw new Error("el progenitor no pertenece a ninguna familia todavía");
+      const { data, error } = await client
+        .from("meeting_places")
+        .insert({ family_id: familyId, name })
+        .select()
+        .single();
+      if (error) throw error;
+      return mapPlace(data);
+    },
+
+    async deleteMeetingPlace(parentId, placeId) {
+      const familyId = await getMyFamilyId(parentId);
+      if (!familyId) return;
+      // Doble filtro (id + family_id), no solo id — RLS ya lo exige, pero
+      // esto deja explícito en la query que nunca se intenta borrar el
+      // lugar de otra familia (defensa en profundidad, mismo criterio que
+      // updateChild en supabasePairingRepository.ts).
+      const { error } = await client.from("meeting_places").delete().eq("id", placeId).eq("family_id", familyId);
+      if (error) throw error;
     },
   };
 }
@@ -184,7 +220,18 @@ async function confirmEvent(
 }
 
 function mapSlot(row: any): CustodySlot {
-  return { childId: row.child_id, parentId: row.parent_id, weekday: row.weekday, startTime: row.start_time, endTime: row.end_time };
+  return {
+    childId: row.child_id,
+    parentId: row.parent_id,
+    weekday: row.weekday,
+    startTime: row.start_time,
+    endTime: row.end_time,
+    placeId: row.place_id,
+  };
+}
+
+function mapPlace(row: any): MeetingPlace {
+  return { id: row.id, name: row.name };
 }
 
 function mapEvent(row: any): CustodyEvent {

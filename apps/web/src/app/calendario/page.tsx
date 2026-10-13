@@ -4,7 +4,14 @@ import { getRequestContext } from "@/lib/repository";
 import { isDemoMode } from "@/lib/demoSession";
 import { AppNav } from "@/components/AppNav";
 import { SubmitButton } from "@/components/SubmitButton";
-import { confirmCheckinAction, confirmCheckoutAction, removeSlotAction, upsertSlotAction } from "./actions";
+import {
+  confirmCheckinAction,
+  confirmCheckoutAction,
+  createMeetingPlaceAction,
+  deleteMeetingPlaceAction,
+  removeSlotAction,
+  upsertSlotAction,
+} from "./actions";
 
 const WEEKDAY_LABELS = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
 const WEEKDAY_SHORT = ["D", "L", "M", "M", "J", "V", "S"];
@@ -128,16 +135,18 @@ export default async function CalendarioPage({
   const rangeStart = isoDateLocal(visibleDays[0]);
   const rangeEnd = isoDateLocal(addDays(visibleDays[visibleDays.length - 1], 1));
 
-  const [agreement, children, familyMembers, events] = await Promise.all([
+  const [agreement, children, familyMembers, events, meetingPlaces] = await Promise.all([
     custody.getMyAgreement(parentId),
     pairing.getMyChildren(parentId),
     pairing.listFamilyMembers(parentId),
     custody.listEventsForRange(parentId, rangeStart, rangeEnd),
+    custody.listMeetingPlaces(parentId),
   ]);
 
   const childName = (id: string) => children.find((c) => c.id === id)?.fullName ?? "Hijo/a";
   const parentName = (id: string) =>
     id === parentId ? "Tú" : familyMembers.find((p) => p.id === id)?.fullName ?? "El otro progenitor";
+  const placeName = (id: string | null) => (id ? meetingPlaces.find((p) => p.id === id)?.name ?? null : null);
 
   // findComplianceIssues es 100% determinístico (packages/core) — se corre
   // una vez por día visible, siempre sobre el MISMO arreglo agreement.slots,
@@ -183,8 +192,8 @@ export default async function CalendarioPage({
         </p>
       )}
 
-      <h1 className="text-2xl font-semibold tracking-tight text-ink">Calendario de custodia</h1>
-      <p className="mt-2 text-ink-soft">Toca un día para ver y confirmar check-in/check-out.</p>
+      <h1 className="text-2xl font-semibold tracking-tight text-ink">Calendario de custodia y visitas</h1>
+      <p className="mt-2 text-ink-soft">Toca un día para ver y confirmar check-in/check-out, y dónde se hace el encuentro.</p>
 
       <div className="mt-4 inline-flex rounded-full border border-subtle bg-sand p-1">
         <Link
@@ -229,43 +238,45 @@ export default async function CalendarioPage({
         </Link>
       )}
 
-      <div className="mt-4 grid grid-cols-7 gap-y-1">
-        {WEEKDAY_SHORT.map((label, i) => (
-          <div key={i} className="pb-1 text-center text-[10px] font-semibold uppercase tracking-wide text-ink-faint">
-            {label}
-          </div>
-        ))}
-        {visibleDays.map((d) => {
-          const dayKey = isoDateLocal(d);
-          const inMonth = view === "week" || d.getMonth() === refMonthDate.getMonth();
-          const isToday = dayKey === todayKey;
-          const isSelected = dayKey === selectedDayKey;
-          const daySlots = agreement.slots.filter((s) => s.weekday === d.getDay());
-          const hasIssue = (issuesByDay.get(dayKey) ?? []).length > 0;
+      <div className="mt-4 rounded-2xl bg-card p-4 shadow-ambient">
+        <div className="grid grid-cols-7 gap-y-2">
+          {WEEKDAY_SHORT.map((label, i) => (
+            <div key={i} className="pb-1 text-center text-xs font-semibold uppercase tracking-wide text-ink-faint">
+              {label}
+            </div>
+          ))}
+          {visibleDays.map((d) => {
+            const dayKey = isoDateLocal(d);
+            const inMonth = view === "week" || d.getMonth() === refMonthDate.getMonth();
+            const isToday = dayKey === todayKey;
+            const isSelected = dayKey === selectedDayKey;
+            const daySlots = agreement.slots.filter((s) => s.weekday === d.getDay());
+            const hasIssue = (issuesByDay.get(dayKey) ?? []).length > 0;
 
-          return (
-            <Link
-              key={dayKey}
-              href={dayCellHref(dayKey)}
-              className={`mx-auto flex w-10 flex-col items-center gap-1 rounded-xl py-1.5 text-xs transition-colors ${
-                isSelected
-                  ? "bg-orange text-ink shadow-ambient"
-                  : isToday
-                    ? "border border-orange text-ink"
-                    : inMonth
-                      ? "text-ink hover:bg-dawn/60"
-                      : "text-ink-faint/60"
-              }`}
-            >
-              <span className="font-semibold">{d.getDate()}</span>
-              <span
-                className={`h-1.5 w-1.5 rounded-full ${
-                  hasIssue ? "bg-danger" : daySlots.length > 0 ? "bg-success" : "bg-transparent"
+            return (
+              <Link
+                key={dayKey}
+                href={dayCellHref(dayKey)}
+                className={`mx-auto flex h-12 w-12 flex-col items-center justify-center gap-1 rounded-2xl text-base transition-colors ${
+                  isSelected
+                    ? "bg-orange text-ink shadow-ambient"
+                    : isToday
+                      ? "border-2 border-orange text-ink"
+                      : inMonth
+                        ? "text-ink hover:bg-dawn/60"
+                        : "text-ink-faint/60"
                 }`}
-              />
-            </Link>
-          );
-        })}
+              >
+                <span className="font-semibold">{d.getDate()}</span>
+                <span
+                  className={`h-1.5 w-1.5 rounded-full ${
+                    hasIssue ? "bg-danger" : daySlots.length > 0 ? "bg-success" : "bg-transparent"
+                  }`}
+                />
+              </Link>
+            );
+          })}
+        </div>
       </div>
 
       <div className="mt-6 rounded-2xl border border-orange bg-card p-4 shadow-ambient">
@@ -323,6 +334,12 @@ export default async function CalendarioPage({
                       {slot.startTime}–{slot.endTime}
                     </span>
                   </div>
+
+                  {placeName(slot.placeId) && (
+                    <p className="mt-1 flex items-center gap-1 text-xs text-ink-soft">
+                      <span aria-hidden="true">📍</span> {placeName(slot.placeId)}
+                    </p>
+                  )}
 
                   {slotIssue && (
                     <p
@@ -394,6 +411,7 @@ export default async function CalendarioPage({
                 <span>
                   {WEEKDAY_LABELS[slot.weekday]} {slot.startTime}–{slot.endTime} · {childName(slot.childId)} ·{" "}
                   {parentName(slot.parentId)}
+                  {placeName(slot.placeId) && ` · 📍 ${placeName(slot.placeId)}`}
                 </span>
                 <form action={removeSlotAction}>
                   <input type="hidden" name="as" value={as ?? ""} />
@@ -463,6 +481,14 @@ export default async function CalendarioPage({
                 className="flex-1 rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink"
               />
             </div>
+            <select name="placeId" className="rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink">
+              <option value="">Sin lugar específico</option>
+              {meetingPlaces.map((place) => (
+                <option key={place.id} value={place.id}>
+                  {place.name}
+                </option>
+              ))}
+            </select>
             <button
               type="submit"
               className="mt-1 self-start rounded-full bg-salmon px-4 py-2 text-sm font-semibold text-ink"
@@ -471,6 +497,49 @@ export default async function CalendarioPage({
             </button>
           </form>
         )}
+      </section>
+
+      <section className="mt-6 rounded-lg border border-subtle bg-card p-5 shadow-ambient">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-ink">Lugares de encuentro</h2>
+        <p className="mt-1 text-xs text-ink-soft">
+          Casa de cada progenitor, parque, cine... los que agregues aquí aparecen al crear un slot del convenio.
+        </p>
+
+        {meetingPlaces.length > 0 && (
+          <ul className="mt-3 flex flex-col gap-2">
+            {meetingPlaces.map((place) => (
+              <li
+                key={place.id}
+                className="flex items-center justify-between gap-2 rounded-md bg-sand px-3 py-2 text-sm text-ink"
+              >
+                <span>📍 {place.name}</span>
+                <form action={deleteMeetingPlaceAction}>
+                  <input type="hidden" name="as" value={as ?? ""} />
+                  <input type="hidden" name="placeId" value={place.id} />
+                  <button type="submit" className="shrink-0 text-xs font-medium text-danger underline">
+                    Quitar
+                  </button>
+                </form>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <form action={createMeetingPlaceAction} className="mt-4 flex gap-2">
+          <input type="hidden" name="as" value={as ?? ""} />
+          <input
+            name="name"
+            autoComplete="off"
+            required
+            minLength={2}
+            maxLength={80}
+            placeholder="Ej. Casa de Progenitor A, Parque..."
+            className="flex-1 rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink"
+          />
+          <SubmitButton pendingText="Agregando…" className="shrink-0 rounded-full bg-salmon px-4 py-2 text-sm font-semibold text-ink">
+            Agregar
+          </SubmitButton>
+        </form>
       </section>
 
       <AppNav active="Calendario" />

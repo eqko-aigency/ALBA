@@ -1,4 +1,4 @@
-import type { CustodyAgreement, CustodyEvent, CustodyEventType, CustodyRepository, CustodySlot, PairingRepository } from "@alba/core";
+import type { CustodyAgreement, CustodyEvent, CustodyEventType, CustodyRepository, CustodySlot, MeetingPlace, PairingRepository } from "@alba/core";
 
 async function listEventsInRange(
   pairingRepository: PairingRepository,
@@ -25,6 +25,7 @@ async function listEventsInRange(
 export function createMockCustodyRepository(pairingRepository: PairingRepository): CustodyRepository {
   const agreementsByFamily = new Map<string, CustodyAgreement>();
   const events = new Map<string, CustodyEvent>();
+  const placesByFamily = new Map<string, MeetingPlace[]>();
 
   async function getFamilyId(parentId: string): Promise<string> {
     const family = await pairingRepository.getOrCreateMyFamily(parentId);
@@ -101,6 +102,29 @@ export function createMockCustodyRepository(pairingRepository: PairingRepository
 
     async confirmCheckout(parentId, childId, scheduledAt) {
       return confirm(parentId, childId, "checkout", scheduledAt);
+    },
+
+    async listMeetingPlaces(parentId) {
+      const familyId = await getFamilyId(parentId);
+      return [...(placesByFamily.get(familyId) ?? [])];
+    },
+
+    async createMeetingPlace(parentId, name) {
+      const familyId = await getFamilyId(parentId);
+      const place: MeetingPlace = { id: crypto.randomUUID(), name };
+      const places = placesByFamily.get(familyId) ?? [];
+      places.push(place);
+      placesByFamily.set(familyId, places);
+      return place;
+    },
+
+    async deleteMeetingPlace(parentId, placeId) {
+      const familyId = await getFamilyId(parentId);
+      const places = placesByFamily.get(familyId) ?? [];
+      placesByFamily.set(
+        familyId,
+        places.filter((p) => p.id !== placeId)
+      );
     },
   };
 }

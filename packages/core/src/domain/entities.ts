@@ -162,6 +162,8 @@ export interface CustodySlot {
   weekday: number;
   startTime: string;
   endTime: string;
+  /** Lugar de encuentro (de MeetingPlace) — null si no se especificó uno. */
+  placeId: string | null;
 }
 
 export interface CustodyAgreement {
@@ -170,6 +172,17 @@ export interface CustodyAgreement {
   slots: CustodySlot[];
   /** minutos de tolerancia antes de considerar un check-in tardío como incumplimiento */
   toleranceMinutes: number;
+}
+
+/**
+ * Lugar habitual de encuentro/entrega (ej. "Casa de Progenitor A", "Parque",
+ * "Cine") — catálogo reutilizable por FAMILIA (mismo criterio que
+ * CustodyAgreement), que un slot del convenio puede referenciar via
+ * CustodySlot.placeId.
+ */
+export interface MeetingPlace {
+  id: string;
+  name: string;
 }
 
 export type AnchorStatus = "pending" | "anchored";

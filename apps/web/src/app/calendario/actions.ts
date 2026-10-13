@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { custodyEventInputSchema, custodySlotInputSchema } from "@alba/core";
+import { custodyEventInputSchema, custodySlotInputSchema, meetingPlaceInputSchema } from "@alba/core";
 import { getRequestContext } from "@/lib/repository";
 import { notifyFamilyMembers } from "@/lib/push";
 
@@ -12,6 +12,7 @@ export async function upsertSlotAction(formData: FormData) {
     weekday: formData.get("weekday"),
     startTime: formData.get("startTime"),
     endTime: formData.get("endTime"),
+    placeId: formData.get("placeId"),
   });
   const { custody, parentId } = await getRequestContext(String(formData.get("as") ?? ""));
 
@@ -33,6 +34,20 @@ export async function removeSlotAction(formData: FormData) {
   const nextSlots = agreement.slots.filter((_, idx) => idx !== slotIndex);
   await custody.upsertSlots(parentId, nextSlots);
 
+  revalidatePath("/calendario");
+}
+
+export async function createMeetingPlaceAction(formData: FormData) {
+  const input = meetingPlaceInputSchema.parse({ name: formData.get("name") });
+  const { custody, parentId } = await getRequestContext(String(formData.get("as") ?? ""));
+  await custody.createMeetingPlace(parentId, input.name);
+  revalidatePath("/calendario");
+}
+
+export async function deleteMeetingPlaceAction(formData: FormData) {
+  const placeId = String(formData.get("placeId") ?? "");
+  const { custody, parentId } = await getRequestContext(String(formData.get("as") ?? ""));
+  await custody.deleteMeetingPlace(parentId, placeId);
   revalidatePath("/calendario");
 }
 

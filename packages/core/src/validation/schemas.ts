@@ -110,8 +110,17 @@ export const custodySlotInputSchema = z.object({
   weekday: z.coerce.number().int().min(0).max(6),
   startTime: timeOfDaySchema,
   endTime: timeOfDaySchema,
+  // El <select> manda "" cuando el usuario deja "Sin lugar específico" — se
+  // normaliza a null antes de validar como uuid, igual que el resto de los
+  // campos opcionales de la app (ej. receiptUrlManual en gastos).
+  placeId: z.preprocess((v) => (v === "" || v == null ? null : v), z.string().uuid().nullable()),
 });
 export type CustodySlotInput = z.infer<typeof custodySlotInputSchema>;
+
+export const meetingPlaceInputSchema = z.object({
+  name: z.string().min(2).max(80),
+});
+export type MeetingPlaceInput = z.infer<typeof meetingPlaceInputSchema>;
 
 export const signUpInputSchema = z.object({
   fullName: z.string().min(2).max(120),

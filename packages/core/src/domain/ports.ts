@@ -9,6 +9,7 @@ import type {
   ExpenseBalance,
   Family,
   Invitation,
+  MeetingPlace,
   Message,
   Parent,
   PensionPayment,
@@ -141,6 +142,15 @@ export interface CustodyRepository {
   listEventsForRange(parentId: string, start: string, end: string): Promise<CustodyEvent[]>;
   confirmCheckin(parentId: string, childId: string, scheduledAt: string): Promise<CustodyEvent>;
   confirmCheckout(parentId: string, childId: string, scheduledAt: string): Promise<CustodyEvent>;
+  /**
+   * Catálogo de lugares de encuentro (W-xx) — por FAMILIA, igual criterio
+   * que los slots del convenio. Un slot puede referenciar uno de estos
+   * lugares vía CustodySlot.placeId; borrar un lugar no borra los slots que
+   * lo usaban, solo les deja placeId en null (ver 0020_lugares_encuentro.sql).
+   */
+  listMeetingPlaces(parentId: string): Promise<MeetingPlace[]>;
+  createMeetingPlace(parentId: string, name: string): Promise<MeetingPlace>;
+  deleteMeetingPlace(parentId: string, placeId: string): Promise<void>;
 }
 
 /**
