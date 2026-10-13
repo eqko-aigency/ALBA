@@ -110,7 +110,6 @@ export default async function DashboardPage({
       chat.listRecentMessages(parentId, notificationsSince.toISOString()),
     ]);
 
-  const isPaired = familyMembers.length > 1;
   const childName = (id: string) => children.find((c) => c.id === id)?.fullName ?? "Hijo/a";
   const firstName = profile?.fullName?.split(" ")[0] ?? "";
 
@@ -390,24 +389,6 @@ export default async function DashboardPage({
           </Link>
         ))}
       </div>
-
-      {profile?.usageMode === "bilateral" && !isPaired ? (
-        <Link
-          href={as === "b" ? "/registro?as=b" : "/registro"}
-          className="mt-4 inline-flex items-center gap-1.5 rounded-full bg-orange px-4 py-2.5 text-sm font-semibold text-ink shadow-elevated transition-all hover:-translate-y-0.5"
-        >
-          Vincular al otro progenitor
-          <span aria-hidden="true">→</span>
-        </Link>
-      ) : (
-        <Link
-          href={as === "b" ? "/registro?as=b" : "/registro"}
-          className="mt-4 inline-flex items-center gap-1.5 rounded-full border-2 border-subtle bg-card px-4 py-2 text-sm font-semibold text-ink shadow-ambient transition-all hover:-translate-y-0.5 hover:shadow-elevated"
-        >
-          Agregar hijos
-          <span aria-hidden="true">→</span>
-        </Link>
-      )}
 
       <AppNav active="Dashboard" />
     </div>

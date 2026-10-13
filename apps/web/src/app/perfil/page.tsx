@@ -17,10 +17,12 @@ function formatBirthDate(iso: string): string {
 
 export default async function PerfilPage() {
   const { pairing, parentId } = await getRequestContext();
-  const [profile, children] = await Promise.all([
+  const [profile, children, familyMembers] = await Promise.all([
     pairing.getProfile(parentId),
     pairing.getMyChildren(parentId),
+    pairing.listFamilyMembers(parentId),
   ]);
+  const isPaired = familyMembers.length > 1;
 
   return (
     <div className="mx-auto min-h-screen max-w-2xl px-6 pb-[calc(7.5rem+env(safe-area-inset-bottom))] pt-16 bg-sand">
@@ -63,12 +65,25 @@ export default async function PerfilPage() {
                 ? "Configurada para que la usen los dos progenitores."
                 : "Configurada para que la uses solo tú, por ahora."}
             </p>
-            <form action={setUsageModeAction} className="mt-3">
-              <input type="hidden" name="usageMode" value={profile?.usageMode === "bilateral" ? "unilateral" : "bilateral"} />
-              <button type="submit" className="rounded-full bg-orange px-4 py-2 text-sm font-semibold text-ink">
-                {profile?.usageMode === "bilateral" ? "Cambiar a solo yo" : "Invitar al otro progenitor"}
-              </button>
-            </form>
+            {profile?.usageMode === "bilateral" && !isPaired ? (
+              // Antes vivía en el Dashboard — se mudó aquí para que todo lo
+              // relacionado con emparejar/configurar la familia esté en un
+              // solo lugar (Mi perfil), no repartido entre dos pantallas.
+              <Link
+                href="/registro"
+                className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-orange px-4 py-2.5 text-sm font-semibold text-ink shadow-elevated transition-all hover:-translate-y-0.5"
+              >
+                Vincular al otro progenitor
+                <span aria-hidden="true">→</span>
+              </Link>
+            ) : (
+              <form action={setUsageModeAction} className="mt-3">
+                <input type="hidden" name="usageMode" value={profile?.usageMode === "bilateral" ? "unilateral" : "bilateral"} />
+                <button type="submit" className="rounded-full bg-orange px-4 py-2 text-sm font-semibold text-ink">
+                  {profile?.usageMode === "bilateral" ? "Cambiar a solo yo" : "Invitar al otro progenitor"}
+                </button>
+              </form>
+            )}
           </div>
         </details>
 
