@@ -188,7 +188,7 @@ export default async function ThreadPage({
         </p>
       )}
 
-      <div className="flex flex-1 flex-col gap-2 px-4 py-4">
+      <div className="flex flex-1 flex-col gap-2 px-4 pt-4 pb-[calc(16rem+env(safe-area-inset-bottom))]">
         {messages.length === 0 && <p className="text-sm text-ink-soft">Todavía no hay mensajes en este hilo.</p>}
         {messages.map((message, index) => {
           const isMine = message.senderId === parentId;
@@ -243,12 +243,15 @@ export default async function ThreadPage({
         })}
       </div>
 
-      {/* bottom reservado igual que el resto de la app (pb-7.5rem) para que
-          el nav fijo de abajo nunca tape el composer — antes este composer
-          vivía en bottom-0 y el AppNav ni se mostraba en esta pantalla, por
-          eso el menú "desaparecía" al entrar a un chat. */}
+      {/* fixed (no sticky): sticky solo "pega" el composer cuando el scroll
+          lo empuja hasta el offset — con pocos mensajes nunca llega a
+          engancharse y el composer queda flotando a media pantalla, que es
+          justo lo que reportó la clienta. fixed lo clava siempre en el
+          mismo lugar, pegado arriba del AppNav (bottom: 7.5rem, el mismo
+          valor que reserva el resto de la app para el nav), sin importar
+          cuántos mensajes haya o cuánto se haya scrolleado. */}
       <div
-        className="sticky bg-sand px-4 pb-6 pt-2"
+        className="fixed inset-x-0 z-10 mx-auto max-w-2xl bg-sand px-4 pb-6 pt-2"
         style={{ bottom: "calc(7.5rem + env(safe-area-inset-bottom))" }}
       >
         <MessageComposer threadId={threadId} as={as ?? ""} />
