@@ -132,7 +132,12 @@ export function MessageComposer({ threadId, as }: { threadId: string; as: string
           value={body}
           onChange={(e) => setBody(e.target.value)}
           placeholder="Escribir mensaje…"
-          className={`flex-1 rounded-full border-2 bg-sand px-4 py-3 text-sm text-ink ${borderClass}`}
+          // text-base (16px), no text-sm (14px): en iOS Safari, un input con
+          // letra menor a 16px dispara el zoom automático del navegador al
+          // enfocarlo (y zoom hacia afuera al salir) — eso es el "parpadeo"
+          // feo al abrir el teclado. focus:outline-none + ring de marca
+          // reemplaza el contorno azul nativo del navegador.
+          className={`flex-1 rounded-full border-2 bg-sand px-4 py-3 text-base text-ink outline-none focus:ring-2 focus:ring-orange/40 ${borderClass}`}
         />
         <button
           type="submit"

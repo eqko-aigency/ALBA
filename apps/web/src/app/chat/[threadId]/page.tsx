@@ -123,7 +123,7 @@ export default async function ThreadPage({
               required
               minLength={2}
               maxLength={60}
-              className="flex-1 rounded-md border border-subtle bg-card px-3 py-1.5 text-sm text-ink"
+              className="flex-1 rounded-md border border-subtle bg-card px-3 py-1.5 text-base text-ink outline-none focus:ring-2 focus:ring-orange/40"
             />
             <button type="submit" className="rounded-full bg-orange px-3 py-1.5 text-xs font-semibold text-ink">
               Guardar
