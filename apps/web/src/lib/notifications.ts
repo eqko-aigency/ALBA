@@ -9,6 +9,39 @@ export type NotificationItem = {
   createdAt: string;
 };
 
+/** Compartido entre /notificaciones (feed completo) y /dashboard (adelanto
+ * de los últimos ítems) — mismo ícono/color por tipo en ambos lugares. */
+export const NOTIFICATION_ICON_CLASS: Record<NotificationItem["icon"], string> = {
+  gastos: "bg-dawn",
+  pension: "bg-sky",
+  boveda: "bg-purple",
+  acuerdos: "bg-purple",
+  calendario: "bg-salmon",
+  chat: "bg-salmon",
+};
+
+export const NOTIFICATION_ICON_SYMBOL: Record<NotificationItem["icon"], string> = {
+  gastos: "$",
+  pension: "$",
+  boveda: "🔒",
+  acuerdos: "✎",
+  calendario: "📅",
+  chat: "💬",
+};
+
+export function formatRelativeTime(iso: string, now: Date): string {
+  const diffMs = now.getTime() - new Date(iso).getTime();
+  const minutes = Math.round(diffMs / 60000);
+  if (minutes < 1) return "ahora";
+  if (minutes < 60) return `hace ${minutes} min`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return `hace ${hours} h`;
+  const days = Math.round(hours / 24);
+  if (days === 1) return "ayer";
+  if (days < 7) return `hace ${days} días`;
+  return new Date(iso).toLocaleDateString("es-MX", { day: "2-digit", month: "short" });
+}
+
 /**
  * Arma el feed de notificaciones AL VUELO a partir de datos que ya tienen
  * timestamp confiable en sus propias tablas — no hay una tabla de

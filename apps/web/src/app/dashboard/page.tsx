@@ -5,9 +5,8 @@ import { getRequestContext } from "@/lib/repository";
 import { isDemoMode } from "@/lib/demoSession";
 import { AppNav } from "@/components/AppNav";
 import { confirmCheckinAction } from "@/app/calendario/actions";
-import { buildNotifications } from "@/lib/notifications";
-import { BovedaIcon, CalendarIcon, ChatIcon, ClockIcon, GastosIcon } from "@/components/icons";
-import type { ComponentType } from "react";
+import { buildNotifications, formatRelativeTime, NOTIFICATION_ICON_CLASS, NOTIFICATION_ICON_SYMBOL } from "@/lib/notifications";
+import { BovedaIcon, ChatIcon, ClockIcon, GastosIcon } from "@/components/icons";
 
 const MXN = new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" });
 const MONTH_LABEL = new Intl.DateTimeFormat("es-MX", { month: "long" });
@@ -57,13 +56,6 @@ function findNextOccurrence(
   }
   return null;
 }
-
-const QUICK_LINKS: { href: string; title: string; description: string; accent: string; Icon: ComponentType<{ className?: string }> }[] = [
-  { href: "/chat", title: "Chat", description: "Habla con el otro progenitor.", accent: "bg-salmon", Icon: ChatIcon },
-  { href: "/calendario", title: "Calendario", description: "Confirma check-in/check-out.", accent: "bg-sky", Icon: CalendarIcon },
-  { href: "/gastos", title: "Gastos", description: "Registra y aprueba gastos.", accent: "bg-dawn", Icon: GastosIcon },
-  { href: "/boveda", title: "Bóveda", description: "Documentos y evidencia.", accent: "bg-purple", Icon: BovedaIcon },
-];
 
 export default async function DashboardPage({
   searchParams,
@@ -373,21 +365,45 @@ export default async function DashboardPage({
         </div>
       </div>
 
-      <h2 className="mt-8 text-sm font-semibold uppercase tracking-wide text-ink-soft">Ir a</h2>
-      <div className="mt-3 grid grid-cols-2 gap-3">
-        {QUICK_LINKS.map(({ Icon, ...link }) => (
-          <Link
-            key={link.href}
-            href={as === "b" ? `${link.href}?as=b` : link.href}
-            className="rounded-2xl border border-subtle bg-card p-4 shadow-ambient transition-all hover:-translate-y-0.5 hover:shadow-elevated"
-          >
-            <span className={`flex h-9 w-9 items-center justify-center rounded-xl text-ink ${link.accent}`}>
-              <Icon />
-            </span>
-            <p className="mt-3 text-sm font-semibold text-ink">{link.title}</p>
-            <p className="mt-1 text-xs text-ink-soft">{link.description}</p>
-          </Link>
-        ))}
+      <div className="mt-8 flex items-center justify-between">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-soft">Actividad reciente</h2>
+        <Link href={as === "b" ? "/notificaciones?as=b" : "/notificaciones"} className="text-xs font-semibold text-orange">
+          Ver todas →
+        </Link>
+      </div>
+      <div className="mt-3 flex flex-col gap-2">
+        {notifications.length === 0 ? (
+          <p className="rounded-xl border border-subtle bg-card p-4 text-sm text-ink-soft">
+            Todavía no hay actividad del otro progenitor para mostrar.
+          </p>
+        ) : (
+          notifications.slice(0, 5).map((item) => {
+            const isNew = !lastSeen || new Date(item.createdAt) > lastSeen;
+            return (
+              <Link
+                key={item.id}
+                href={as === "b" ? `${item.href}${item.href.includes("?") ? "&" : "?"}as=b` : item.href}
+                className={`flex items-start gap-3 rounded-xl border bg-card p-4 shadow-ambient ${
+                  isNew ? "border-orange" : "border-subtle"
+                }`}
+              >
+                <span
+                  className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl text-sm text-ink ${NOTIFICATION_ICON_CLASS[item.icon]}`}
+                >
+                  {NOTIFICATION_ICON_SYMBOL[item.icon]}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="flex items-center justify-between gap-2">
+                    <span className="truncate text-sm font-semibold text-ink">{item.title}</span>
+                    <span className="flex-shrink-0 text-xs text-ink-faint">{formatRelativeTime(item.createdAt, now)}</span>
+                  </span>
+                  <span className="mt-0.5 block truncate text-xs text-ink-soft">{item.subtitle}</span>
+                </span>
+                {isNew && <span className="mt-1 h-2 w-2 flex-shrink-0 rounded-full bg-orange" aria-hidden="true" />}
+              </Link>
+            );
+          })
+        )}
       </div>
 
       <AppNav active="Dashboard" />

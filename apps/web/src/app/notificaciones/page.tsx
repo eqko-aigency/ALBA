@@ -2,45 +2,14 @@ import Link from "next/link";
 import { getRequestContext } from "@/lib/repository";
 import { isDemoMode } from "@/lib/demoSession";
 import { AppNav } from "@/components/AppNav";
-import { buildNotifications, type NotificationItem } from "@/lib/notifications";
+import { buildNotifications, formatRelativeTime, NOTIFICATION_ICON_CLASS, NOTIFICATION_ICON_SYMBOL } from "@/lib/notifications";
 import { markNotificationsSeenAction } from "./actions";
-
-const ICON_CLASS: Record<NotificationItem["icon"], string> = {
-  gastos: "bg-dawn",
-  pension: "bg-sky",
-  boveda: "bg-purple",
-  acuerdos: "bg-purple",
-  calendario: "bg-salmon",
-  chat: "bg-salmon",
-};
-
-const ICON_SYMBOL: Record<NotificationItem["icon"], string> = {
-  gastos: "$",
-  pension: "$",
-  boveda: "🔒",
-  acuerdos: "✎",
-  calendario: "📅",
-  chat: "💬",
-};
 
 function isoDateLocal(d: Date): string {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
   return `${y}-${m}-${day}`;
-}
-
-function formatRelative(iso: string, now: Date): string {
-  const diffMs = now.getTime() - new Date(iso).getTime();
-  const minutes = Math.round(diffMs / 60000);
-  if (minutes < 1) return "ahora";
-  if (minutes < 60) return `hace ${minutes} min`;
-  const hours = Math.round(minutes / 60);
-  if (hours < 24) return `hace ${hours} h`;
-  const days = Math.round(hours / 24);
-  if (days === 1) return "ayer";
-  if (days < 7) return `hace ${days} días`;
-  return new Date(iso).toLocaleDateString("es-MX", { day: "2-digit", month: "short" });
 }
 
 export default async function NotificacionesPage({
@@ -130,13 +99,13 @@ export default async function NotificacionesPage({
                   isNew ? "border-orange" : "border-subtle"
                 }`}
               >
-                <span className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl text-sm text-ink ${ICON_CLASS[item.icon]}`}>
-                  {ICON_SYMBOL[item.icon]}
+                <span className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl text-sm text-ink ${NOTIFICATION_ICON_CLASS[item.icon]}`}>
+                  {NOTIFICATION_ICON_SYMBOL[item.icon]}
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="flex items-center justify-between gap-2">
                     <span className="truncate text-sm font-semibold text-ink">{item.title}</span>
-                    <span className="flex-shrink-0 text-xs text-ink-faint">{formatRelative(item.createdAt, now)}</span>
+                    <span className="flex-shrink-0 text-xs text-ink-faint">{formatRelativeTime(item.createdAt, now)}</span>
                   </span>
                   <span className="mt-0.5 block truncate text-xs text-ink-soft">{item.subtitle}</span>
                 </span>
