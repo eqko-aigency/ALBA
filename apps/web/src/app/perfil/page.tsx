@@ -77,8 +77,12 @@ export default async function PerfilPage() {
                 <button type="submit" className="self-start rounded-full border border-subtle px-3 py-1.5 text-sm font-medium text-ink">
                   Guardar cambios
                 </button>
-                <Link href={`/perfil/hijo/${child.id}`} className="text-sm font-medium text-purple underline">
-                  Contactos, salud y notas →
+                <Link
+                  href={`/perfil/hijo/${child.id}`}
+                  className="inline-flex items-center gap-1 rounded-full border border-purple/30 bg-purple/10 px-3 py-1.5 text-sm font-semibold text-purple transition-all hover:bg-purple/20"
+                >
+                  Contactos, salud y notas
+                  <span aria-hidden="true">→</span>
                 </Link>
               </div>
             </form>

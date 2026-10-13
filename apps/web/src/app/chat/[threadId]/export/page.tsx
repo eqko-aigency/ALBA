@@ -53,8 +53,11 @@ export default async function ExportThreadPage({
   return (
     <div className="mx-auto min-h-screen max-w-2xl bg-sand px-6 py-10 print:bg-white print:px-0 print:py-0">
       <div className="flex items-center justify-between print:hidden">
-        <Link href={`/chat/${threadId}${as === "b" ? "?as=b" : ""}`} className="text-sm font-medium text-ink-soft underline">
-          ← Volver al chat
+        <Link
+          href={`/chat/${threadId}${as === "b" ? "?as=b" : ""}`}
+          className="inline-flex items-center gap-1.5 rounded-full border-2 border-subtle bg-card px-4 py-2 text-sm font-semibold text-ink shadow-ambient transition-all hover:-translate-y-0.5 hover:shadow-elevated"
+        >
+          <span aria-hidden="true">←</span> Volver al chat
         </Link>
         <PrintButton />
       </div>

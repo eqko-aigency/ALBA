@@ -146,7 +146,7 @@ export default async function GastosPage({
                         href={expense.receiptUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="mt-1 inline-block text-xs font-medium text-purple underline"
+                        className="mt-1.5 inline-flex items-center gap-1 rounded-full border border-purple/30 bg-purple/10 px-3 py-1 text-xs font-semibold text-purple transition-all hover:bg-purple/20"
                       >
                         Ver comprobante
                       </a>
