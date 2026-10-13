@@ -1,6 +1,7 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import {
   createAnthropicToneAnalyzer,
+  createFamilyIdResolver,
   createHeuristicToneAnalyzer,
   createMockChatRepository,
   createMockCustodyRepository,
@@ -163,14 +164,22 @@ export async function getRequestContext(as?: string): Promise<{
 
   const { client, userId } = await getAuthedSupabaseClient();
 
+  // Un solo resolver de family_id, compartido entre los 7 repositorios de
+  // esta request — antes cada uno creaba el suyo, así que una página como
+  // Dashboard (pairing + chat + custody + expenses + documents +
+  // verbalAgreements + pension, los 7 a la vez) volvía a resolver "a qué
+  // familia perteneces" hasta 7 veces por la misma carga, pese a que el
+  // resolver ya memoiza por parentId dentro de su propio closure.
+  const familyIdResolver = createFamilyIdResolver(client);
+
   return {
-    pairing: createSupabasePairingRepository(client),
-    chat: createSupabaseChatRepository(client),
-    custody: createSupabaseCustodyRepository(client),
-    expenses: createSupabaseExpenseRepository(client),
-    documents: createSupabaseDocumentRepository(client),
-    verbalAgreements: createSupabaseVerbalAgreementRepository(client),
-    pension: createSupabasePensionRepository(client),
+    pairing: createSupabasePairingRepository(client, familyIdResolver),
+    chat: createSupabaseChatRepository(client, familyIdResolver),
+    custody: createSupabaseCustodyRepository(client, familyIdResolver),
+    expenses: createSupabaseExpenseRepository(client, familyIdResolver),
+    documents: createSupabaseDocumentRepository(client, familyIdResolver),
+    verbalAgreements: createSupabaseVerbalAgreementRepository(client, familyIdResolver),
+    pension: createSupabasePensionRepository(client, familyIdResolver),
     parentId: userId,
   };
 }

@@ -3,6 +3,7 @@ import { getRequestContext } from "@/lib/repository";
 import { isDemoMode } from "@/lib/demoSession";
 import { AppNav } from "@/components/AppNav";
 import { uploadDocumentAction, anchorPendingDocumentsAction } from "./actions";
+import { SubmitButton } from "@/components/SubmitButton";
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("es-MX", { day: "2-digit", month: "short", year: "numeric" });
@@ -107,12 +108,12 @@ export default async function BovedaPage({
       {pendingCount > 0 && (
         <form action={anchorPendingDocumentsAction} className="mt-6">
           <input type="hidden" name="as" value={as ?? ""} />
-          <button
-            type="submit"
+          <SubmitButton
+            pendingText="Sellando…"
             className="w-full rounded-full bg-purple px-4 py-3 text-sm font-semibold text-ink shadow-ambient"
           >
             Anclar documentos pendientes ({pendingCount})
-          </button>
+          </SubmitButton>
           <p className="mt-2 text-center text-xs text-ink-faint">
             Calcula una raíz Merkle sobre los hashes de todos los documentos pendientes y los marca como anclados.
           </p>
@@ -208,9 +209,9 @@ export default async function BovedaPage({
             />
           </div>
 
-          <button type="submit" className="mt-1 self-start rounded-full bg-salmon px-4 py-2 text-sm font-semibold text-ink">
+          <SubmitButton pendingText="Subiendo…" className="mt-1 self-start rounded-full bg-salmon px-4 py-2 text-sm font-semibold text-ink">
             Subir documento
-          </button>
+          </SubmitButton>
         </form>
       </section>
 

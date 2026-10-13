@@ -1,9 +1,12 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Expense, ExpenseRepository } from "@alba/core";
-import { createFamilyIdResolver } from "../family/resolveFamilyId";
+import { createFamilyIdResolver, type FamilyIdResolver } from "../family/resolveFamilyId";
 
-export function createSupabaseExpenseRepository(client: SupabaseClient): ExpenseRepository {
-  const getMyFamilyId = createFamilyIdResolver(client);
+export function createSupabaseExpenseRepository(
+  client: SupabaseClient,
+  familyIdResolver?: FamilyIdResolver
+): ExpenseRepository {
+  const getMyFamilyId = familyIdResolver ?? createFamilyIdResolver(client);
 
   async function getFamilyChildIds(familyId: string): Promise<string[]> {
     const { data, error } = await client.from("children").select("id").eq("family_id", familyId);

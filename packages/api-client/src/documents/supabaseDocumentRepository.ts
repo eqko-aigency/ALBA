@@ -1,12 +1,15 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { buildMerkleRoot, computeSha256Hex } from "@alba/core";
 import type { Document, DocumentRepository } from "@alba/core";
-import { createFamilyIdResolver } from "../family/resolveFamilyId";
+import { createFamilyIdResolver, type FamilyIdResolver } from "../family/resolveFamilyId";
 
 const BUCKET = "documentos";
 
-export function createSupabaseDocumentRepository(client: SupabaseClient): DocumentRepository {
-  const getMyFamilyId = createFamilyIdResolver(client);
+export function createSupabaseDocumentRepository(
+  client: SupabaseClient,
+  familyIdResolver?: FamilyIdResolver
+): DocumentRepository {
+  const getMyFamilyId = familyIdResolver ?? createFamilyIdResolver(client);
 
   return {
     async listDocuments(parentId) {

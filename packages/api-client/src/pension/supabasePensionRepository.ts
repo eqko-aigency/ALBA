@@ -6,10 +6,13 @@ import type {
   PensionSettings,
   PensionSettingsInput,
 } from "@alba/core";
-import { createFamilyIdResolver } from "../family/resolveFamilyId";
+import { createFamilyIdResolver, type FamilyIdResolver } from "../family/resolveFamilyId";
 
-export function createSupabasePensionRepository(client: SupabaseClient): PensionRepository {
-  const getMyFamilyId = createFamilyIdResolver(client);
+export function createSupabasePensionRepository(
+  client: SupabaseClient,
+  familyIdResolver?: FamilyIdResolver
+): PensionRepository {
+  const getMyFamilyId = familyIdResolver ?? createFamilyIdResolver(client);
 
   return {
     async getSettings(parentId) {

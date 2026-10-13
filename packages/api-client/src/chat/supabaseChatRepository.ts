@@ -8,7 +8,7 @@ import type {
   RenameThreadInput,
   SendMessageInput,
 } from "@alba/core";
-import { createFamilyIdResolver } from "../family/resolveFamilyId";
+import { createFamilyIdResolver, type FamilyIdResolver } from "../family/resolveFamilyId";
 
 /** POC de referencia de "sellado" — mismo criterio que buildAnchorReference en supabaseDocumentRepository.ts. */
 function buildAnchorReference(merkleRoot: string): string {
@@ -17,8 +17,11 @@ function buildAnchorReference(merkleRoot: string): string {
   return `poc-anchor:0x${short}:${timestamp}`;
 }
 
-export function createSupabaseChatRepository(client: SupabaseClient): ChatRepository {
-  const getMyFamilyId = createFamilyIdResolver(client);
+export function createSupabaseChatRepository(
+  client: SupabaseClient,
+  familyIdResolver?: FamilyIdResolver
+): ChatRepository {
+  const getMyFamilyId = familyIdResolver ?? createFamilyIdResolver(client);
 
   return {
     async listThreads(parentId) {

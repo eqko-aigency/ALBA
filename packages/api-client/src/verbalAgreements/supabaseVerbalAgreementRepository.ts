@@ -1,9 +1,12 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { VerbalAgreement, VerbalAgreementInput, VerbalAgreementRepository } from "@alba/core";
-import { createFamilyIdResolver } from "../family/resolveFamilyId";
+import { createFamilyIdResolver, type FamilyIdResolver } from "../family/resolveFamilyId";
 
-export function createSupabaseVerbalAgreementRepository(client: SupabaseClient): VerbalAgreementRepository {
-  const getMyFamilyId = createFamilyIdResolver(client);
+export function createSupabaseVerbalAgreementRepository(
+  client: SupabaseClient,
+  familyIdResolver?: FamilyIdResolver
+): VerbalAgreementRepository {
+  const getMyFamilyId = familyIdResolver ?? createFamilyIdResolver(client);
 
   return {
     async listVerbalAgreements(parentId) {

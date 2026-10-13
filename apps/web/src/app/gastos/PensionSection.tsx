@@ -8,6 +8,7 @@ import {
   type PensionSettings,
 } from "@alba/core";
 import { confirmPensionPaymentAction, registerPensionPaymentAction, upsertPensionSettingsAction } from "./pensionActions";
+import { SubmitButton } from "@/components/SubmitButton";
 
 const MXN = new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" });
 
@@ -146,14 +147,14 @@ export async function PensionSection({
             <form action={registerPensionPaymentAction} className="mt-4">
               <input type="hidden" name="as" value={as ?? ""} />
               <input type="hidden" name="period" value={period} />
-              <button
-                type="submit"
+              <SubmitButton
+                pendingText="Registrando…"
                 className={`w-full rounded-full px-4 py-3 text-sm font-semibold text-ink shadow-ambient ${
                   status === "overdue" ? "bg-danger/80" : "bg-orange"
                 }`}
               >
                 + Registrar pago
-              </button>
+              </SubmitButton>
             </form>
           )}
 
@@ -161,9 +162,9 @@ export async function PensionSection({
             <form action={confirmPensionPaymentAction} className="mt-4">
               <input type="hidden" name="as" value={as ?? ""} />
               <input type="hidden" name="paymentId" value={payment!.id} />
-              <button type="submit" className="w-full rounded-full bg-orange px-4 py-3 text-sm font-semibold text-ink shadow-ambient">
+              <SubmitButton pendingText="Confirmando…" className="w-full rounded-full bg-orange px-4 py-3 text-sm font-semibold text-ink shadow-ambient">
                 Confirmar que recibí el pago
-              </button>
+              </SubmitButton>
             </form>
           )}
         </div>

@@ -1,4 +1,5 @@
 export * from "./client";
+export * from "./family/resolveFamilyId";
 export * from "./pairing";
 export * from "./chat";
 export * from "./tone";

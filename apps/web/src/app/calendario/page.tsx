@@ -3,6 +3,7 @@ import { findComplianceIssues, type ComplianceIssue } from "@alba/core";
 import { getRequestContext } from "@/lib/repository";
 import { isDemoMode } from "@/lib/demoSession";
 import { AppNav } from "@/components/AppNav";
+import { SubmitButton } from "@/components/SubmitButton";
 import { confirmCheckinAction, confirmCheckoutAction, removeSlotAction, upsertSlotAction } from "./actions";
 
 const WEEKDAY_LABELS = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
@@ -345,9 +346,9 @@ export default async function CalendarioPage({
                           <input type="hidden" name="as" value={as ?? ""} />
                           <input type="hidden" name="childId" value={slot.childId} />
                           <input type="hidden" name="scheduledAt" value={scheduledIn.toISOString()} />
-                          <button type="submit" className="rounded-full bg-orange px-3 py-1.5 text-xs font-semibold text-ink">
+                          <SubmitButton pendingText="Confirmando…" className="rounded-full bg-orange px-3 py-1.5 text-xs font-semibold text-ink">
                             Confirmar check-in
-                          </button>
+                          </SubmitButton>
                         </form>
                       )}
 
@@ -360,12 +361,12 @@ export default async function CalendarioPage({
                           <input type="hidden" name="as" value={as ?? ""} />
                           <input type="hidden" name="childId" value={slot.childId} />
                           <input type="hidden" name="scheduledAt" value={scheduledOut.toISOString()} />
-                          <button
-                            type="submit"
+                          <SubmitButton
+                            pendingText="Confirmando…"
                             className="rounded-full border border-subtle bg-card px-3 py-1.5 text-xs font-medium text-ink"
                           >
                             Confirmar check-out
-                          </button>
+                          </SubmitButton>
                         </form>
                       )}
                     </div>

@@ -3,6 +3,7 @@ import { getRequestContext } from "@/lib/repository";
 import { isDemoMode } from "@/lib/demoSession";
 import { AppNav } from "@/components/AppNav";
 import { confirmVerbalAgreementAction, createVerbalAgreementAction } from "./actions";
+import { SubmitButton } from "@/components/SubmitButton";
 
 function formatDate(iso: string): string {
   return new Date(`${iso}T00:00:00`).toLocaleDateString("es-MX", {
@@ -96,9 +97,9 @@ export default async function AcuerdosVerbalesPage({
                   <form action={confirmVerbalAgreementAction} className="mt-2">
                     <input type="hidden" name="as" value={as ?? ""} />
                     <input type="hidden" name="agreementId" value={agreement.id} />
-                    <button type="submit" className="rounded-full bg-orange px-3 py-1.5 text-xs font-semibold text-ink">
+                    <SubmitButton pendingText="Confirmando…" className="rounded-full bg-orange px-3 py-1.5 text-xs font-semibold text-ink">
                       Confirmar que yo también lo recuerdo así
-                    </button>
+                    </SubmitButton>
                   </form>
                 )}
               </div>
@@ -143,9 +144,9 @@ export default async function AcuerdosVerbalesPage({
             )}
           </div>
 
-          <button type="submit" className="mt-1 self-start rounded-full bg-salmon px-4 py-2 text-sm font-semibold text-ink">
+          <SubmitButton pendingText="Registrando…" className="mt-1 self-start rounded-full bg-salmon px-4 py-2 text-sm font-semibold text-ink">
             Registrar acuerdo
-          </button>
+          </SubmitButton>
         </form>
       </section>
 

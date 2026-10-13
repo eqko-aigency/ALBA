@@ -1,9 +1,12 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { CustodyAgreement, CustodyEvent, CustodyEventType, CustodyRepository, CustodySlot } from "@alba/core";
-import { createFamilyIdResolver } from "../family/resolveFamilyId";
+import { createFamilyIdResolver, type FamilyIdResolver } from "../family/resolveFamilyId";
 
-export function createSupabaseCustodyRepository(client: SupabaseClient): CustodyRepository {
-  const getMyFamilyId = createFamilyIdResolver(client);
+export function createSupabaseCustodyRepository(
+  client: SupabaseClient,
+  familyIdResolver?: FamilyIdResolver
+): CustodyRepository {
+  const getMyFamilyId = familyIdResolver ?? createFamilyIdResolver(client);
 
   async function getOrCreateAgreementRow(familyId: string): Promise<{ id: string; tolerance_minutes: number }> {
     const { data: existing, error: selectError } = await client

@@ -4,6 +4,7 @@ import { isDemoMode } from "@/lib/demoSession";
 import { topicAvatarClass } from "@/lib/chatAvatar";
 import { MessageComposer } from "./MessageComposer";
 import { renameThreadAction, sealThreadAction } from "./actions";
+import { AppNav } from "@/components/AppNav";
 
 function truncateHash(hash: string): string {
   return `${hash.slice(0, 8)}…${hash.slice(-6)}`;
@@ -242,9 +243,18 @@ export default async function ThreadPage({
         })}
       </div>
 
-      <div className="sticky bottom-0 bg-sand px-4 pb-6 pt-2">
+      {/* bottom reservado igual que el resto de la app (pb-7.5rem) para que
+          el nav fijo de abajo nunca tape el composer — antes este composer
+          vivía en bottom-0 y el AppNav ni se mostraba en esta pantalla, por
+          eso el menú "desaparecía" al entrar a un chat. */}
+      <div
+        className="sticky bg-sand px-4 pb-6 pt-2"
+        style={{ bottom: "calc(7.5rem + env(safe-area-inset-bottom))" }}
+      >
         <MessageComposer threadId={threadId} as={as ?? ""} />
       </div>
+
+      <AppNav active="Chat" />
     </div>
   );
 }

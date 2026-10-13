@@ -5,6 +5,7 @@ import { isDemoMode } from "@/lib/demoSession";
 import { AppNav } from "@/components/AppNav";
 import { createExpenseAction, updateExpenseStatusAction } from "./actions";
 import { PensionSection } from "./PensionSection";
+import { SubmitButton } from "@/components/SubmitButton";
 
 const MXN = new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" });
 
@@ -164,17 +165,17 @@ export default async function GastosPage({
                       <input type="hidden" name="as" value={as ?? ""} />
                       <input type="hidden" name="expenseId" value={expense.id} />
                       <input type="hidden" name="status" value="approved" />
-                      <button type="submit" className="rounded-full bg-success/20 px-3 py-1.5 text-xs font-semibold text-ink">
+                      <SubmitButton pendingText="Aprobando…" className="rounded-full bg-success/20 px-3 py-1.5 text-xs font-semibold text-ink">
                         Aprobar
-                      </button>
+                      </SubmitButton>
                     </form>
                     <form action={updateExpenseStatusAction}>
                       <input type="hidden" name="as" value={as ?? ""} />
                       <input type="hidden" name="expenseId" value={expense.id} />
                       <input type="hidden" name="status" value="rejected" />
-                      <button type="submit" className="rounded-full bg-danger/20 px-3 py-1.5 text-xs font-semibold text-ink">
+                      <SubmitButton pendingText="Rechazando…" className="rounded-full bg-danger/20 px-3 py-1.5 text-xs font-semibold text-ink">
                         Rechazar
-                      </button>
+                      </SubmitButton>
                     </form>
                   </div>
                 )}
@@ -240,9 +241,9 @@ export default async function GastosPage({
               />
             </div>
 
-            <button type="submit" className="mt-1 self-start rounded-full bg-salmon px-4 py-2 text-sm font-semibold text-ink">
+            <SubmitButton pendingText="Registrando…" className="mt-1 self-start rounded-full bg-salmon px-4 py-2 text-sm font-semibold text-ink">
               Registrar gasto
-            </button>
+            </SubmitButton>
           </form>
         )}
       </section>

@@ -1,5 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+export type FamilyIdResolver = (parentId: string) => Promise<string | null>;
+
 /**
  * Resuelve el family_id de un progenitor — compartido entre repos de
  * Supabase. Memoizado por parentId dentro del closure: cada repositorio
@@ -12,7 +14,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  * family_members para resolver exactamente el mismo valor — un costo fijo
  * que se sumaba a la lentitud reportada por la clienta.
  */
-export function createFamilyIdResolver(client: SupabaseClient) {
+export function createFamilyIdResolver(client: SupabaseClient): FamilyIdResolver {
   const cache = new Map<string, Promise<string | null>>();
   return function getMyFamilyId(parentId: string): Promise<string | null> {
     const cached = cache.get(parentId);
