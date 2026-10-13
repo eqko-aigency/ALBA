@@ -40,12 +40,19 @@ export function PushToggle() {
 
   useEffect(() => {
     async function check() {
-      if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
-        setStatus("unsupported");
-        return;
-      }
+      // En iPhone, "PushManager" directamente NO existe en window dentro
+      // de una pestaña normal de Safari — WebKit solo lo expone una vez
+      // que la app está instalada en la pantalla de inicio. Por eso este
+      // chequeo va ANTES del feature-detection genérico: si no, una
+      // pestaña normal de Safari en iPhone (que sí podría soportar push
+      // una vez instalada) se reportaba como "unsupported" sin más,
+      // cuando el mensaje correcto es "instálala primero".
       if (isIosSafariNotStandalone()) {
         setStatus("needs-install");
+        return;
+      }
+      if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
+        setStatus("unsupported");
         return;
       }
       if (Notification.permission === "denied") {

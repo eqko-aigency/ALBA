@@ -5,12 +5,16 @@ export const isPushConfigured = Boolean(
   process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY && process.env.SUPABASE_SERVICE_ROLE_KEY
 );
 
+// web-push exige que el "subject" sea https: o mailto: — nunca http:, así
+// que NEXT_PUBLIC_SITE_URL solo (http://localhost:3000 en dev local)
+// revienta setVapidDetails() y con eso CUALQUIER build que toque este
+// módulo. El subject es solo un contacto para el servicio de push en caso
+// de abuso, no necesita ser el dominio real del sitio.
+const vapidSubject =
+  process.env.NEXT_PUBLIC_SITE_URL?.startsWith("https://") ? process.env.NEXT_PUBLIC_SITE_URL : "mailto:soporte@eqko.tech";
+
 if (isPushConfigured) {
-  webpush.setVapidDetails(
-    process.env.NEXT_PUBLIC_SITE_URL ?? "https://example.com",
-    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
-    process.env.VAPID_PRIVATE_KEY!
-  );
+  webpush.setVapidDetails(vapidSubject, process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!, process.env.VAPID_PRIVATE_KEY!);
 }
 
 /**
