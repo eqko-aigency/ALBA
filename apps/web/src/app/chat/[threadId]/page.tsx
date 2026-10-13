@@ -9,15 +9,22 @@ function truncateHash(hash: string): string {
   return `${hash.slice(0, 8)}…${hash.slice(-6)}`;
 }
 
+// "Etc/GMT+6" (nota: el signo va al revés de lo intuitivo en estas zonas
+// IANA — "+6" significa UTC-6), no "America/Mexico_City". México eliminó
+// el horario de verano en 2022 y quedó fijo en UTC-6 todo el año, pero esa
+// zona con nombre depende de que el runtime tenga la regla de DST al día;
+// un offset fijo no depende de esa regla y nunca se puede desactualizar.
+const MX_TIME_ZONE = "Etc/GMT+6";
+
 function formatFullDate(iso: string): string {
-  return new Date(iso).toLocaleString("es-MX", { dateStyle: "long", timeStyle: "short", timeZone: "America/Mexico_City" });
+  return new Date(iso).toLocaleString("es-MX", { dateStyle: "long", timeStyle: "short", timeZone: MX_TIME_ZONE });
 }
 
 function formatTime(iso: string): string {
   return new Date(iso).toLocaleTimeString("es-MX", {
     hour: "2-digit",
     minute: "2-digit",
-    timeZone: "America/Mexico_City",
+    timeZone: MX_TIME_ZONE,
   });
 }
 
@@ -26,7 +33,7 @@ function formatDayLabel(iso: string): string {
     day: "numeric",
     month: "long",
     year: "numeric",
-    timeZone: "America/Mexico_City",
+    timeZone: MX_TIME_ZONE,
   });
 }
 
@@ -34,12 +41,12 @@ function formatDayShort(iso: string): string {
   return new Date(iso).toLocaleDateString("es-MX", {
     day: "2-digit",
     month: "short",
-    timeZone: "America/Mexico_City",
+    timeZone: MX_TIME_ZONE,
   });
 }
 
 function dayKey(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-CA", { timeZone: "America/Mexico_City" });
+  return new Date(iso).toLocaleDateString("en-CA", { timeZone: MX_TIME_ZONE });
 }
 
 export default async function ThreadPage({

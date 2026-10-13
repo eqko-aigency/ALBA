@@ -3,11 +3,17 @@ import { notFound } from "next/navigation";
 import { getRequestContext } from "@/lib/repository";
 import { PrintButton } from "./PrintButton";
 
+// "Etc/GMT+6" (el signo va al revés de lo intuitivo en estas zonas IANA —
+// "+6" significa UTC-6), no "America/Mexico_City" — ver nota en
+// chat/[threadId]/page.tsx: un offset fijo no depende de que el runtime
+// tenga al día la regla de horario de verano de México (eliminado en 2022).
+const MX_TIME_ZONE = "Etc/GMT+6";
+
 function formatFull(iso: string): string {
   return new Date(iso).toLocaleString("es-MX", {
     dateStyle: "long",
     timeStyle: "short",
-    timeZone: "America/Mexico_City",
+    timeZone: MX_TIME_ZONE,
   });
 }
 
