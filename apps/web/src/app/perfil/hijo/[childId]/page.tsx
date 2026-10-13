@@ -76,10 +76,9 @@ export default async function ChildDetailPage({
           contacts: child.contacts,
           healthProviders: child.healthProviders,
           schoolName: child.schoolName,
-          schoolContact: child.schoolContact,
+          schoolContacts: child.schoolContacts,
           allergies: child.allergies,
-          specialNotes: child.specialNotes,
-          sleepRoutine: child.sleepRoutine,
+          notes: child.notes,
         }}
       />
 

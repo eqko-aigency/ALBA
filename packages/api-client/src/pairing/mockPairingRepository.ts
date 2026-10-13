@@ -53,10 +53,9 @@ export function createMockPairingRepository(): PairingRepository {
         contacts: [],
         healthProviders: [],
         schoolName: null,
-        schoolContact: null,
+        schoolContacts: [],
         allergies: null,
-        specialNotes: null,
-        sleepRoutine: null,
+        notes: [],
       };
       children.set(child.id, child);
       return child;

@@ -36,6 +36,17 @@ const childHealthProviderSchema = z.object({
   phone: z.string().max(40),
 });
 
+const childSchoolContactSchema = z.object({
+  role: z.string().min(1).max(80),
+  name: z.string().min(1).max(120),
+  phone: z.string().max(40),
+});
+
+const childNoteSchema = z.object({
+  label: z.string().min(1).max(80),
+  text: z.string().min(1).max(2000),
+});
+
 /** Campos nullable: string vacío del form se normaliza a null (sin dato). */
 const optionalNote = (max: number) =>
   z
@@ -48,10 +59,9 @@ export const updateChildDetailsInputSchema = z.object({
   contacts: z.array(childContactSchema).max(10),
   healthProviders: z.array(childHealthProviderSchema).max(10),
   schoolName: optionalNote(160),
-  schoolContact: optionalNote(160),
+  schoolContacts: z.array(childSchoolContactSchema).max(10),
   allergies: optionalNote(1000),
-  specialNotes: optionalNote(2000),
-  sleepRoutine: optionalNote(2000),
+  notes: z.array(childNoteSchema).max(20),
 });
 export type UpdateChildDetailsInput = z.infer<typeof updateChildDetailsInputSchema>;
 

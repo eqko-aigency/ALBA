@@ -37,34 +37,29 @@ export async function updateChildAction(formData: FormData) {
   revalidatePath(`/perfil/hijo/${childId}`);
 }
 
-/**
- * contactsJson y healthProvidersJson llegan como JSON armado client-side
- * (ChildDetailsForm) — ambas listas son dinámicas (agregar/quitar filas),
- * así que un <form> sin JS no alcanza para mandarlas como campos sueltos.
- */
+/** Todas las listas dinámicas del formulario (contactos, salud, escuela,
+ * notas) llegan como JSON armado client-side (ChildDetailsForm) — un
+ * <form> sin JS no alcanza para mandar un arreglo que crece/encoge como
+ * campos sueltos. */
+function parseJsonArray(formData: FormData, field: string): unknown {
+  try {
+    const parsed = JSON.parse(String(formData.get(field) ?? "[]"));
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
 export async function updateChildDetailsAction(formData: FormData) {
   const childId = String(formData.get("childId") ?? "");
-  let contacts: unknown = [];
-  try {
-    contacts = JSON.parse(String(formData.get("contactsJson") ?? "[]"));
-  } catch {
-    contacts = [];
-  }
-  let healthProviders: unknown = [];
-  try {
-    healthProviders = JSON.parse(String(formData.get("healthProvidersJson") ?? "[]"));
-  } catch {
-    healthProviders = [];
-  }
 
   const input = updateChildDetailsInputSchema.parse({
-    contacts,
-    healthProviders,
+    contacts: parseJsonArray(formData, "contactsJson"),
+    healthProviders: parseJsonArray(formData, "healthProvidersJson"),
     schoolName: formData.get("schoolName"),
-    schoolContact: formData.get("schoolContact"),
+    schoolContacts: parseJsonArray(formData, "schoolContactsJson"),
     allergies: formData.get("allergies"),
-    specialNotes: formData.get("specialNotes"),
-    sleepRoutine: formData.get("sleepRoutine"),
+    notes: parseJsonArray(formData, "notesJson"),
   });
 
   const { pairing, parentId } = await getRequestContext();

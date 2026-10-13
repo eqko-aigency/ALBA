@@ -32,6 +32,28 @@ export interface ChildHealthProvider {
 }
 
 /**
+ * Contacto de la escuela — rubro libre ("Maestra titular", "Dirección",
+ * "Psicóloga escolar"...), mismo criterio que ChildHealthProvider: no
+ * limitar a un único contacto fijo.
+ */
+export interface ChildSchoolContact {
+  role: string;
+  name: string;
+  phone: string;
+}
+
+/**
+ * Nota libre con etiqueta ("Rutina de sueño", "Miedo a los perros", "Comida
+ * favorita"...) — reemplaza los campos fijos sleepRoutine/specialNotes por
+ * el mismo motivo: la clienta no quiere estar limitada a conceptos
+ * predefinidos en ninguna sección del perfil de hijo/a.
+ */
+export interface ChildNote {
+  label: string;
+  text: string;
+}
+
+/**
  * Campos de W-xx (perfil de hijo extendido) — pedido explícito de la
  * clienta: contactos, salud, escuela, alergias, notas especiales (ej.
  * "duerme con el conejo azul", rutina de sueño). Todos nullable/vacíos por
@@ -45,10 +67,9 @@ export interface Child {
   contacts: ChildContact[];
   healthProviders: ChildHealthProvider[];
   schoolName: string | null;
-  schoolContact: string | null;
+  schoolContacts: ChildSchoolContact[];
   allergies: string | null;
-  specialNotes: string | null;
-  sleepRoutine: string | null;
+  notes: ChildNote[];
 }
 
 export type InvitationStatus = "pending" | "accepted" | "expired";

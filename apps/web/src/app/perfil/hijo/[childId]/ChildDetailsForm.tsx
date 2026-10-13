@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import type { ChildContact, ChildHealthProvider } from "@alba/core";
+import type { ChildContact, ChildHealthProvider, ChildNote, ChildSchoolContact } from "@alba/core";
 import { ContactsIcon, HealthIcon, NotesIcon, SchoolIcon } from "@/components/icons";
 import { updateChildDetailsAction } from "../../actions";
 
@@ -38,14 +38,15 @@ export function ChildDetailsForm({
     contacts: ChildContact[];
     healthProviders: ChildHealthProvider[];
     schoolName: string | null;
-    schoolContact: string | null;
+    schoolContacts: ChildSchoolContact[];
     allergies: string | null;
-    specialNotes: string | null;
-    sleepRoutine: string | null;
+    notes: ChildNote[];
   };
 }) {
   const [contacts, setContacts] = useState<ChildContact[]>(initial.contacts);
   const [healthProviders, setHealthProviders] = useState<ChildHealthProvider[]>(initial.healthProviders);
+  const [schoolContacts, setSchoolContacts] = useState<ChildSchoolContact[]>(initial.schoolContacts);
+  const [notes, setNotes] = useState<ChildNote[]>(initial.notes);
   const [pending, setPending] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -79,11 +80,45 @@ export function ChildDetailsForm({
     setSaved(false);
   }
 
+  function updateSchoolContact(index: number, field: keyof ChildSchoolContact, value: string) {
+    setSchoolContacts((prev) => prev.map((c, i) => (i === index ? { ...c, [field]: value } : c)));
+    setSaved(false);
+  }
+
+  function addSchoolContact() {
+    setSchoolContacts((prev) => [...prev, { role: "", name: "", phone: "" }]);
+    setSaved(false);
+  }
+
+  function removeSchoolContact(index: number) {
+    setSchoolContacts((prev) => prev.filter((_, i) => i !== index));
+    setSaved(false);
+  }
+
+  function updateNote(index: number, field: keyof ChildNote, value: string) {
+    setNotes((prev) => prev.map((n, i) => (i === index ? { ...n, [field]: value } : n)));
+    setSaved(false);
+  }
+
+  function addNote() {
+    setNotes((prev) => [...prev, { label: "", text: "" }]);
+    setSaved(false);
+  }
+
+  function removeNote(index: number) {
+    setNotes((prev) => prev.filter((_, i) => i !== index));
+    setSaved(false);
+  }
+
   async function handleSubmit(formData: FormData) {
     const cleanContacts = contacts.filter((c) => c.name.trim().length > 0);
     const cleanHealthProviders = healthProviders.filter((p) => p.role.trim().length > 0 && p.name.trim().length > 0);
+    const cleanSchoolContacts = schoolContacts.filter((c) => c.role.trim().length > 0 && c.name.trim().length > 0);
+    const cleanNotes = notes.filter((n) => n.label.trim().length > 0 && n.text.trim().length > 0);
     formData.set("contactsJson", JSON.stringify(cleanContacts));
     formData.set("healthProvidersJson", JSON.stringify(cleanHealthProviders));
+    formData.set("schoolContactsJson", JSON.stringify(cleanSchoolContacts));
+    formData.set("notesJson", JSON.stringify(cleanNotes));
     setPending(true);
     setSaved(false);
     await updateChildDetailsAction(formData);
@@ -203,15 +238,54 @@ export function ChildDetailsForm({
         <details className="group border-t border-subtle">
           <AccordionHeader label="Escuela" accent="bg-dawn" Icon={SchoolIcon} />
           <div className="border-t border-subtle px-4 pb-5 pt-4">
-            <div className="flex flex-col gap-3">
-              <label className={labelClass}>
-                Nombre de la escuela
-                <input name="schoolName" defaultValue={initial.schoolName ?? ""} className={inputClass} />
-              </label>
-              <label className={labelClass}>
-                Contacto de la escuela
-                <input name="schoolContact" defaultValue={initial.schoolContact ?? ""} className={inputClass} />
-              </label>
+            <label className={labelClass}>
+              Nombre de la escuela
+              <input name="schoolName" defaultValue={initial.schoolName ?? ""} className={inputClass} />
+            </label>
+
+            <p className="mt-4 text-xs text-ink-soft">
+              Maestra, dirección, psicóloga escolar... agrega los contactos que necesites.
+            </p>
+            <div className="mt-3 flex flex-col gap-3">
+              {schoolContacts.map((contact, i) => (
+                <div key={i} className="flex flex-col gap-2 rounded-md border border-subtle p-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-ink-soft">Contacto {i + 1}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeSchoolContact(i)}
+                      className="text-xs font-medium text-danger underline"
+                    >
+                      Quitar
+                    </button>
+                  </div>
+                  <input
+                    value={contact.role}
+                    onChange={(e) => updateSchoolContact(i, "role", e.target.value)}
+                    placeholder="Rubro (ej. Maestra titular, Dirección)"
+                    className={inputClass}
+                  />
+                  <input
+                    value={contact.name}
+                    onChange={(e) => updateSchoolContact(i, "name", e.target.value)}
+                    placeholder="Nombre"
+                    className={inputClass}
+                  />
+                  <input
+                    value={contact.phone}
+                    onChange={(e) => updateSchoolContact(i, "phone", e.target.value)}
+                    placeholder="Teléfono"
+                    className={inputClass}
+                  />
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={addSchoolContact}
+                className="self-start rounded-full border border-subtle px-3 py-1.5 text-xs font-semibold text-ink"
+              >
+                + Agregar contacto
+              </button>
             </div>
           </div>
         </details>
@@ -219,27 +293,44 @@ export function ChildDetailsForm({
         <details className="group border-t border-subtle">
           <AccordionHeader label="Notas especiales" accent="bg-purple" Icon={NotesIcon} />
           <div className="border-t border-subtle px-4 pb-5 pt-4">
-            <div className="flex flex-col gap-3">
-              <label className={labelClass}>
-                Rutina de sueño
-                <textarea
-                  name="sleepRoutine"
-                  defaultValue={initial.sleepRoutine ?? ""}
-                  rows={2}
-                  placeholder="Ej. duerme con el conejo azul, se acuesta a las 8pm..."
-                  className={inputClass}
-                />
-              </label>
-              <label className={labelClass}>
-                Otras notas
-                <textarea
-                  name="specialNotes"
-                  defaultValue={initial.specialNotes ?? ""}
-                  rows={3}
-                  placeholder="Cualquier dato que el otro progenitor deba saber"
-                  className={inputClass}
-                />
-              </label>
+            <p className="text-xs text-ink-soft">
+              Rutina de sueño, miedos, comida favorita... agrega las notas que necesites, con el título que quieras.
+            </p>
+            <div className="mt-4 flex flex-col gap-3">
+              {notes.map((note, i) => (
+                <div key={i} className="flex flex-col gap-2 rounded-md border border-subtle p-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-ink-soft">Nota {i + 1}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeNote(i)}
+                      className="text-xs font-medium text-danger underline"
+                    >
+                      Quitar
+                    </button>
+                  </div>
+                  <input
+                    value={note.label}
+                    onChange={(e) => updateNote(i, "label", e.target.value)}
+                    placeholder="Título (ej. Rutina de sueño, Miedo a los perros)"
+                    className={inputClass}
+                  />
+                  <textarea
+                    value={note.text}
+                    onChange={(e) => updateNote(i, "text", e.target.value)}
+                    rows={2}
+                    placeholder="Detalle"
+                    className={inputClass}
+                  />
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={addNote}
+                className="self-start rounded-full border border-subtle px-3 py-1.5 text-xs font-semibold text-ink"
+              >
+                + Agregar nota
+              </button>
             </div>
           </div>
         </details>

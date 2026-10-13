@@ -75,10 +75,9 @@ export function createSupabasePairingRepository(
           contacts: input.contacts,
           health_providers: input.healthProviders,
           school_name: input.schoolName,
-          school_contact: input.schoolContact,
+          school_contacts: input.schoolContacts,
           allergies: input.allergies,
-          special_notes: input.specialNotes,
-          sleep_routine: input.sleepRoutine,
+          notes: input.notes,
         })
         .eq("id", childId)
         .eq("family_id", familyId)
@@ -239,10 +238,9 @@ function mapChild(row: any): Child {
     contacts: row.contacts ?? [],
     healthProviders: row.health_providers ?? [],
     schoolName: row.school_name ?? null,
-    schoolContact: row.school_contact ?? null,
+    schoolContacts: row.school_contacts ?? [],
     allergies: row.allergies ?? null,
-    specialNotes: row.special_notes ?? null,
-    sleepRoutine: row.sleep_routine ?? null,
+    notes: row.notes ?? [],
   };
 }
 
