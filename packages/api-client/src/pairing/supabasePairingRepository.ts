@@ -166,10 +166,12 @@ export function createSupabasePairingRepository(
     },
 
     async getInvitationByToken(token) {
+      // RPC (security definer), no un .from("invitations").select() directo
+      // — un progenitor invitado sin cuenta todavía es visitante anónimo
+      // para RLS, que exige ya ser miembro de la familia para leer la fila.
+      // Ver 0021_get_invitation_by_token_rpc.sql.
       const { data, error } = await client
-        .from("invitations")
-        .select()
-        .eq("token", token)
+        .rpc("get_invitation_by_token", { invitation_token: token })
         .maybeSingle();
       if (error) throw error;
       return data ? mapInvitation(data) : null;
