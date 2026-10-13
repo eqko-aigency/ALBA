@@ -11,6 +11,10 @@ function formatFull(iso: string): string {
   });
 }
 
+function truncateHash(hash: string): string {
+  return `${hash.slice(0, 10)}…${hash.slice(-8)}`;
+}
+
 /**
  * Vista de transcripción lista para imprimir/guardar como PDF (pedido
  * explícito de la clienta: "que se pueda exportar el chat para que cuente
@@ -54,6 +58,22 @@ export default async function ExportThreadPage({
         Exportado el {formatFull(new Date().toISOString())} · {messages.length} mensaje{messages.length === 1 ? "" : "s"}
       </p>
 
+      {thread.sealedAt && thread.sealedMessageCount >= messages.length ? (
+        <div className="mt-3 rounded-lg border border-success/40 bg-success/10 p-3 print:border-ink/30 print:bg-white">
+          <p className="text-xs font-semibold text-ink">
+            🔒 Conversación sellada el {formatFull(thread.sealedAt)} · {thread.sealedMessageCount} mensajes
+          </p>
+          <p className="mt-1 break-all font-mono text-[10px] text-ink-soft">Raíz Merkle: {thread.merkleRoot}</p>
+          <p className="break-all font-mono text-[10px] text-ink-soft">Ref. de anclaje: {thread.anchorReference}</p>
+        </div>
+      ) : (
+        <div className="mt-3 rounded-lg border border-orange/40 bg-dawn p-3 text-xs font-medium text-ink print:border-ink/30 print:bg-white">
+          {thread.sealedAt
+            ? `Sellado parcial — cubre los primeros ${thread.sealedMessageCount} de ${messages.length} mensajes. Vuelve a sellar en el chat antes de usar esto como evidencia.`
+            : "Esta conversación todavía no está sellada — cada mensaje tiene su propio hash, pero no hay una raíz Merkle que cubra toda la conversación. Sella el hilo desde el chat antes de usar esto como evidencia."}
+        </div>
+      )}
+
       <div className="mt-6 flex flex-col gap-3 border-t border-subtle pt-4 print:border-ink/20">
         {messages.length === 0 && <p className="text-sm text-ink-soft">Este hilo todavía no tiene mensajes.</p>}
         {messages.map((m) => (
@@ -63,6 +83,9 @@ export default async function ExportThreadPage({
             </p>
             <p className="mt-1 whitespace-pre-wrap text-ink">{m.body}</p>
             {m.attachmentUrl && <p className="mt-1 break-all text-xs text-ink-soft">Imagen adjunta: {m.attachmentUrl}</p>}
+            <p className="mt-1 font-mono text-[10px] text-ink-faint" title={m.sha256Hex}>
+              SHA-256: {truncateHash(m.sha256Hex)}
+            </p>
           </div>
         ))}
       </div>

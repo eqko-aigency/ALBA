@@ -39,3 +39,11 @@ export async function renameThreadAction(formData: FormData) {
   revalidatePath(`/chat/${input.threadId}`);
   revalidatePath("/chat");
 }
+
+export async function sealThreadAction(formData: FormData) {
+  const threadId = String(formData.get("threadId") ?? "");
+  const { chat, parentId } = await getRequestContext(String(formData.get("as") ?? ""));
+  await chat.sealThread(parentId, threadId);
+  revalidatePath(`/chat/${threadId}`);
+  revalidatePath(`/chat/${threadId}/export`);
+}

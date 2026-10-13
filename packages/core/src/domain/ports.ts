@@ -80,6 +80,14 @@ export interface ChatRepository {
   renameThread(parentId: string, input: RenameThreadInput): Promise<ChatThread>;
   listMessages(parentId: string, threadId: string): Promise<Message[]>;
   sendMessage(parentId: string, input: SendMessageInput): Promise<Message>;
+  /**
+   * Sella la conversación para evidencia (W-xx): calcula una raíz Merkle
+   * sobre los hashes de TODOS los mensajes actuales del hilo y la guarda.
+   * Se puede volver a llamar más tarde para cubrir mensajes nuevos — cada
+   * llamada reemplaza el sello anterior por uno que cubre todo lo que hay
+   * hasta ese momento (nunca sellos parciales acumulados).
+   */
+  sealThread(parentId: string, threadId: string): Promise<ChatThread>;
 }
 
 /**

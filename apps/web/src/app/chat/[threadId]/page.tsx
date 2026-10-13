@@ -3,7 +3,15 @@ import { getRequestContext } from "@/lib/repository";
 import { isDemoMode } from "@/lib/demoSession";
 import { topicAvatarClass } from "@/lib/chatAvatar";
 import { MessageComposer } from "./MessageComposer";
-import { renameThreadAction } from "./actions";
+import { renameThreadAction, sealThreadAction } from "./actions";
+
+function truncateHash(hash: string): string {
+  return `${hash.slice(0, 8)}…${hash.slice(-6)}`;
+}
+
+function formatFullDate(iso: string): string {
+  return new Date(iso).toLocaleString("es-MX", { dateStyle: "long", timeStyle: "short", timeZone: "America/Mexico_City" });
+}
 
 function formatTime(iso: string): string {
   return new Date(iso).toLocaleTimeString("es-MX", {
@@ -115,6 +123,39 @@ export default async function ThreadPage({
           </form>
         </details>
 
+        {thread && messages.length > 0 && (
+          <div className="border-t border-subtle px-4 py-2.5">
+            {thread.sealedAt && thread.sealedMessageCount >= messages.length ? (
+              <div className="flex items-center justify-between gap-2">
+                <p className="flex items-center gap-1.5 text-xs font-semibold text-success">
+                  <span aria-hidden="true">🔒</span> Sellado · {thread.sealedMessageCount} mensajes · {formatFullDate(thread.sealedAt)}
+                </p>
+              </div>
+            ) : (
+              <form action={sealThreadAction} className="flex items-center justify-between gap-2">
+                <input type="hidden" name="as" value={as ?? ""} />
+                <input type="hidden" name="threadId" value={threadId} />
+                <p className="text-xs text-ink-soft">
+                  {thread.sealedAt
+                    ? `Sellado hace ${messages.length - thread.sealedMessageCount} mensaje${messages.length - thread.sealedMessageCount === 1 ? "" : "s"} — hay mensajes nuevos sin sellar.`
+                    : "Esta conversación no está sellada todavía."}
+                </p>
+                <button
+                  type="submit"
+                  className="flex-shrink-0 rounded-full bg-purple px-3 py-1.5 text-xs font-semibold text-ink"
+                >
+                  {thread.sealedAt ? "Volver a sellar" : "Sellar conversación"}
+                </button>
+              </form>
+            )}
+            {thread.merkleRoot && (
+              <p className="mt-1 break-all font-mono text-[10px] text-ink-faint" title={thread.merkleRoot}>
+                Raíz Merkle: {truncateHash(thread.merkleRoot)}
+              </p>
+            )}
+          </div>
+        )}
+
         {distinctDays.length > 1 && (
           <div className="flex gap-1.5 overflow-x-auto border-t border-subtle px-4 py-2">
             {distinctDays.map((key) => {
@@ -179,6 +220,12 @@ export default async function ThreadPage({
                   <p className="text-sm text-ink">{message.body}</p>
                   <p className={`mt-1 text-right text-[10px] ${isMine ? "text-ink/60" : "text-ink-faint"}`}>
                     {formatTime(message.createdAt)}
+                  </p>
+                  <p
+                    className={`text-right font-mono text-[9px] ${isMine ? "text-ink/50" : "text-ink-faint"}`}
+                    title={`SHA-256: ${message.sha256Hex}`}
+                  >
+                    🔒 {truncateHash(message.sha256Hex)}
                   </p>
                 </div>
                 {isMine && avatar}

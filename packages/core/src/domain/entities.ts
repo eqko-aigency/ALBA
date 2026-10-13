@@ -57,6 +57,12 @@ export interface ChatThread {
   /** Hijo al que aplica el hilo — null para hilos generales de la familia. */
   childId: string | null;
   createdAt: string;
+  /** Sellado (W-xx) — raíz Merkle sobre los hashes de los mensajes, null hasta el primer sellado. */
+  merkleRoot: string | null;
+  anchorReference: string | null;
+  sealedAt: string | null;
+  /** Cuántos mensajes cubre el sello vigente — compara contra el total actual para saber si hay mensajes nuevos sin sellar. */
+  sealedMessageCount: number;
 }
 
 export interface Message {
@@ -65,6 +71,8 @@ export interface Message {
   senderId: string;
   body: string;
   attachmentUrl: string | null;
+  /** SHA-256 sobre thread_id|sender_id|body|created_at — para evidencia (W-xx). */
+  sha256Hex: string;
   createdAt: string;
 }
 
