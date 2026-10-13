@@ -2,18 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getRequestContext } from "@/lib/repository";
 import { AppNav } from "@/components/AppNav";
-import { SectionMenu } from "@/components/SectionMenu";
 import { SubmitButton } from "@/components/SubmitButton";
-import { ContactsIcon, HealthIcon, NotesIcon, SchoolIcon } from "@/components/icons";
 import { updateChildAction } from "../../actions";
 import { ChildDetailsForm } from "./ChildDetailsForm";
-
-const MENU_ITEMS = [
-  { href: "#contactos", label: "Contactos", accent: "bg-salmon", Icon: ContactsIcon },
-  { href: "#salud", label: "Salud", accent: "bg-sky", Icon: HealthIcon },
-  { href: "#escuela", label: "Escuela", accent: "bg-dawn", Icon: SchoolIcon },
-  { href: "#notas", label: "Notas especiales", accent: "bg-purple", Icon: NotesIcon },
-];
 
 export default async function ChildDetailPage({
   params,
@@ -71,8 +62,6 @@ export default async function ChildDetailPage({
           </SubmitButton>
         </form>
       </section>
-
-      <SectionMenu items={MENU_ITEMS} />
 
       <ChildDetailsForm
         childId={child.id}
