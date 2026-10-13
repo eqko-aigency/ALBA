@@ -216,6 +216,25 @@ export interface MeetingPlace {
   name: string;
 }
 
+/**
+ * Visita puntual (W-xx) — ej. "Ir al cine" un domingo específico — a
+ * diferencia de CustodySlot (patrón semanal recurrente: "todos los
+ * domingos"), una Visit vive en UNA fecha exacta y no se repite. Pedido
+ * explícito de la clienta: agregar algo como "ir al cine" el 18 de un mes
+ * no debía marcarse como custodia recurrente todos los domingos.
+ */
+export interface Visit {
+  id: string;
+  childId: string;
+  parentId: string;
+  title: string;
+  /** "YYYY-MM-DD", fecha local — no un patrón semanal. */
+  date: string;
+  startTime: string;
+  endTime: string;
+  placeId: string | null;
+}
+
 export type AnchorStatus = "pending" | "anchored";
 
 /**

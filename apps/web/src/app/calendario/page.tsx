@@ -4,14 +4,37 @@ import { getRequestContext } from "@/lib/repository";
 import { isDemoMode } from "@/lib/demoSession";
 import { AppNav } from "@/components/AppNav";
 import { SubmitButton } from "@/components/SubmitButton";
+import { CalendarIcon, PinIcon, StarIcon } from "@/components/icons";
 import {
   confirmCheckinAction,
   confirmCheckoutAction,
   createMeetingPlaceAction,
+  createVisitAction,
   deleteMeetingPlaceAction,
+  deleteVisitAction,
   removeSlotAction,
   upsertSlotAction,
 } from "./actions";
+
+function AccordionHeader({
+  label,
+  accent,
+  Icon,
+}: {
+  label: string;
+  accent: string;
+  Icon: typeof CalendarIcon;
+}) {
+  return (
+    <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-3.5 [&::-webkit-details-marker]:hidden">
+      <span className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl text-ink ${accent}`}>
+        <Icon className="h-5 w-5" />
+      </span>
+      <span className="text-sm font-semibold text-ink">{label}</span>
+      <span className="ml-auto text-ink-faint transition-transform group-open:rotate-90" aria-hidden="true">→</span>
+    </summary>
+  );
+}
 
 const WEEKDAY_LABELS = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
 const WEEKDAY_SHORT = ["D", "L", "M", "M", "J", "V", "S"];
@@ -135,12 +158,13 @@ export default async function CalendarioPage({
   const rangeStart = isoDateLocal(visibleDays[0]);
   const rangeEnd = isoDateLocal(addDays(visibleDays[visibleDays.length - 1], 1));
 
-  const [agreement, children, familyMembers, events, meetingPlaces] = await Promise.all([
+  const [agreement, children, familyMembers, events, meetingPlaces, visits] = await Promise.all([
     custody.getMyAgreement(parentId),
     pairing.getMyChildren(parentId),
     pairing.listFamilyMembers(parentId),
     custody.listEventsForRange(parentId, rangeStart, rangeEnd),
     custody.listMeetingPlaces(parentId),
+    custody.listVisitsForRange(parentId, rangeStart, rangeEnd),
   ]);
 
   const childName = (id: string) => children.find((c) => c.id === id)?.fullName ?? "Hijo/a";
@@ -178,6 +202,7 @@ export default async function CalendarioPage({
       : `/calendario?view=week&day=${dayKey}${asQuery}`;
 
   const selectedSlots = agreement.slots.filter((s) => s.weekday === selectedDate.getDay());
+  const selectedVisits = visits.filter((v) => v.date === selectedDayKey);
   const selectedIssues = issuesByDay.get(selectedDayKey) ?? [];
   const isSelectedToday = selectedDayKey === todayKey;
 
@@ -251,6 +276,7 @@ export default async function CalendarioPage({
             const isToday = dayKey === todayKey;
             const isSelected = dayKey === selectedDayKey;
             const daySlots = agreement.slots.filter((s) => s.weekday === d.getDay());
+            const dayVisits = visits.filter((v) => v.date === dayKey);
             const hasIssue = (issuesByDay.get(dayKey) ?? []).length > 0;
 
             return (
@@ -268,11 +294,18 @@ export default async function CalendarioPage({
                 }`}
               >
                 <span className="font-semibold">{d.getDate()}</span>
-                <span
-                  className={`h-1.5 w-1.5 rounded-full ${
-                    hasIssue ? "bg-danger" : daySlots.length > 0 ? "bg-success" : "bg-transparent"
-                  }`}
-                />
+                {/* Dos puntos distintos, no uno solo: custodia (recurrente,
+                    verde) y visita (puntual, morado) son cosas distintas —
+                    antes un solo punto los mezclaba sin poder distinguirlos
+                    de un vistazo. */}
+                <span className="flex items-center gap-0.5">
+                  <span
+                    className={`h-1.5 w-1.5 rounded-full ${
+                      hasIssue ? "bg-danger" : daySlots.length > 0 ? "bg-success" : "bg-transparent"
+                    }`}
+                  />
+                  <span className={`h-1.5 w-1.5 rounded-full ${dayVisits.length > 0 ? "bg-purple" : "bg-transparent"}`} />
+                </span>
               </Link>
             );
           })}
@@ -287,9 +320,9 @@ export default async function CalendarioPage({
           )}
         </p>
 
-        {selectedSlots.length === 0 ? (
-          <p className="mt-2 text-sm text-ink-soft">Sin slots configurados para este día.</p>
-        ) : (
+        {selectedSlots.length === 0 && selectedVisits.length === 0 ? (
+          <p className="mt-2 text-sm text-ink-soft">Sin nada programado para este día.</p>
+        ) : selectedSlots.length === 0 ? null : (
           <ul className="mt-3 flex flex-col gap-2">
             {selectedSlots.map((slot, idx) => {
               const scheduledIn = combineDateAndTime(selectedDate, slot.startTime);
@@ -393,11 +426,59 @@ export default async function CalendarioPage({
             })}
           </ul>
         )}
+
+        {/* Separado visualmente de los slots de custodia (chip morado, sin
+            botones de check-in/check-out) — una visita puntual no es parte
+            del convenio recurrente, no tiene cumplimiento que confirmar. */}
+        {selectedVisits.length > 0 && (
+          <ul className="mt-3 flex flex-col gap-2">
+            {selectedVisits.map((visit) => {
+              const accent = parentAccent(visit.parentId === parentId);
+              const parentDisplayName = parentName(visit.parentId);
+              return (
+                <li key={visit.id} className="rounded-xl border border-purple/30 bg-purple/10 px-3 py-2.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="flex items-center gap-2 text-sm text-ink">
+                      <span
+                        className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-ink ${accent.avatar}`}
+                      >
+                        {parentDisplayName.charAt(0).toUpperCase()}
+                      </span>
+                      <span>
+                        <span className="rounded-full bg-purple/30 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-ink">
+                          Visita
+                        </span>{" "}
+                        {visit.title} — {childName(visit.childId)} con <strong>{parentDisplayName}</strong>
+                      </span>
+                    </span>
+                    <span className="whitespace-nowrap text-xs text-ink-soft">
+                      {visit.startTime}–{visit.endTime}
+                    </span>
+                  </div>
+                  {placeName(visit.placeId) && (
+                    <p className="mt-1 flex items-center gap-1 text-xs text-ink-soft">
+                      <span aria-hidden="true">📍</span> {placeName(visit.placeId)}
+                    </p>
+                  )}
+                  <form action={deleteVisitAction} className="mt-2">
+                    <input type="hidden" name="as" value={as ?? ""} />
+                    <input type="hidden" name="visitId" value={visit.id} />
+                    <button type="submit" className="text-xs font-medium text-danger underline">
+                      Quitar
+                    </button>
+                  </form>
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </div>
 
-      <section className="mt-8 rounded-lg border border-subtle bg-card p-5 shadow-ambient">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-ink">Convenio — slots de custodia</h2>
-        <p className="mt-1 text-xs text-ink-soft">
+      <div className="mt-8 overflow-hidden rounded-2xl border border-subtle bg-card shadow-ambient">
+        <details className="group">
+          <AccordionHeader label="Convenio — slots de custodia" accent="bg-sky" Icon={CalendarIcon} />
+          <div className="border-t border-subtle px-4 pb-5 pt-4">
+        <p className="text-xs text-ink-soft">
           Tolerancia antes de marcar un check-in como tardío: {agreement.toleranceMinutes} minutos.
         </p>
 
@@ -497,50 +578,171 @@ export default async function CalendarioPage({
             </button>
           </form>
         )}
-      </section>
+          </div>
+        </details>
 
-      <section className="mt-6 rounded-lg border border-subtle bg-card p-5 shadow-ambient">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-ink">Lugares de encuentro</h2>
-        <p className="mt-1 text-xs text-ink-soft">
-          Casa de cada progenitor, parque, cine... los que agregues aquí aparecen al crear un slot del convenio.
-        </p>
+        <details className="group border-t border-subtle">
+          <AccordionHeader label="Visitas" accent="bg-salmon" Icon={StarIcon} />
+          <div className="border-t border-subtle px-4 pb-5 pt-4">
+            <p className="text-xs text-ink-soft">
+              Algo puntual (ej. "Ir al cine" un día específico) — a diferencia del convenio, una visita no se repite
+              cada semana.
+            </p>
 
-        {meetingPlaces.length > 0 && (
-          <ul className="mt-3 flex flex-col gap-2">
-            {meetingPlaces.map((place) => (
-              <li
-                key={place.id}
-                className="flex items-center justify-between gap-2 rounded-md bg-sand px-3 py-2 text-base text-ink"
-              >
-                <span>📍 {place.name}</span>
-                <form action={deleteMeetingPlaceAction}>
-                  <input type="hidden" name="as" value={as ?? ""} />
-                  <input type="hidden" name="placeId" value={place.id} />
-                  <button type="submit" className="shrink-0 text-xs font-medium text-danger underline">
-                    Quitar
-                  </button>
-                </form>
-              </li>
-            ))}
-          </ul>
-        )}
+            {visits.length > 0 && (
+              <ul className="mt-3 flex flex-col gap-2">
+                {visits
+                  .slice()
+                  .sort((a, b) => a.date.localeCompare(b.date) || a.startTime.localeCompare(b.startTime))
+                  .map((visit) => (
+                    <li
+                      key={visit.id}
+                      className="flex items-center justify-between gap-2 rounded-md bg-sand px-3 py-2 text-base text-ink"
+                    >
+                      <span>
+                        {formatDay(parseDateKeyLocal(visit.date))} · {visit.title} · {visit.startTime}–{visit.endTime} ·{" "}
+                        {childName(visit.childId)} · {parentName(visit.parentId)}
+                        {placeName(visit.placeId) && ` · 📍 ${placeName(visit.placeId)}`}
+                      </span>
+                      <form action={deleteVisitAction}>
+                        <input type="hidden" name="as" value={as ?? ""} />
+                        <input type="hidden" name="visitId" value={visit.id} />
+                        <button type="submit" className="shrink-0 text-xs font-medium text-danger underline">
+                          Quitar
+                        </button>
+                      </form>
+                    </li>
+                  ))}
+              </ul>
+            )}
 
-        <form action={createMeetingPlaceAction} className="mt-4 flex gap-2">
-          <input type="hidden" name="as" value={as ?? ""} />
-          <input
-            name="name"
-            autoComplete="off"
-            required
-            minLength={2}
-            maxLength={80}
-            placeholder="Ej. Casa de Progenitor A, Parque..."
-            className="flex-1 rounded-md border border-subtle bg-card px-3 py-2 text-base text-ink"
-          />
-          <SubmitButton pendingText="Agregando…" className="shrink-0 rounded-full bg-salmon px-4 py-2 text-sm font-semibold text-ink">
-            Agregar
-          </SubmitButton>
-        </form>
-      </section>
+            {children.length === 0 || familyMembers.length === 0 ? (
+              <p className="mt-4 text-sm text-ink-soft">
+                Agrega al menos un hijo (en /registro) y empareja al otro progenitor antes de poder agregar visitas.
+              </p>
+            ) : (
+              <form action={createVisitAction} className="mt-4 flex flex-col gap-2">
+                <input type="hidden" name="as" value={as ?? ""} />
+                <input
+                  name="title"
+                  autoComplete="off"
+                  required
+                  minLength={2}
+                  maxLength={120}
+                  placeholder="Ej. Ir al cine, Cumpleaños de la prima..."
+                  className="rounded-md border border-subtle bg-card px-3 py-2 text-base text-ink"
+                />
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <select
+                    name="childId"
+                    required
+                    className="flex-1 rounded-md border border-subtle bg-card px-3 py-2 text-base text-ink"
+                  >
+                    {children.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.fullName}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    name="parentId"
+                    required
+                    className="flex-1 rounded-md border border-subtle bg-card px-3 py-2 text-base text-ink"
+                  >
+                    {familyMembers.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.id === parentId ? "Tú" : p.fullName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="overflow-hidden rounded-md border border-subtle bg-card">
+                  <input
+                    type="date"
+                    name="date"
+                    required
+                    defaultValue={selectedDayKey}
+                    className="w-full min-w-0 bg-card px-3 py-2 text-base text-ink"
+                  />
+                </div>
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <input
+                    type="time"
+                    name="startTime"
+                    required
+                    className="flex-1 rounded-md border border-subtle bg-card px-3 py-2 text-base text-ink"
+                  />
+                  <input
+                    type="time"
+                    name="endTime"
+                    required
+                    className="flex-1 rounded-md border border-subtle bg-card px-3 py-2 text-base text-ink"
+                  />
+                </div>
+                <select name="placeId" className="rounded-md border border-subtle bg-card px-3 py-2 text-base text-ink">
+                  <option value="">Sin lugar específico</option>
+                  {meetingPlaces.map((place) => (
+                    <option key={place.id} value={place.id}>
+                      {place.name}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="submit"
+                  className="mt-1 self-start rounded-full bg-salmon px-4 py-2 text-sm font-semibold text-ink"
+                >
+                  Agregar visita
+                </button>
+              </form>
+            )}
+          </div>
+        </details>
+
+        <details className="group border-t border-subtle">
+          <AccordionHeader label="Lugares de encuentro" accent="bg-dawn" Icon={PinIcon} />
+          <div className="border-t border-subtle px-4 pb-5 pt-4">
+            <p className="text-xs text-ink-soft">
+              Casa de cada progenitor, parque, cine... los que agregues aquí aparecen al crear un slot o una visita.
+            </p>
+
+            {meetingPlaces.length > 0 && (
+              <ul className="mt-3 flex flex-col gap-2">
+                {meetingPlaces.map((place) => (
+                  <li
+                    key={place.id}
+                    className="flex items-center justify-between gap-2 rounded-md bg-sand px-3 py-2 text-base text-ink"
+                  >
+                    <span>📍 {place.name}</span>
+                    <form action={deleteMeetingPlaceAction}>
+                      <input type="hidden" name="as" value={as ?? ""} />
+                      <input type="hidden" name="placeId" value={place.id} />
+                      <button type="submit" className="shrink-0 text-xs font-medium text-danger underline">
+                        Quitar
+                      </button>
+                    </form>
+                  </li>
+                ))}
+              </ul>
+            )}
+
+            <form action={createMeetingPlaceAction} className="mt-4 flex gap-2">
+              <input type="hidden" name="as" value={as ?? ""} />
+              <input
+                name="name"
+                autoComplete="off"
+                required
+                minLength={2}
+                maxLength={80}
+                placeholder="Ej. Casa de Progenitor A, Parque..."
+                className="flex-1 rounded-md border border-subtle bg-card px-3 py-2 text-base text-ink"
+              />
+              <SubmitButton pendingText="Agregando…" className="shrink-0 rounded-full bg-salmon px-4 py-2 text-sm font-semibold text-ink">
+                Agregar
+              </SubmitButton>
+            </form>
+          </div>
+        </details>
+      </div>
 
       <AppNav active="Calendario" />
     </div>

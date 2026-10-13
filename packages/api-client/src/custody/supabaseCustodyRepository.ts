@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { CustodyAgreement, CustodyEvent, CustodyEventType, CustodyRepository, CustodySlot, MeetingPlace } from "@alba/core";
+import type { CustodyAgreement, CustodyEvent, CustodyEventType, CustodyRepository, CustodySlot, MeetingPlace, Visit } from "@alba/core";
 import { createFamilyIdResolver, type FamilyIdResolver } from "../family/resolveFamilyId";
 
 export function createSupabaseCustodyRepository(
@@ -155,6 +155,47 @@ export function createSupabaseCustodyRepository(
       const { error } = await client.from("meeting_places").delete().eq("id", placeId).eq("family_id", familyId);
       if (error) throw error;
     },
+
+    async listVisitsForRange(parentId, start, end) {
+      const familyId = await getMyFamilyId(parentId);
+      if (!familyId) return [];
+      const { data, error } = await client
+        .from("custody_visits")
+        .select()
+        .eq("family_id", familyId)
+        .gte("visit_date", start)
+        .lt("visit_date", end);
+      if (error) throw error;
+      return (data ?? []).map(mapVisit);
+    },
+
+    async createVisit(parentId, input) {
+      const familyId = await getMyFamilyId(parentId);
+      if (!familyId) throw new Error("el progenitor no pertenece a ninguna familia todavía");
+      const { data, error } = await client
+        .from("custody_visits")
+        .insert({
+          family_id: familyId,
+          child_id: input.childId,
+          parent_id: input.parentId,
+          title: input.title,
+          visit_date: input.date,
+          start_time: input.startTime,
+          end_time: input.endTime,
+          place_id: input.placeId,
+        })
+        .select()
+        .single();
+      if (error) throw error;
+      return mapVisit(data);
+    },
+
+    async deleteVisit(parentId, visitId) {
+      const familyId = await getMyFamilyId(parentId);
+      if (!familyId) return;
+      const { error } = await client.from("custody_visits").delete().eq("id", visitId).eq("family_id", familyId);
+      if (error) throw error;
+    },
   };
 }
 
@@ -232,6 +273,19 @@ function mapSlot(row: any): CustodySlot {
 
 function mapPlace(row: any): MeetingPlace {
   return { id: row.id, name: row.name };
+}
+
+function mapVisit(row: any): Visit {
+  return {
+    id: row.id,
+    childId: row.child_id,
+    parentId: row.parent_id,
+    title: row.title,
+    date: row.visit_date,
+    startTime: row.start_time,
+    endTime: row.end_time,
+    placeId: row.place_id,
+  };
 }
 
 function mapEvent(row: any): CustodyEvent {

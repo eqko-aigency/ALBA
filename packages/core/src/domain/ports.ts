@@ -16,6 +16,7 @@ import type {
   PensionSettings,
   ToneAnalysis,
   VerbalAgreement,
+  Visit,
 } from "./entities";
 import type {
   AcceptInvitationInput,
@@ -30,6 +31,7 @@ import type {
   UpdateChildInput,
   UpsertProfileInput,
   VerbalAgreementInput,
+  VisitInput,
 } from "../validation/schemas";
 
 /**
@@ -151,6 +153,15 @@ export interface CustodyRepository {
   listMeetingPlaces(parentId: string): Promise<MeetingPlace[]>;
   createMeetingPlace(parentId: string, name: string): Promise<MeetingPlace>;
   deleteMeetingPlace(parentId: string, placeId: string): Promise<void>;
+  /**
+   * Visitas puntuales (W-xx) — a diferencia de los slots del convenio
+   * (patrón semanal recurrente), una Visit vive en una fecha exacta y no
+   * se repite. start/end en formato "YYYY-MM-DD" (fecha local), end
+   * exclusivo — mismo criterio que listEventsForRange.
+   */
+  listVisitsForRange(parentId: string, start: string, end: string): Promise<Visit[]>;
+  createVisit(parentId: string, input: VisitInput): Promise<Visit>;
+  deleteVisit(parentId: string, visitId: string): Promise<void>;
 }
 
 /**

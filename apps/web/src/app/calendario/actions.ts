@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { custodyEventInputSchema, custodySlotInputSchema, meetingPlaceInputSchema } from "@alba/core";
+import { custodyEventInputSchema, custodySlotInputSchema, meetingPlaceInputSchema, visitInputSchema } from "@alba/core";
 import { getRequestContext } from "@/lib/repository";
 import { notifyFamilyMembers } from "@/lib/push";
 
@@ -48,6 +48,28 @@ export async function deleteMeetingPlaceAction(formData: FormData) {
   const placeId = String(formData.get("placeId") ?? "");
   const { custody, parentId } = await getRequestContext(String(formData.get("as") ?? ""));
   await custody.deleteMeetingPlace(parentId, placeId);
+  revalidatePath("/calendario");
+}
+
+export async function createVisitAction(formData: FormData) {
+  const input = visitInputSchema.parse({
+    childId: formData.get("childId"),
+    parentId: formData.get("parentId"),
+    title: formData.get("title"),
+    date: formData.get("date"),
+    startTime: formData.get("startTime"),
+    endTime: formData.get("endTime"),
+    placeId: formData.get("placeId"),
+  });
+  const { custody, parentId } = await getRequestContext(String(formData.get("as") ?? ""));
+  await custody.createVisit(parentId, input);
+  revalidatePath("/calendario");
+}
+
+export async function deleteVisitAction(formData: FormData) {
+  const visitId = String(formData.get("visitId") ?? "");
+  const { custody, parentId } = await getRequestContext(String(formData.get("as") ?? ""));
+  await custody.deleteVisit(parentId, visitId);
   revalidatePath("/calendario");
 }
 

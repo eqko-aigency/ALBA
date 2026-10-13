@@ -132,6 +132,19 @@ export const custodySlotInputSchema = z.object({
 });
 export type CustodySlotInput = z.infer<typeof custodySlotInputSchema>;
 
+/** A diferencia de CustodySlot (weekday recurrente), Visit vive en una
+ * fecha exacta — no se repite cada semana. */
+export const visitInputSchema = z.object({
+  childId: z.string().uuid(),
+  parentId: z.string().uuid(),
+  title: z.string().min(2).max(120),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Fecha inválida"),
+  startTime: timeOfDaySchema,
+  endTime: timeOfDaySchema,
+  placeId: z.preprocess((v) => (v === "" || v == null ? null : v), z.string().uuid().nullable()),
+});
+export type VisitInput = z.infer<typeof visitInputSchema>;
+
 export const meetingPlaceInputSchema = z.object({
   name: z.string().min(2).max(80),
 });

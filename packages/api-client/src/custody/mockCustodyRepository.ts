@@ -1,4 +1,4 @@
-import type { CustodyAgreement, CustodyEvent, CustodyEventType, CustodyRepository, CustodySlot, MeetingPlace, PairingRepository } from "@alba/core";
+import type { CustodyAgreement, CustodyEvent, CustodyEventType, CustodyRepository, CustodySlot, MeetingPlace, PairingRepository, Visit } from "@alba/core";
 
 async function listEventsInRange(
   pairingRepository: PairingRepository,
@@ -26,6 +26,7 @@ export function createMockCustodyRepository(pairingRepository: PairingRepository
   const agreementsByFamily = new Map<string, CustodyAgreement>();
   const events = new Map<string, CustodyEvent>();
   const placesByFamily = new Map<string, MeetingPlace[]>();
+  const visitsByFamily = new Map<string, Visit[]>();
 
   async function getFamilyId(parentId: string): Promise<string> {
     const family = await pairingRepository.getOrCreateMyFamily(parentId);
@@ -124,6 +125,30 @@ export function createMockCustodyRepository(pairingRepository: PairingRepository
       placesByFamily.set(
         familyId,
         places.filter((p) => p.id !== placeId)
+      );
+    },
+
+    async listVisitsForRange(parentId, start, end) {
+      const familyId = await getFamilyId(parentId);
+      const visits = visitsByFamily.get(familyId) ?? [];
+      return visits.filter((v) => v.date >= start && v.date < end);
+    },
+
+    async createVisit(parentId, input) {
+      const familyId = await getFamilyId(parentId);
+      const visit: Visit = { id: crypto.randomUUID(), ...input };
+      const visits = visitsByFamily.get(familyId) ?? [];
+      visits.push(visit);
+      visitsByFamily.set(familyId, visits);
+      return visit;
+    },
+
+    async deleteVisit(parentId, visitId) {
+      const familyId = await getFamilyId(parentId);
+      const visits = visitsByFamily.get(familyId) ?? [];
+      visitsByFamily.set(
+        familyId,
+        visits.filter((v) => v.id !== visitId)
       );
     },
   };

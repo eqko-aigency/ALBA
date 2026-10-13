@@ -134,3 +134,30 @@ export function BellIcon({ className = "h-5 w-5" }: IconProps) {
     </svg>
   );
 }
+
+export function PinIcon({ className = "h-5 w-5" }: IconProps) {
+  return (
+    <svg {...common} className={className}>
+      <path
+        d="M12 21s7-6.2 7-11.5A7 7 0 105 9.5C5 14.8 12 21 12 21z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+      <circle cx="12" cy="9.5" r="2.3" stroke="currentColor" strokeWidth="1.8" />
+    </svg>
+  );
+}
+
+export function StarIcon({ className = "h-5 w-5" }: IconProps) {
+  return (
+    <svg {...common} className={className}>
+      <path
+        d="M12 3.5l2.4 5.1 5.5.7-4 3.9.9 5.6-4.8-2.6-4.8 2.6.9-5.6-4-3.9 5.5-.7L12 3.5z"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
