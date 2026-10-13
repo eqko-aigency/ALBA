@@ -73,7 +73,7 @@ export default async function AcuerdosVerbalesPage({
                     <span className="inline-block rounded-full bg-sand px-2 py-0.5 text-[11px] font-semibold text-ink-soft">
                       {childLabel(agreement.childId)}
                     </span>
-                    <p className="mt-1.5 break-words text-sm text-ink">{agreement.description}</p>
+                    <p className="mt-1.5 break-all text-sm text-ink">{agreement.description}</p>
                     <p className="mt-1.5 text-xs text-ink-faint">
                       Acordado el {formatDate(agreement.agreedAt)} · registrado por {parentName(agreement.createdByParentId)}
                     </p>

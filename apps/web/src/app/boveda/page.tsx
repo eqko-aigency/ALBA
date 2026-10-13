@@ -128,7 +128,7 @@ export default async function BovedaPage({
             <div key={doc.id} className={`p-4 ${i > 0 ? "border-t border-subtle" : ""}`}>
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="break-words text-sm font-semibold text-ink">{doc.title}</p>
+                  <p className="break-all text-sm font-semibold text-ink">{doc.title}</p>
                   <span className="mt-1 inline-block rounded-full bg-sand px-2 py-0.5 text-[11px] font-semibold text-ink-soft">
                     {childLabel(doc.childId)}
                   </span>
