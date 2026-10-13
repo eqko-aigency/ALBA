@@ -117,9 +117,7 @@ export function PushToggle() {
   if (status === "checking") return null;
 
   return (
-    <div className="rounded-lg border border-subtle bg-card p-4 shadow-ambient">
-      <h2 className="text-sm font-semibold uppercase tracking-wide text-ink">Notificaciones push</h2>
-
+    <div>
       {status === "unsupported" && (
         <p className="mt-2 text-sm text-ink-soft">Este navegador no soporta notificaciones push.</p>
       )}

@@ -34,6 +34,7 @@ export async function updateChildAction(formData: FormData) {
   const { pairing, parentId } = await getRequestContext();
   await pairing.updateChild(parentId, childId, input);
   revalidatePath("/perfil");
+  revalidatePath(`/perfil/hijo/${childId}`);
 }
 
 /**

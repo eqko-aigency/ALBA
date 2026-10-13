@@ -3,7 +3,9 @@ import { notFound } from "next/navigation";
 import { getRequestContext } from "@/lib/repository";
 import { AppNav } from "@/components/AppNav";
 import { SectionMenu } from "@/components/SectionMenu";
+import { SubmitButton } from "@/components/SubmitButton";
 import { ContactsIcon, HealthIcon, NotesIcon, SchoolIcon } from "@/components/icons";
+import { updateChildAction } from "../../actions";
 import { ChildDetailsForm } from "./ChildDetailsForm";
 
 const MENU_ITEMS = [
@@ -37,6 +39,38 @@ export default async function ChildDetailPage({
       <p className="mt-2 text-ink-soft">
         Datos que ayudan al otro progenitor (y a quien cuide a {child.fullName.split(" ")[0]}) a hacer bien su parte.
       </p>
+
+      <section className="mt-6 rounded-lg border border-subtle bg-card p-5 shadow-ambient">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-ink">Datos básicos</h2>
+        <form action={updateChildAction} className="mt-4 flex flex-col gap-3">
+          <input type="hidden" name="childId" value={child.id} />
+          <label className="text-sm font-medium text-ink">
+            Nombre completo
+            <input
+              name="childFullName"
+              autoComplete="off"
+              required
+              minLength={2}
+              defaultValue={child.fullName}
+              className="mt-1 w-full rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink"
+            />
+          </label>
+          <label className="text-sm font-medium text-ink">
+            Fecha de nacimiento
+            <input
+              name="childBirthDate"
+              type="date"
+              autoComplete="off"
+              required
+              defaultValue={child.birthDate}
+              className="mt-1 w-full rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink"
+            />
+          </label>
+          <SubmitButton pendingText="Guardando…" className="mt-1 self-start rounded-full border border-subtle px-4 py-2 text-sm font-semibold text-ink">
+            Guardar cambios
+          </SubmitButton>
+        </form>
+      </section>
 
       <SectionMenu items={MENU_ITEMS} />
 

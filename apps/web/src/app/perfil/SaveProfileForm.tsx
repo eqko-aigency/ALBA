@@ -16,11 +16,7 @@ export function SaveProfileForm({ initialFullName }: { initialFullName: string }
   }
 
   return (
-    <form
-      action={handleSubmit}
-      onChange={() => setSaved(false)}
-      className="mt-6 flex flex-col gap-3 rounded-lg border border-subtle bg-card p-5 shadow-ambient"
-    >
+    <form action={handleSubmit} onChange={() => setSaved(false)} className="flex flex-col gap-3">
       <label className="text-sm font-medium text-ink">
         Nombre completo
         <input
