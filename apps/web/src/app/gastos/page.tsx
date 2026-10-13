@@ -228,7 +228,7 @@ export default async function GastosPage({
                 type="file"
                 name="receipt"
                 accept="image/*,application/pdf"
-                className="rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink file:mr-3 file:rounded-full file:border-0 file:bg-sand file:px-3 file:py-1 file:text-xs file:font-semibold file:text-ink"
+                className="w-full min-w-0 rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink file:mr-3 file:rounded-full file:border-0 file:bg-sand file:px-3 file:py-1 file:text-xs file:font-semibold file:text-ink"
               />
               <p className="text-xs text-ink-faint">
                 O pega una URL si ya tienes el comprobante subido en otro lado:
