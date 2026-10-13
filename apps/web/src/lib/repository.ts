@@ -95,17 +95,19 @@ function getMockRepositories(): {
  * Component. Por eso acá se arma un segundo cliente, SIN estado de cookies,
  * con el access_token de la sesión ya validada puesto explícitamente como
  * header — así el insert nunca depende de esa propagación implícita.
+ *
+ * getSession() (no getUser()) a propósito: getSession() lee el JWT ya
+ * guardado en la cookie sin red, mientras que getUser() pega otra vez al
+ * servidor de Auth de Supabase para revalidarlo — una llamada de red extra
+ * que acá es redundante, porque proxy.ts YA corrió esa validación remota
+ * (con getUser(), deliberadamente) para esta misma request antes de que
+ * llegara hasta acá. Hacerlo dos veces por cada carga de página era un
+ * viaje de red entero desperdiciado — la clienta reportó la app "lentísima"
+ * y este era un costo fijo en CADA Server Action / Server Component que
+ * toca la base, no solo en algunos.
  */
 async function getAuthedSupabaseClient(): Promise<{ client: SupabaseClient; userId: string }> {
   const cookieClient = await createSupabaseServerClient();
-  const {
-    data: { user },
-    error,
-  } = await cookieClient.auth.getUser();
-  if (error || !user) {
-    throw new Error("No hay sesión activa — inicia sesión para continuar.");
-  }
-
   const {
     data: { session },
   } = await cookieClient.auth.getSession();
@@ -130,7 +132,7 @@ async function getAuthedSupabaseClient(): Promise<{ client: SupabaseClient; user
     throw new Error("No se pudo validar la sesión — inicia sesión de nuevo.");
   }
 
-  return { client, userId: user.id };
+  return { client, userId: session.user.id };
 }
 
 /** Repositorios + identidad del caller para ESTA request. */

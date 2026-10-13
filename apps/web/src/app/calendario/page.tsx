@@ -124,18 +124,15 @@ export default async function CalendarioPage({
       ? Array.from({ length: 42 }, (_, i) => addDays(monthGridStart(refMonthDate), i))
       : Array.from({ length: 7 }, (_, i) => addDays(startOfWeekDate(selectedDate), i));
 
-  const weekStarts =
-    view === "month"
-      ? Array.from({ length: 6 }, (_, i) => isoDateLocal(addDays(monthGridStart(refMonthDate), i * 7)))
-      : [isoDateLocal(startOfWeekDate(selectedDate))];
+  const rangeStart = isoDateLocal(visibleDays[0]);
+  const rangeEnd = isoDateLocal(addDays(visibleDays[visibleDays.length - 1], 1));
 
-  const [agreement, children, familyMembers, eventsPerWeek] = await Promise.all([
+  const [agreement, children, familyMembers, events] = await Promise.all([
     custody.getMyAgreement(parentId),
     pairing.getMyChildren(parentId),
     pairing.listFamilyMembers(parentId),
-    Promise.all(weekStarts.map((ws) => custody.listEventsForWeek(parentId, ws))),
+    custody.listEventsForRange(parentId, rangeStart, rangeEnd),
   ]);
-  const events = eventsPerWeek.flat();
 
   const childName = (id: string) => children.find((c) => c.id === id)?.fullName ?? "Hijo/a";
   const parentName = (id: string) =>

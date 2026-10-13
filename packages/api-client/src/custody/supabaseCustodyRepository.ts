@@ -93,25 +93,20 @@ export function createSupabaseCustodyRepository(client: SupabaseClient): Custody
     },
 
     async listEventsForWeek(parentId, weekStart) {
-      const familyId = await getMyFamilyId(parentId);
-      if (!familyId) return [];
-      const { data: childRows, error: childError } = await client.from("children").select("id").eq("family_id", familyId);
-      if (childError) throw childError;
-      const childIds = (childRows ?? []).map((c: any) => c.id);
-      if (childIds.length === 0) return [];
-
       const start = new Date(`${weekStart}T00:00:00`);
       const end = new Date(start);
       end.setDate(end.getDate() + 7);
+      return listEvents(client, getMyFamilyId, parentId, start, end);
+    },
 
-      const { data, error } = await client
-        .from("custody_events")
-        .select()
-        .in("child_id", childIds)
-        .gte("scheduled_at", start.toISOString())
-        .lt("scheduled_at", end.toISOString());
-      if (error) throw error;
-      return (data ?? []).map(mapEvent);
+    async listEventsForRange(parentId, start, end) {
+      return listEvents(
+        client,
+        getMyFamilyId,
+        parentId,
+        new Date(`${start}T00:00:00`),
+        new Date(`${end}T00:00:00`)
+      );
     },
 
     async confirmCheckin(parentId, childId, scheduledAt) {
@@ -122,6 +117,37 @@ export function createSupabaseCustodyRepository(client: SupabaseClient): Custody
       return confirmEvent(client, parentId, childId, "checkout", scheduledAt);
     },
   };
+}
+
+/**
+ * Compartida entre listEventsForWeek y listEventsForRange — antes cada una
+ * tenía su propia copia de "resolver family_id, buscar hijos, filtrar
+ * eventos por rango de fechas", lo que hacía que pintar la grilla de mes de
+ * Calendario (6 llamadas a listEventsForWeek en paralelo) repitiera la
+ * consulta de "hijos" 6 veces por la misma familia.
+ */
+async function listEvents(
+  client: SupabaseClient,
+  getMyFamilyId: (parentId: string) => Promise<string | null>,
+  parentId: string,
+  start: Date,
+  end: Date
+): Promise<CustodyEvent[]> {
+  const familyId = await getMyFamilyId(parentId);
+  if (!familyId) return [];
+  const { data: childRows, error: childError } = await client.from("children").select("id").eq("family_id", familyId);
+  if (childError) throw childError;
+  const childIds = (childRows ?? []).map((c: any) => c.id);
+  if (childIds.length === 0) return [];
+
+  const { data, error } = await client
+    .from("custody_events")
+    .select()
+    .in("child_id", childIds)
+    .gte("scheduled_at", start.toISOString())
+    .lt("scheduled_at", end.toISOString());
+  if (error) throw error;
+  return (data ?? []).map(mapEvent);
 }
 
 /**

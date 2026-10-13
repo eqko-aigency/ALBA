@@ -1,5 +1,21 @@
 import type { CustodyAgreement, CustodyEvent, CustodyEventType, CustodyRepository, CustodySlot, PairingRepository } from "@alba/core";
 
+async function listEventsInRange(
+  pairingRepository: PairingRepository,
+  events: Map<string, CustodyEvent>,
+  parentId: string,
+  start: Date,
+  end: Date
+): Promise<CustodyEvent[]> {
+  const children = await pairingRepository.getMyChildren(parentId);
+  const childIds = new Set(children.map((c) => c.id));
+  return [...events.values()].filter((e) => {
+    if (!childIds.has(e.childId)) return false;
+    const at = new Date(e.scheduledAt);
+    return at >= start && at < end;
+  });
+}
+
 /**
  * Implementación en memoria del Calendario — mismo patrón que
  * mockChatRepository: depende de PairingRepository para resolver a qué
@@ -63,16 +79,20 @@ export function createMockCustodyRepository(pairingRepository: PairingRepository
     },
 
     async listEventsForWeek(parentId, weekStart) {
-      const children = await pairingRepository.getMyChildren(parentId);
-      const childIds = new Set(children.map((c) => c.id));
       const start = new Date(`${weekStart}T00:00:00`);
       const end = new Date(start);
       end.setDate(end.getDate() + 7);
-      return [...events.values()].filter((e) => {
-        if (!childIds.has(e.childId)) return false;
-        const at = new Date(e.scheduledAt);
-        return at >= start && at < end;
-      });
+      return listEventsInRange(pairingRepository, events, parentId, start, end);
+    },
+
+    async listEventsForRange(parentId, start, end) {
+      return listEventsInRange(
+        pairingRepository,
+        events,
+        parentId,
+        new Date(`${start}T00:00:00`),
+        new Date(`${end}T00:00:00`)
+      );
     },
 
     async confirmCheckin(parentId, childId, scheduledAt) {

@@ -24,13 +24,6 @@ function addDays(d: Date, n: number): Date {
   return r;
 }
 
-function startOfWeekDate(d: Date): Date {
-  const r = new Date(d);
-  r.setHours(0, 0, 0, 0);
-  r.setDate(r.getDate() - r.getDay());
-  return r;
-}
-
 function combineDateAndTime(date: Date, time: string): Date {
   const [h, m] = time.split(":").map(Number);
   const result = new Date(date);
@@ -97,26 +90,18 @@ export default async function DashboardPage({
   const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
   const monthKeyPrefix = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 
-  // Semanas (domingo a sábado) que tocan el mes actual — basta para cubrir
-  // tanto "hoy" como las cifras del mes con un solo set de fetches.
-  const statsWeekStarts: string[] = [];
-  for (let cursor = startOfWeekDate(monthStart); cursor <= monthEnd; cursor = addDays(cursor, 7)) {
-    statsWeekStarts.push(isoDateLocal(cursor));
-  }
-
-  const [children, familyMembers, threads, agreement, eventsPerWeek, balance, expenseList, documentList, agreements] =
+  const [children, familyMembers, threads, agreement, monthEvents, balance, expenseList, documentList, agreements] =
     await Promise.all([
       pairing.getMyChildren(parentId),
       pairing.listFamilyMembers(parentId),
       chat.listThreads(parentId),
       custody.getMyAgreement(parentId),
-      Promise.all(statsWeekStarts.map((ws) => custody.listEventsForWeek(parentId, ws))),
+      custody.listEventsForRange(parentId, isoDateLocal(monthStart), isoDateLocal(addDays(monthEnd, 1))),
       expenses.getBalance(parentId),
       expenses.listExpenses(parentId),
       documents.listDocuments(parentId),
       verbalAgreements.listVerbalAgreements(parentId),
     ]);
-  const monthEvents = eventsPerWeek.flat();
 
   const isPaired = familyMembers.length > 1;
   const childName = (id: string) => children.find((c) => c.id === id)?.fullName ?? "Hijo/a";

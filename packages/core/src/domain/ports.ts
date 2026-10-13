@@ -119,6 +119,15 @@ export interface CustodyRepository {
   upsertSlots(parentId: string, slots: CustodySlot[]): Promise<CustodyAgreement>;
   /** weekStart en formato "YYYY-MM-DD" (fecha local, no UTC) — inicio de semana (domingo). */
   listEventsForWeek(parentId: string, weekStart: string): Promise<CustodyEvent[]>;
+  /**
+   * Mismo resultado que llamar listEventsForWeek varias veces y juntar los
+   * resultados, en UNA sola consulta — Calendario (grilla de mes, 6
+   * semanas) y Dashboard (cifras del mes) antes disparaban hasta 6 llamadas
+   * a listEventsForWeek en paralelo, cada una re-resolviendo family_id y
+   * la lista de hijos desde cero. start/end en formato "YYYY-MM-DD"
+   * (fecha local), end exclusivo.
+   */
+  listEventsForRange(parentId: string, start: string, end: string): Promise<CustodyEvent[]>;
   confirmCheckin(parentId: string, childId: string, scheduledAt: string): Promise<CustodyEvent>;
   confirmCheckout(parentId: string, childId: string, scheduledAt: string): Promise<CustodyEvent>;
 }
