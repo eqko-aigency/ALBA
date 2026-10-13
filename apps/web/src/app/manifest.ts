@@ -6,10 +6,10 @@ import type { MetadataRoute } from "next";
  * inicio) — en iPhone, Safari SOLO manda push notifications a apps
  * instaladas así, nunca a una pestaña normal del navegador.
  *
- * Los íconos reusan app/icon.svg (32x32, el mismo del favicon) — se ve
- * bien en la pestaña del navegador pero es chico para un ícono de
- * pantalla de inicio; lo ideal a futuro es un PNG de 192x192 y 512x512
- * hechos a propósito, no una ampliación del favicon.
+ * icon-192.png/icon-512.png (public/) están renderizados a propósito con
+ * la tipografía real del wordmark de marca (alba-wordmark.ttf) a esa
+ * resolución — no son una ampliación del favicon de 32px, que se veía
+ * pixeleado al usarse como ícono de pantalla de inicio.
  */
 export default function manifest(): MetadataRoute.Manifest {
   return {
@@ -22,9 +22,14 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: "#F79A7A",
     icons: [
       {
-        src: "/icon.svg",
-        sizes: "any",
-        type: "image/svg+xml",
+        src: "/icon-192.png",
+        sizes: "192x192",
+        type: "image/png",
+      },
+      {
+        src: "/icon-512.png",
+        sizes: "512x512",
+        type: "image/png",
       },
     ],
   };
