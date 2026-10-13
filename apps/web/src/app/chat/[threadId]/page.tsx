@@ -251,8 +251,8 @@ export default async function ThreadPage({
           valor que reserva el resto de la app para el nav), sin importar
           cuántos mensajes haya o cuánto se haya scrolleado. */}
       <div
-        className="fixed inset-x-0 z-10 mx-auto max-w-2xl bg-sand px-4 pb-6 pt-2"
-        style={{ bottom: "calc(7.5rem + env(safe-area-inset-bottom))" }}
+        className="fixed inset-x-0 z-10 mx-auto max-w-2xl bg-sand px-4 pb-1 pt-2"
+        style={{ bottom: "calc(5rem + env(safe-area-inset-bottom))" }}
       >
         <MessageComposer threadId={threadId} as={as ?? ""} />
       </div>
