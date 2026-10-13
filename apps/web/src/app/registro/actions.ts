@@ -3,13 +3,6 @@
 import { revalidatePath } from "next/cache";
 import { getRequestContext } from "@/lib/repository";
 
-export async function createInvitationAction() {
-  const { pairing, parentId } = await getRequestContext();
-  await pairing.getOrCreateMyFamily(parentId);
-  await pairing.createInvitation(parentId);
-  revalidatePath("/registro");
-}
-
 export async function createChildAction(formData: FormData) {
   const fullName = String(formData.get("childFullName") ?? "").trim();
   const birthDate = String(formData.get("childBirthDate") ?? "");

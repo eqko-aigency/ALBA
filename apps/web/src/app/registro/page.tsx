@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getRequestContext } from "@/lib/repository";
 import { isDemoMode } from "@/lib/demoSession";
 import { AppNav } from "@/components/AppNav";
-import { createChildAction, createInvitationAction } from "./actions";
+import { createChildAction } from "./actions";
 import { CopyInvitationLink } from "./CopyInvitationLink";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "";
@@ -26,8 +26,18 @@ export default async function RegistroPage() {
   // la base, pero nada transiciona ese status a "expired" cuando pasa
   // expiresAt — sin este filtro, un código vencido se mostraría para siempre
   // y nunca se ofrecería generar uno nuevo.
-  const activeInvitations = pendingInvitations.filter((inv) => new Date(inv.expiresAt) > new Date());
+  let activeInvitations = pendingInvitations.filter((inv) => new Date(inv.expiresAt) > new Date());
   const hasExpiredInvitation = pendingInvitations.length > 0 && activeInvitations.length === 0;
+
+  // Antes había que tocar "Generar código de invitación" ANTES de que
+  // apareciera algo para compartir — un paso extra escondido que se sentía
+  // como "no pasa nada". Ahora, si no hay invitación activa, se genera sola
+  // al cargar la página — lo único que el progenitor ve es el link/código
+  // listo para compartir, de una.
+  if (activeInvitations.length === 0) {
+    const created = await pairing.createInvitation(parentId);
+    activeInvitations = [created];
+  }
 
   return (
     <div className="mx-auto min-h-screen max-w-2xl px-6 pb-[calc(7.5rem+env(safe-area-inset-bottom))] pt-16 bg-sand">
@@ -54,26 +64,18 @@ export default async function RegistroPage() {
       <section className="mt-6 rounded-lg border border-subtle bg-card p-5 shadow-ambient">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-ink">Invitar al otro progenitor</h2>
         {hasExpiredInvitation && (
-          <p className="mt-3 text-sm text-ink-soft">Tu código anterior venció — genera uno nuevo.</p>
+          <p className="mt-3 text-sm text-ink-soft">Tu código anterior venció — aquí tienes uno nuevo.</p>
         )}
-        {activeInvitations.length > 0 ? (
-          activeInvitations.map((inv) => (
-            <div key={inv.id} className="mt-3 rounded-md bg-sea px-4 py-3">
-              <p className="text-xs uppercase tracking-wide text-ink-soft">Código de vinculación</p>
-              <p className="mt-1 font-mono text-lg font-semibold tracking-wide text-ink">
-                {formatInvitationCode(inv.token)}
-              </p>
-              <p className="mt-3 text-xs text-ink-faint">O comparte el enlace protegido:</p>
-              <CopyInvitationLink url={`${siteUrl}/invitacion/${inv.token}`} />
-            </div>
-          ))
-        ) : (
-          <form action={createInvitationAction} className="mt-3">
-            <button type="submit" className="rounded-full bg-orange px-4 py-2 text-sm font-semibold text-ink">
-              Generar código de invitación
-            </button>
-          </form>
-        )}
+        {activeInvitations.map((inv) => (
+          <div key={inv.id} className="mt-3 rounded-md bg-sea px-4 py-3">
+            <p className="text-xs uppercase tracking-wide text-ink-soft">Código de vinculación</p>
+            <p className="mt-1 font-mono text-lg font-semibold tracking-wide text-ink">
+              {formatInvitationCode(inv.token)}
+            </p>
+            <p className="mt-3 text-xs text-ink-faint">O comparte el enlace protegido:</p>
+            <CopyInvitationLink url={`${siteUrl}/invitacion/${inv.token}`} />
+          </div>
+        ))}
       </section>
 
       <section className="mt-6 rounded-lg border border-subtle bg-card p-5 shadow-ambient">

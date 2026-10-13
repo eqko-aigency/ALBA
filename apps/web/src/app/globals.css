@@ -80,3 +80,25 @@ summary,
 [role="button"] {
   cursor: pointer;
 }
+
+/* Retroalimentación al tocar — pedido explícito de la clienta: no sabía
+   si un botón "picó" o no. Mucho del estilo existente usa hover:, que
+   NUNCA se activa en una pantalla táctil (no hay cursor que "pase por
+   encima"). :active sí dispara en el instante del toque, en cualquier
+   dispositivo, sin depender de JS ni de que termine una request —
+   complementa (no reemplaza) los estados de "cargando" de SubmitButton,
+   que tardan un poco más en aparecer porque esperan la respuesta del
+   servidor. Global a propósito (en vez de agregarlo botón por botón en
+   decenas de archivos) para que ningún botón quede sin esta señal. */
+a,
+button:not(:disabled),
+[role="button"] {
+  transition: transform 0.1s ease, opacity 0.1s ease;
+}
+
+a:active,
+button:not(:disabled):active,
+[role="button"]:active {
+  transform: scale(0.96);
+  opacity: 0.75;
+}
