@@ -6,6 +6,7 @@ import { LogoutButton } from "@/components/LogoutButton";
 import { createChildAction, updateChildAction } from "./actions";
 import { SaveProfileForm } from "./SaveProfileForm";
 import { PushToggle } from "./PushToggle";
+import { setUsageModeAction } from "@/app/onboarding/actions";
 
 export default async function PerfilPage() {
   const { pairing, parentId } = await getRequestContext();
@@ -25,6 +26,21 @@ export default async function PerfilPage() {
       <h1 className="text-2xl font-semibold tracking-tight text-ink">Mi perfil</h1>
 
       <SaveProfileForm initialFullName={profile?.fullName ?? ""} />
+
+      <section className="mt-6 rounded-lg border border-subtle bg-card p-5 shadow-ambient">
+        <h2 className="text-sm font-semibold uppercase tracking-wide text-ink">Cómo usas ALBA</h2>
+        <p className="mt-1 text-xs text-ink-soft">
+          {profile?.usageMode === "bilateral"
+            ? "Configurada para que la usen los dos progenitores."
+            : "Configurada para que la uses solo tú, por ahora."}
+        </p>
+        <form action={setUsageModeAction} className="mt-3">
+          <input type="hidden" name="usageMode" value={profile?.usageMode === "bilateral" ? "unilateral" : "bilateral"} />
+          <button type="submit" className="rounded-full bg-orange px-4 py-2 text-sm font-semibold text-ink">
+            {profile?.usageMode === "bilateral" ? "Cambiar a solo yo" : "Invitar al otro progenitor"}
+          </button>
+        </form>
+      </section>
 
       <h2 className="mt-10 text-lg font-semibold tracking-tight text-ink">Hijos vinculados</h2>
       <ul className="mt-4 flex flex-col gap-4">
