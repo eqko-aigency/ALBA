@@ -54,7 +54,7 @@ export default async function ChildDetailPage({
               autoComplete="off"
               required
               defaultValue={child.birthDate}
-              className="mt-1 w-full rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink"
+              className="mt-1 w-full min-w-0 rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink"
             />
           </label>
           <SubmitButton pendingText="Guardando…" className="mt-1 self-start rounded-full border border-subtle px-4 py-2 text-sm font-semibold text-ink">

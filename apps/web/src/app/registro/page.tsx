@@ -98,7 +98,7 @@ export default async function RegistroPage() {
               type="date"
               autoComplete="off"
               required
-              className="mt-1 w-full rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink"
+              className="mt-1 w-full min-w-0 rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink"
             />
           </label>
           <button type="submit" className="mt-1 self-start rounded-full bg-salmon px-4 py-2 text-sm font-semibold text-ink">

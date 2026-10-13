@@ -133,7 +133,7 @@ export default async function AcuerdosVerbalesPage({
               name="agreedAt"
               required
               defaultValue={todayLocal()}
-              className="flex-1 rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink"
+              className="min-w-0 flex-1 rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink"
             />
             {children.length > 0 && (
               <select name="childId" className="flex-1 rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink">
