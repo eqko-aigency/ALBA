@@ -5,6 +5,7 @@ import { topicAvatarClass } from "@/lib/chatAvatar";
 import { MessageComposer } from "./MessageComposer";
 import { confirmAgreementSuggestionAction, dismissAgreementSuggestionAction, renameThreadAction, sealThreadAction } from "./actions";
 import { AppNav } from "@/components/AppNav";
+import { SubmitButton } from "@/components/SubmitButton";
 
 function truncateHash(hash: string): string {
   return `${hash.slice(0, 8)}…${hash.slice(-6)}`;
@@ -198,16 +199,16 @@ export default async function ThreadPage({
             <form action={confirmAgreementSuggestionAction} className="flex-1">
               <input type="hidden" name="as" value={as ?? ""} />
               <input type="hidden" name="threadId" value={threadId} />
-              <button type="submit" className="w-full rounded-full bg-purple px-3 py-2 text-sm font-semibold text-ink">
+              <SubmitButton pendingText="Registrando…" className="w-full rounded-full bg-purple px-3 py-2 text-sm font-semibold text-ink">
                 Registrar como acuerdo
-              </button>
+              </SubmitButton>
             </form>
             <form action={dismissAgreementSuggestionAction} className="flex-1">
               <input type="hidden" name="as" value={as ?? ""} />
               <input type="hidden" name="threadId" value={threadId} />
-              <button type="submit" className="w-full rounded-full border border-purple/40 bg-card px-3 py-2 text-sm font-medium text-ink">
+              <SubmitButton pendingText="Ignorando…" className="w-full rounded-full border border-purple/40 bg-card px-3 py-2 text-sm font-medium text-ink">
                 Ignorar
-              </button>
+              </SubmitButton>
             </form>
           </div>
         </div>
