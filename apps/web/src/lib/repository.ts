@@ -1,7 +1,9 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import {
+  createAnthropicAgreementDetector,
   createAnthropicToneAnalyzer,
   createFamilyIdResolver,
+  createHeuristicAgreementDetector,
   createHeuristicToneAnalyzer,
   createMockChatRepository,
   createMockCustodyRepository,
@@ -19,6 +21,7 @@ import {
   createSupabaseVerbalAgreementRepository,
 } from "@alba/api-client";
 import type {
+  AgreementDetector,
   ChatRepository,
   CustodyRepository,
   DocumentRepository,
@@ -253,3 +256,10 @@ globalForTone.toneAnalyzer ??= isAnthropicConfigured
   : createHeuristicToneAnalyzer();
 
 export const toneAnalyzer: ToneAnalyzer = globalForTone.toneAnalyzer;
+
+const globalForAgreement = globalThis as unknown as { agreementDetector?: AgreementDetector };
+globalForAgreement.agreementDetector ??= isAnthropicConfigured
+  ? createAnthropicAgreementDetector(process.env.ANTHROPIC_API_KEY!)
+  : createHeuristicAgreementDetector();
+
+export const agreementDetector: AgreementDetector = globalForAgreement.agreementDetector;
