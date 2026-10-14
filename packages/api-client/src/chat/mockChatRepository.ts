@@ -54,6 +54,8 @@ export function createMockChatRepository(pairingRepository: PairingRepository): 
         anchorReference: null,
         sealedAt: null,
         sealedMessageCount: 0,
+        pendingAgreementSuggestion: null,
+        pendingAgreementSuggestionBasedOn: null,
       };
       threads.set(thread.id, thread);
       messagesByThread.set(thread.id, []);
@@ -120,6 +122,15 @@ export function createMockChatRepository(pairingRepository: PairingRepository): 
       thread.anchorReference = buildAnchorReference(merkleRoot);
       thread.sealedAt = new Date().toISOString();
       thread.sealedMessageCount = messages.length;
+      return thread;
+    },
+
+    async setAgreementSuggestion(parentId, threadId, suggestion) {
+      const family = await pairingRepository.getOrCreateMyFamily(parentId);
+      const thread = threads.get(threadId);
+      if (!thread || thread.familyId !== family.id) throw new Error("hilo no encontrado");
+      thread.pendingAgreementSuggestion = suggestion?.description ?? null;
+      thread.pendingAgreementSuggestionBasedOn = suggestion?.basedOnMessageId ?? null;
       return thread;
     },
   };

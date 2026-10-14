@@ -185,6 +185,31 @@ export function createSupabaseChatRepository(
       if (error) throw error;
       return mapThread(data);
     },
+
+    async setAgreementSuggestion(parentId, threadId, suggestion) {
+      const familyId = await getMyFamilyId(parentId);
+      if (!familyId) throw new Error("el progenitor no pertenece a ninguna familia todavía");
+
+      const { data: thread, error: threadError } = await client
+        .from("chat_threads")
+        .select("family_id")
+        .eq("id", threadId)
+        .maybeSingle();
+      if (threadError) throw threadError;
+      if (!thread || thread.family_id !== familyId) throw new Error("hilo no encontrado");
+
+      const { data, error } = await client
+        .from("chat_threads")
+        .update({
+          pending_agreement_suggestion: suggestion?.description ?? null,
+          pending_agreement_suggestion_based_on: suggestion?.basedOnMessageId ?? null,
+        })
+        .eq("id", threadId)
+        .select()
+        .single();
+      if (error) throw error;
+      return mapThread(data);
+    },
   };
 }
 
@@ -199,6 +224,8 @@ function mapThread(row: any): ChatThread {
     anchorReference: row.anchor_reference ?? null,
     sealedAt: row.sealed_at ?? null,
     sealedMessageCount: row.sealed_message_count ?? 0,
+    pendingAgreementSuggestion: row.pending_agreement_suggestion ?? null,
+    pendingAgreementSuggestionBasedOn: row.pending_agreement_suggestion_based_on ?? null,
   };
 }
 
