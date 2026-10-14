@@ -21,9 +21,15 @@ export function createHeuristicAgreementDetector(): AgreementDetector {
       const previousProposed = QUESTION_PATTERN.test(previous.body);
 
       if (lastConfirms && previousProposed) {
+        // previous.senderLabel ya viene calculado correctamente (quién mandó
+        // ESE mensaje) — invertirlo con un ternario (como estaba antes)
+        // atribuía la propuesta al progenitor equivocado. Confirmado en
+        // verificación en vivo: con B proponiendo y A confirmando, el texto
+        // decía "Tú propuso... y Tú lo confirmó" (los dos "Tú"), en vez de
+        // "El otro progenitor propuso... y Tú lo confirmó".
         return {
           isAgreement: true,
-          description: `${previous.senderLabel === "Tú" ? "El otro progenitor" : "Tú"} propuso algo y ${last.senderLabel} lo confirmó: "${previous.body.replace(/[¿?]/g, "").trim()}"`,
+          description: `${previous.senderLabel} propuso algo y ${last.senderLabel} lo confirmó: "${previous.body.replace(/[¿?]/g, "").trim()}"`,
         };
       }
 
