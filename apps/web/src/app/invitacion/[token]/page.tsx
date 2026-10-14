@@ -4,8 +4,15 @@ import { createSupabaseServerClient } from "@/lib/supabaseServerClient";
 import { isDemoMode } from "@/lib/demoSession";
 import { acceptInvitationAction } from "./actions";
 
-export default async function InvitacionPage({ params }: { params: Promise<{ token: string }> }) {
+export default async function InvitacionPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ token: string }>;
+  searchParams: Promise<{ error?: string }>;
+}) {
   const { token } = await params;
+  const { error } = await searchParams;
   const pairing = await getPublicPairingRepository();
   const invitation = await pairing.getInvitationByToken(token);
 
@@ -85,12 +92,20 @@ export default async function InvitacionPage({ params }: { params: Promise<{ tok
       <p className="mt-2 text-ink-soft">
         El otro progenitor te está invitando a vincular tu familia en ALBA.
       </p>
-      <form action={acceptInvitationAction} className="mt-8">
-        <input type="hidden" name="token" value={token} />
-        <button type="submit" className="rounded-full bg-orange px-5 py-2.5 text-sm font-semibold text-ink shadow-elevated">
-          Aceptar invitación
-        </button>
-      </form>
+      {error === "ya_tiene_familia" ? (
+        <p className="mt-8 rounded-md border border-danger/30 bg-danger/5 px-4 py-3 text-sm text-ink">
+          Ya tienes tu propia familia en ALBA (se crea automáticamente al registrarte), así que no puedes aceptar
+          esta invitación todavía — primero hay que borrar esa familia desde el equipo de soporte. Contáctanos
+          para resolverlo.
+        </p>
+      ) : (
+        <form action={acceptInvitationAction} className="mt-8">
+          <input type="hidden" name="token" value={token} />
+          <button type="submit" className="rounded-full bg-orange px-5 py-2.5 text-sm font-semibold text-ink shadow-elevated">
+            Aceptar invitación
+          </button>
+        </form>
+      )}
     </div>
   );
 }
