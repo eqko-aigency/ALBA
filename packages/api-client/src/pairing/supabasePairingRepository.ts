@@ -14,7 +14,14 @@ import { createFamilyIdResolver, type FamilyIdResolver } from "../family/resolve
 
 export function createSupabasePairingRepository(
   client: SupabaseClient,
-  familyIdResolver?: FamilyIdResolver
+  familyIdResolver?: FamilyIdResolver,
+  // El email del caller no vive en `profiles` (solo en auth.users/el JWT) —
+  // se recibe ya resuelto por el caller (ver getAuthedSupabaseClient en
+  // repository.ts) en vez de volver a leerlo acá vía client.auth.getSession():
+  // el `client` que llega a este repo está en modo `accessToken`, donde
+  // `client.auth` tira a propósito (ver el comentario en repository.ts).
+  // "" cuando no aplica (ej. getPublicPairingRepository, sin sesión).
+  callerEmail = ""
 ): PairingRepository {
   const getMyFamilyId = familyIdResolver ?? createFamilyIdResolver(client);
 
@@ -92,16 +99,10 @@ export function createSupabasePairingRepository(
       if (error) throw error;
       if (!data) return null;
 
-      // getSession() lee el JWT ya verificado localmente, sin pegarle de
-      // nuevo al servidor de Auth — a diferencia de getCurrentParentId()
-      // (repository.ts), acá la identidad del caller ya se validó río
-      // arriba; esto solo necesita leer el email que ya trae la sesión.
-      const { data: sessionData } = await client.auth.getSession();
-      const email = sessionData.session?.user.id === parentId ? (sessionData.session?.user.email ?? "") : "";
       return {
         id: data.id,
         fullName: data.full_name,
-        email,
+        email: callerEmail,
         usageMode: data.usage_mode ?? null,
         lastNotificationsSeenAt: data.last_notifications_seen_at ?? null,
       };
@@ -115,11 +116,10 @@ export function createSupabasePairingRepository(
         .single();
       if (error) throw error;
 
-      const { data: sessionData } = await client.auth.getSession();
       return {
         id: data.id,
         fullName: data.full_name,
-        email: sessionData.session?.user.email ?? "",
+        email: callerEmail,
         usageMode: data.usage_mode ?? null,
         lastNotificationsSeenAt: data.last_notifications_seen_at ?? null,
       };
@@ -134,11 +134,10 @@ export function createSupabasePairingRepository(
         .single();
       if (error) throw error;
 
-      const { data: sessionData } = await client.auth.getSession();
       return {
         id: data.id,
         fullName: data.full_name,
-        email: sessionData.session?.user.email ?? "",
+        email: callerEmail,
         usageMode: data.usage_mode ?? null,
         lastNotificationsSeenAt: data.last_notifications_seen_at ?? null,
       };
@@ -153,11 +152,10 @@ export function createSupabasePairingRepository(
         .single();
       if (error) throw error;
 
-      const { data: sessionData } = await client.auth.getSession();
       return {
         id: data.id,
         fullName: data.full_name,
-        email: sessionData.session?.user.email ?? "",
+        email: callerEmail,
         usageMode: data.usage_mode ?? null,
         lastNotificationsSeenAt: data.last_notifications_seen_at ?? null,
       };

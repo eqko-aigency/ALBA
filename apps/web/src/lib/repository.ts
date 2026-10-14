@@ -94,20 +94,33 @@ function getMockRepositories(): {
  * next/headers) no estaba propagando el Authorization header de la sesión a
  * cada request de postgrest de forma confiable dentro de un Server
  * Component. Por eso acá se arma un segundo cliente, SIN estado de cookies,
- * con el access_token de la sesión ya validada puesto explícitamente como
- * header — así el insert nunca depende de esa propagación implícita.
+ * para el que SÍ se controla a mano qué token lleva cada request.
  *
  * getSession() (no getUser()) a propósito: getSession() lee el JWT ya
  * guardado en la cookie sin red, mientras que getUser() pega otra vez al
  * servidor de Auth de Supabase para revalidarlo — una llamada de red extra
  * que acá es redundante, porque proxy.ts YA corrió esa validación remota
  * (con getUser(), deliberadamente) para esta misma request antes de que
- * llegara hasta acá. Hacerlo dos veces por cada carga de página era un
- * viaje de red entero desperdiciado — la clienta reportó la app "lentísima"
- * y este era un costo fijo en CADA Server Action / Server Component que
- * toca la base, no solo en algunos.
+ * llegara hasta acá.
+ *
+ * El segundo cliente usa la opción `accessToken` (no `setSession()`) por el
+ * mismo motivo: `setSession()` SIEMPRE dispara una llamada de red interna
+ * (`_getUser()` si el token no venció, o un refresh completo si venció —
+ * ver GoTrueClient._setSession en @supabase/auth-js) antes de devolver el
+ * cliente listo, así que "arreglar" el primer viaje de red redundante
+ * (getUser→getSession arriba) sin querer metió este segundo, idéntico,
+ * cada vez que CUALQUIER Server Action/Component tocaba la base — el costo
+ * fijo real detrás del reporte de "la app está lentísima". `accessToken` es
+ * la forma documentada de supabase-js para un token YA validado: el cliente
+ * nunca instancia su propio auth client (acceder a `client.auth.*` tira un
+ * error a propósito) y cada request de PostgREST/Storage toma el token
+ * directo de este callback, sin ninguna llamada de red de por medio — y al
+ * ir cableado en el `fetch` base del cliente (no en `global.headers`
+ * puesto a mano después de crear el cliente), tampoco puede quedar pisado
+ * por lógica interna, que fue justo lo que falló en el intento anterior de
+ * usar un header manual.
  */
-export async function getAuthedSupabaseClient(): Promise<{ client: SupabaseClient; userId: string }> {
+export async function getAuthedSupabaseClient(): Promise<{ client: SupabaseClient; userId: string; email: string }> {
   const cookieClient = await createSupabaseServerClient();
   const {
     data: { session },
@@ -116,24 +129,15 @@ export async function getAuthedSupabaseClient(): Promise<{ client: SupabaseClien
     throw new Error("No hay sesión activa — inicia sesión para continuar.");
   }
 
-  // client.auth.setSession() (no un header de Authorization armado a mano)
-  // es la forma documentada de hidratar un cliente nuevo con una sesión ya
-  // validada: el PostgrestClient interno de supabase-js deriva el header
-  // Authorization de su propio auth.getSession() en cada request, así que
-  // un header puesto a mano en `global.headers` puede quedar pisado por esa
-  // lógica interna — eso fue lo que pasó en el intento anterior.
   const client = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
-    auth: { persistSession: false, autoRefreshToken: false },
+    accessToken: async () => session.access_token,
   });
-  const { error: setSessionError } = await client.auth.setSession({
-    access_token: session.access_token,
-    refresh_token: session.refresh_token,
-  });
-  if (setSessionError) {
-    throw new Error("No se pudo validar la sesión — inicia sesión de nuevo.");
-  }
 
-  return { client, userId: session.user.id };
+  // En modo `accessToken`, `client.auth` tira a propósito (ver arriba) —
+  // cualquier repo que necesite el email del caller (no vive en `profiles`,
+  // solo en el JWT) lo recibe ya resuelto acá, nunca volviendo a tocar
+  // `client.auth` más abajo.
+  return { client, userId: session.user.id, email: session.user.email ?? "" };
 }
 
 /** Repositorios + identidad del caller para ESTA request. */
@@ -162,7 +166,7 @@ export async function getRequestContext(as?: string): Promise<{
     };
   }
 
-  const { client, userId } = await getAuthedSupabaseClient();
+  const { client, userId, email } = await getAuthedSupabaseClient();
 
   // Un solo resolver de family_id, compartido entre los 7 repositorios de
   // esta request — antes cada uno creaba el suyo, así que una página como
@@ -173,7 +177,7 @@ export async function getRequestContext(as?: string): Promise<{
   const familyIdResolver = createFamilyIdResolver(client);
 
   return {
-    pairing: createSupabasePairingRepository(client, familyIdResolver),
+    pairing: createSupabasePairingRepository(client, familyIdResolver, email),
     chat: createSupabaseChatRepository(client, familyIdResolver),
     custody: createSupabaseCustodyRepository(client, familyIdResolver),
     expenses: createSupabaseExpenseRepository(client, familyIdResolver),
