@@ -3,9 +3,9 @@
 import { signUpInputSchema } from "@alba/core";
 import { createSupabaseServerClient } from "@/lib/supabaseServerClient";
 
-export async function signupAction(
-  formData: FormData
-): Promise<{ error: string } | { success: true }> {
+type SignupResult = { error: string; canResend?: boolean; email?: string } | { success: true };
+
+export async function signupAction(formData: FormData): Promise<SignupResult> {
   const password = String(formData.get("password") ?? "");
   const passwordConfirm = String(formData.get("passwordConfirm") ?? "");
 
@@ -45,7 +45,15 @@ export async function signupAction(
   // este chequeo, un usuario repitiendo su propio email veía "revisa tu
   // correo" y nunca le llegaba nada — exactamente lo que reportó la clienta.
   if (!error && data.user && data.user.identities?.length === 0) {
-    return { error: "Ya existe una cuenta con ese email. Inicia sesión en vez de crear una nueva." };
+    return {
+      error: "Ya existe una cuenta con ese email. Inicia sesión en vez de crear una nueva.",
+      // Puede ser que la cuenta exista pero nunca haya confirmado el correo
+      // (el caso real que reportó la clienta) — se ofrece reenviar el link
+      // en vez de dejarla sin salida, ya que "Inicia sesión" tampoco le
+      // sirve mientras siga sin confirmar.
+      canResend: true,
+      email: parsed.data.email,
+    };
   }
 
   if (error) {
@@ -66,6 +74,33 @@ export async function signupAction(
       return { error: "Demasiados intentos — espera unos minutos e intenta de nuevo." };
     }
     return { error: "No se pudo crear la cuenta. Intenta de nuevo." };
+  }
+
+  return { success: true };
+}
+
+export async function resendConfirmationAction(email: string): Promise<{ error: string } | { success: true }> {
+  if (!process.env.NEXT_PUBLIC_SITE_URL) {
+    throw new Error("NEXT_PUBLIC_SITE_URL no está configurada — no se puede armar el link de confirmación.");
+  }
+
+  const client = await createSupabaseServerClient();
+  const { error } = await client.auth.resend({
+    type: "signup",
+    email,
+    options: { emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/confirm` },
+  });
+
+  if (error) {
+    console.error("[resendConfirmationAction] Supabase resend() falló", {
+      message: error.message,
+      status: error.status,
+      email,
+    });
+    if (error.status === 429) {
+      return { error: "Demasiados intentos — espera unos minutos e intenta de nuevo." };
+    }
+    return { error: "No se pudo reenviar el correo. Intenta de nuevo." };
   }
 
   return { success: true };

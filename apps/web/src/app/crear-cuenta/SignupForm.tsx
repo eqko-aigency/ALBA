@@ -2,23 +2,40 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { signupAction } from "./actions";
+import { resendConfirmationAction, signupAction } from "./actions";
 
 export function SignupForm() {
   const [error, setError] = useState<string | null>(null);
+  const [resend, setResend] = useState<{ email: string } | null>(null);
   const [pending, setPending] = useState(false);
+  const [resendPending, setResendPending] = useState(false);
   const [sent, setSent] = useState(false);
 
   async function handleSubmit(formData: FormData) {
     setPending(true);
     setError(null);
+    setResend(null);
     const result = await signupAction(formData);
+    if ("error" in result) {
+      setError(result.error);
+      setResend(result.canResend && result.email ? { email: result.email } : null);
+    } else {
+      setSent(true);
+    }
+    setPending(false);
+  }
+
+  async function handleResend() {
+    if (!resend) return;
+    setResendPending(true);
+    setError(null);
+    const result = await resendConfirmationAction(resend.email);
     if ("error" in result) {
       setError(result.error);
     } else {
       setSent(true);
     }
-    setPending(false);
+    setResendPending(false);
   }
 
   if (sent) {
@@ -90,7 +107,21 @@ export function SignupForm() {
           />
         </div>
       </label>
-      {error && <p className="text-sm text-danger">{error}</p>}
+      {error && (
+        <div className="flex flex-col gap-2">
+          <p className="text-sm text-danger">{error}</p>
+          {resend && (
+            <button
+              type="button"
+              onClick={handleResend}
+              disabled={resendPending}
+              className="self-start text-sm font-semibold text-purple underline disabled:opacity-60"
+            >
+              {resendPending ? "Reenviando…" : "Reenviar correo de confirmación"}
+            </button>
+          )}
+        </div>
+      )}
       <button
         type="submit"
         disabled={pending}
