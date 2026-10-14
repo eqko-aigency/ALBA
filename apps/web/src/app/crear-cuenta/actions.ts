@@ -28,7 +28,7 @@ export async function signupAction(
   }
 
   const client = await createSupabaseServerClient();
-  const { error } = await client.auth.signUp({
+  const { data, error } = await client.auth.signUp({
     email: parsed.data.email,
     password: parsed.data.password,
     options: {
@@ -36,6 +36,17 @@ export async function signupAction(
       emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/confirm`,
     },
   });
+
+  // Con "Confirm email" activado, Supabase NO devuelve error cuando el
+  // correo ya tiene una cuenta sin confirmar — responde como si fuera un
+  // registro nuevo (protección anti-enumeración de emails), sin mandar
+  // nada. La única forma de distinguirlo es que `identities` viene vacío
+  // para un usuario que ya existía (no vacío para uno recién creado). Sin
+  // este chequeo, un usuario repitiendo su propio email veía "revisa tu
+  // correo" y nunca le llegaba nada — exactamente lo que reportó la clienta.
+  if (!error && data.user && data.user.identities?.length === 0) {
+    return { error: "Ya existe una cuenta con ese email. Inicia sesión en vez de crear una nueva." };
+  }
 
   if (error) {
     // El mensaje que ve el usuario siempre fue genérico — pero nunca se
