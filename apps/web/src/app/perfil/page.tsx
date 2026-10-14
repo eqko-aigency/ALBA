@@ -22,7 +22,8 @@ export default async function PerfilPage() {
     pairing.getMyChildren(parentId),
     pairing.listFamilyMembers(parentId),
   ]);
-  const isPaired = familyMembers.length > 1;
+  const otherParent = familyMembers.find((m) => m.id !== parentId) ?? null;
+  const isPaired = otherParent !== null;
 
   return (
     <div className="mx-auto min-h-screen max-w-2xl px-6 pb-[calc(7.5rem+env(safe-area-inset-bottom))] pt-16 bg-sand">
@@ -65,6 +66,11 @@ export default async function PerfilPage() {
                 ? "Configurada para que la usen los dos progenitores."
                 : "Configurada para que la uses solo tú, por ahora."}
             </p>
+            {profile?.usageMode === "bilateral" && isPaired && (
+              <p className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-success/15 px-3 py-1.5 text-xs font-semibold text-success">
+                ✓ Vinculado con {otherParent?.fullName ?? "el otro progenitor"}
+              </p>
+            )}
             {profile?.usageMode === "bilateral" && !isPaired ? (
               // Antes vivía en el Dashboard — se mudó aquí para que todo lo
               // relacionado con emparejar/configurar la familia esté en un

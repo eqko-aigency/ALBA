@@ -17,10 +17,13 @@ export default async function RegistroPage() {
   const { pairing, parentId } = await getRequestContext();
 
   await pairing.getOrCreateMyFamily(parentId);
-  const [pendingInvitations, children] = await Promise.all([
+  const [pendingInvitations, children, familyMembers] = await Promise.all([
     pairing.listPendingInvitations(parentId),
     pairing.getMyChildren(parentId),
+    pairing.listFamilyMembers(parentId),
   ]);
+
+  const otherParent = familyMembers.find((m) => m.id !== parentId) ?? null;
 
   // listPendingInvitations devuelve todo lo que sigue en status "pending" en
   // la base, pero nada transiciona ese status a "expired" cuando pasa
@@ -33,8 +36,10 @@ export default async function RegistroPage() {
   // apareciera algo para compartir — un paso extra escondido que se sentía
   // como "no pasa nada". Ahora, si no hay invitación activa, se genera sola
   // al cargar la página — lo único que el progenitor ve es el link/código
-  // listo para compartir, de una.
-  if (activeInvitations.length === 0) {
+  // listo para compartir, de una. Pero si ya está vinculado (otherParent),
+  // no tiene sentido seguir ofreciendo un código nuevo — la clienta reportó
+  // que nada en la app confirmaba que el enlace ya había funcionado.
+  if (activeInvitations.length === 0 && !otherParent) {
     const created = await pairing.createInvitation(parentId);
     activeInvitations = [created];
   }
@@ -63,19 +68,27 @@ export default async function RegistroPage() {
 
       <section className="mt-6 rounded-lg border border-subtle bg-card p-5 shadow-ambient">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-ink">Invitar al otro progenitor</h2>
-        {hasExpiredInvitation && (
-          <p className="mt-3 text-sm text-ink-soft">Tu código anterior venció — aquí tienes uno nuevo.</p>
+        {otherParent ? (
+          <p className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-success/15 px-3 py-1.5 text-xs font-semibold text-success">
+            ✓ Vinculado con {otherParent.fullName}
+          </p>
+        ) : (
+          <>
+            {hasExpiredInvitation && (
+              <p className="mt-3 text-sm text-ink-soft">Tu código anterior venció — aquí tienes uno nuevo.</p>
+            )}
+            {activeInvitations.map((inv) => (
+              <div key={inv.id} className="mt-3 rounded-md bg-sea px-4 py-3">
+                <p className="text-xs uppercase tracking-wide text-ink-soft">Código de vinculación</p>
+                <p className="mt-1 font-mono text-lg font-semibold tracking-wide text-ink">
+                  {formatInvitationCode(inv.token)}
+                </p>
+                <p className="mt-3 text-xs text-ink-faint">O comparte el enlace protegido:</p>
+                <CopyInvitationLink url={`${siteUrl}/invitacion/${inv.token}`} />
+              </div>
+            ))}
+          </>
         )}
-        {activeInvitations.map((inv) => (
-          <div key={inv.id} className="mt-3 rounded-md bg-sea px-4 py-3">
-            <p className="text-xs uppercase tracking-wide text-ink-soft">Código de vinculación</p>
-            <p className="mt-1 font-mono text-lg font-semibold tracking-wide text-ink">
-              {formatInvitationCode(inv.token)}
-            </p>
-            <p className="mt-3 text-xs text-ink-faint">O comparte el enlace protegido:</p>
-            <CopyInvitationLink url={`${siteUrl}/invitacion/${inv.token}`} />
-          </div>
-        ))}
       </section>
 
       <section className="mt-6 rounded-lg border border-subtle bg-card p-5 shadow-ambient">
