@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { ToneAnalyzer, ToneAnalysis, ToneLevel } from "@alba/core";
+import { extractJson } from "./extractJson";
 
 const SYSTEM_PROMPT = `Eres el Tone Meter de ALBA, una app de coparentalidad. Analizas UN mensaje que un progenitor está por enviar al otro y evalúas si su tono podría escalar el conflicto.
 
@@ -11,20 +12,6 @@ Responde ÚNICAMENTE con JSON válido, sin texto adicional, con esta forma exact
 - "hostil": hay insultos, amenazas o descalificaciones. suggestion es una reformulación que preserva la intención (ej. pedir algo, poner un límite) sin el lenguaje agresivo.
 
 Nunca inventes hechos que no estén en el mensaje original. No agregues explicaciones fuera del JSON.`;
-
-/**
- * Haiku a veces envuelve el JSON en un bloque de markdown (```json ... ```)
- * pese a que el prompt pide "ÚNICAMENTE JSON" — eso rompía JSON.parse()
- * directo y caía siempre al fallback de "neutral" en silencio, dejando
- * pasar mensajes hostiles sin aviso. Quita el fencing y se queda solo con
- * el primer bloque {...} del texto.
- */
-function extractJson(text: string): string {
-  const fenced = text.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
-  const candidate = fenced ? fenced[1] : text;
-  const braces = candidate.match(/\{[\s\S]*\}/);
-  return braces ? braces[0] : candidate;
-}
 
 /**
  * Implementación real — nunca se llama desde el cliente (la API key no
