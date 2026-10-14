@@ -102,6 +102,16 @@ export interface ChatRepository {
    * hasta ese momento (nunca sellos parciales acumulados).
    */
   sealThread(parentId: string, threadId: string): Promise<ChatThread>;
+  /**
+   * Persiste (o limpia, pasando null) la sugerencia de acuerdo pendiente de
+   * un hilo — siempre reemplaza la anterior, nunca acumula varias: el
+   * estado guardado debe reflejar el análisis del ÚLTIMO mensaje del hilo.
+   */
+  setAgreementSuggestion(
+    parentId: string,
+    threadId: string,
+    suggestion: { description: string; basedOnMessageId: string } | null
+  ): Promise<ChatThread>;
 }
 
 /**
@@ -111,6 +121,22 @@ export interface ChatRepository {
  */
 export interface ToneAnalyzer {
   analyze(body: string): Promise<ToneAnalysis>;
+}
+
+export interface AgreementDetectionResult {
+  isAgreement: boolean;
+  /** Resumen en una frase, listo para precargar VerbalAgreementInput.description. null cuando isAgreement es false. */
+  description: string | null;
+}
+
+/**
+ * Detector de acuerdos del Chat (W-xx) — mismo criterio que ToneAnalyzer:
+ * nunca corre en el cliente, la implementación real llama a Anthropic desde
+ * el servidor. Recibe los últimos mensajes de un hilo (más antiguo primero)
+ * para poder juzgar un intercambio completo, no un mensaje suelto.
+ */
+export interface AgreementDetector {
+  detect(messages: { senderLabel: "Tú" | "El otro progenitor"; body: string }[]): Promise<AgreementDetectionResult>;
 }
 
 /**

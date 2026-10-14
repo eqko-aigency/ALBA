@@ -96,6 +96,10 @@ export interface ChatThread {
   sealedAt: string | null;
   /** Cuántos mensajes cubre el sello vigente — compara contra el total actual para saber si hay mensajes nuevos sin sellar. */
   sealedMessageCount: number;
+  /** Resumen de IA de un acuerdo detectado en los últimos mensajes — null si no hay ninguno pendiente. */
+  pendingAgreementSuggestion: string | null;
+  /** id del mensaje sobre el que se basó la última detección (o null). */
+  pendingAgreementSuggestionBasedOn: string | null;
 }
 
 export interface Message {
