@@ -3,7 +3,7 @@ import { getRequestContext } from "@/lib/repository";
 import { isDemoMode } from "@/lib/demoSession";
 import { topicAvatarClass } from "@/lib/chatAvatar";
 import { MessageComposer } from "./MessageComposer";
-import { renameThreadAction, sealThreadAction } from "./actions";
+import { confirmAgreementSuggestionAction, dismissAgreementSuggestionAction, renameThreadAction, sealThreadAction } from "./actions";
 import { AppNav } from "@/components/AppNav";
 
 function truncateHash(hash: string): string {
@@ -186,6 +186,31 @@ export default async function ThreadPage({
         <p className="mx-4 mt-3 rounded-md border border-orange bg-dawn px-4 py-2 text-sm text-ink">
           Modo de prueba local — escribiendo como Progenitor {as === "b" ? "B" : "A"}.
         </p>
+      )}
+
+      {thread?.pendingAgreementSuggestion && (
+        <div className="mx-4 mt-3 rounded-xl border border-purple/30 bg-purple/10 p-4">
+          <p className="flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-purple">
+            <span aria-hidden="true">✦</span> ALBA sugiere
+          </p>
+          <p className="mt-2 text-sm text-ink">{thread.pendingAgreementSuggestion}</p>
+          <div className="mt-3 flex gap-2">
+            <form action={confirmAgreementSuggestionAction} className="flex-1">
+              <input type="hidden" name="as" value={as ?? ""} />
+              <input type="hidden" name="threadId" value={threadId} />
+              <button type="submit" className="w-full rounded-full bg-purple px-3 py-2 text-sm font-semibold text-ink">
+                Registrar como acuerdo
+              </button>
+            </form>
+            <form action={dismissAgreementSuggestionAction} className="flex-1">
+              <input type="hidden" name="as" value={as ?? ""} />
+              <input type="hidden" name="threadId" value={threadId} />
+              <button type="submit" className="w-full rounded-full border border-purple/40 bg-card px-3 py-2 text-sm font-medium text-ink">
+                Ignorar
+              </button>
+            </form>
+          </div>
+        </div>
       )}
 
       <div className="flex flex-1 flex-col gap-2 px-4 pt-4 pb-[calc(16rem+env(safe-area-inset-bottom))]">
