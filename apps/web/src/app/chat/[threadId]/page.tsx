@@ -252,7 +252,9 @@ export default async function ThreadPage({
           cuántos mensajes haya o cuánto se haya scrolleado. */}
       <div
         className="fixed inset-x-0 z-10 mx-auto max-w-2xl bg-sand px-4 pb-1 pt-2"
-        style={{ bottom: "calc(5rem + env(safe-area-inset-bottom))" }}
+        // translateZ(0): mismo fix de AppNav.tsx para el "nado" de iOS
+        // Safari en elementos fixed durante scroll con inercia.
+        style={{ bottom: "calc(5rem + env(safe-area-inset-bottom))", transform: "translateZ(0)" }}
       >
         <MessageComposer threadId={threadId} as={as ?? ""} />
       </div>

@@ -87,7 +87,11 @@ export function AppNav({ active }: { active?: NavLabel }) {
   return (
     <nav
       className="fixed inset-x-2 z-20 mx-auto flex max-w-md items-stretch justify-between rounded-2xl bg-card px-1 py-1.5 shadow-elevated"
-      style={{ bottom: "calc(1rem + env(safe-area-inset-bottom))" }}
+      // iOS Safari "nada"/tiembla un elemento fixed durante el scroll con
+      // inercia y lo re-pinta recién al frenar — se ve como que el menú se
+      // mueve. translateZ(0) fuerza su propia capa de composición (GPU) y
+      // elimina ese lag visual; no cambia el layout en ningún navegador.
+      style={{ bottom: "calc(1rem + env(safe-area-inset-bottom))", transform: "translateZ(0)" }}
     >
       {items.map((item) => {
         const isActive = active === item.label;
