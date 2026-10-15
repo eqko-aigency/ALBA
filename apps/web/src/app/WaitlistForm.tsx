@@ -11,13 +11,16 @@ export function WaitlistForm() {
   async function handleSubmit(formData: FormData) {
     setPending(true);
     setError(null);
-    const result = await joinWaitlistAction(formData);
-    if ("error" in result) {
-      setError(result.error);
-    } else {
-      setSuccess(true);
+    try {
+      const result = await joinWaitlistAction(formData);
+      if ("error" in result) {
+        setError(result.error);
+      } else {
+        setSuccess(true);
+      }
+    } finally {
+      setPending(false);
     }
-    setPending(false);
   }
 
   if (success) {
