@@ -2,19 +2,22 @@
 
 ## Contexto
 
-Pedido de la clienta: agregar una sección de lista de espera ("waitlist") al landing público de ALBA (`apps/web/src/app/page.tsx`) — un registro previo liviano (solo correo) para gente interesada, independiente del flujo de "Crear cuenta" que ya existe y sigue funcionando igual.
+Pedido de la clienta: una página **paralela** al landing público de ALBA, dedicada exclusivamente a una lista de espera ("waitlist") — un registro previo liviano (solo correo) para gente interesada. A diferencia del landing normal (`apps/web/src/app/page.tsx`, que sigue funcionando exactamente igual, con "Crear cuenta"/"Iniciar sesión"), esta página nueva **no ofrece la opción de crear cuenta ni de iniciar sesión** — es exclusivamente para apuntarse a la espera.
+
+(Revisión 2026-10-15: el diseño original de este spec insertaba la sección de waitlist directamente en `page.tsx`, coexistiendo con "Crear cuenta". La clienta aclaró después que no era eso — quería una página aparte sin esas opciones. Esta versión del spec refleja esa corrección.)
 
 ## Alcance
 
 **Incluye:**
-- Una sección nueva en el landing con un formulario de un solo campo (correo).
+- Una página nueva, en una ruta separada (`/lista-espera`), que reutiliza el contenido del landing (pain points, "Cómo ALBA ayuda", "Cómo funciona", "Confianza y evidencia", FAQ) pero **sin ningún link ni botón de "Crear cuenta" o "Iniciar sesión" en ninguna parte** (header, hero, footer) — en su lugar, el formulario de waitlist.
+- Un formulario de un solo campo (correo).
 - Guardar cada correo en una tabla nueva de Supabase.
 - Confirmación visual al enviar: "¡Listo! Serás de los primeros en saber cuando la app esté lista."
 - Manejo amable de correos repetidos ("Ya estás en la lista — te avisaremos.") en vez de un error genérico.
 - Comportamiento seguro en modo demo local (sin Supabase configurado): la acción responde éxito sin intentar guardar nada.
 
 **No incluye (alcance deliberadamente acotado):**
-- No reemplaza ni modifica "Crear cuenta" — ambos caminos coexisten en el landing.
+- No modifica `/` (el landing con "Crear cuenta"/"Iniciar sesión" normal) más allá de extraer sus secciones de contenido a componentes compartidos para poder reutilizarlas en `/lista-espera` sin duplicar el JSX — el landing normal se ve y funciona exactamente igual que hoy.
 - No manda ningún correo de confirmación automático (requeriría la misma configuración SMTP que ya dio problemas esta semana — queda fuera).
 - No agrega ninguna pantalla dentro de ALBA para ver/exportar la lista — se revisa directo en el Table Editor de Supabase.
 - No pide teléfono ni nombre, solo correo.
@@ -114,13 +117,24 @@ Client component nuevo `apps/web/src/app/WaitlistForm.tsx` (mismo criterio que `
 - Al enviar con éxito, el formulario se reemplaza por: **"¡Listo! Serás de los primeros en saber cuando la app esté lista."**
 - Si el correo ya estaba registrado, se muestra el mensaje de error devuelto por la acción ("Ya estás en la lista — te avisaremos.") sin ocultar el formulario, para que puedan corregir si fue un typo.
 
-### 5. Dónde vive en el landing
+### 5. Dónde vive: página nueva y separada, `/lista-espera`
 
-Nueva sección en `apps/web/src/app/page.tsx`, entre "Preguntas frecuentes" y el CTA final ("Empieza hoy") — visible sin competir con "Crear cuenta", que sigue siendo el CTA principal en header/hero/CTA final.
+El contenido intermedio del landing (pain points, "Cómo ALBA ayuda", "Cómo funciona", "Confianza y evidencia", FAQ) se extrae de `apps/web/src/app/page.tsx` a componentes compartidos nuevos (ej. `apps/web/src/components/landing/*.tsx`), cada uno con su propio arreglo de datos ya existente (`PAIN_POINTS`, `FEATURES`, `STEPS`, `FAQ`) movido junto con su sección — así `/` los sigue usando tal cual (sin cambios visibles) y `/lista-espera` los reutiliza sin duplicar JSX.
+
+`apps/web/src/app/lista-espera/page.tsx` (nuevo) se arma así:
+- **Header propio**: solo el wordmark (enlazando a `/`), sin "Iniciar sesión" ni "Crear cuenta".
+- **Hero propio**: mismo mensaje central que el landing normal, pero sin los botones "Iniciar sesión"/"Crear cuenta →" ni el footnote "Gratis para crear tu cuenta...". En su lugar, un enlace ancla hacia el formulario de waitlist más abajo.
+- Las cinco secciones compartidas (pain points → FAQ), sin cambios.
+- **Sección de waitlist** (en vez del "CTA final" del landing normal): el formulario de un campo, con la confirmación "¡Listo! Serás de los primeros en saber cuando la app esté lista."
+- **Footer propio**: wordmark + tagline + copyright, sin links de "Iniciar sesión"/"Crear cuenta".
+
+`/` (el landing normal) no cambia su apariencia ni comportamiento — solo su implementación interna pasa a usar los componentes compartidos.
 
 ## Testing
 
-- Verificación en vivo contra Supabase real: enviar un correo nuevo → confirmar que aparece la fila en `waitlist_signups` y que la UI muestra el mensaje de éxito.
+- Verificación en vivo contra Supabase real, en `/lista-espera`: enviar un correo nuevo → confirmar que aparece la fila en `waitlist_signups` y que la UI muestra el mensaje de éxito.
 - Reenviar el mismo correo → confirmar que se muestra "Ya estás en la lista — te avisaremos." y que NO se crea una segunda fila.
 - Enviar un correo con formato inválido → confirmar que se muestra "Escribe un correo válido." sin tocar la base.
 - Confirmar en modo demo local (sin `NEXT_PUBLIC_SUPABASE_URL`/`ANON_KEY`) que el formulario muestra éxito sin tronar, aunque no haya nada real guardado.
+- Confirmar que `/lista-espera` no tiene en ninguna parte un link a "Crear cuenta" ni a "Iniciar sesión".
+- Confirmar que `/` se ve y funciona exactamente igual que antes del refactor (regresión visual/funcional del landing normal).
