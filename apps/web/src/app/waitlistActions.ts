@@ -23,7 +23,8 @@ export async function joinWaitlistAction(
   // de getRequestContext()/getAuthedSupabaseClient(), este formulario es
   // público y anónimo, no hay progenitor logueado al que atarlo.
   const client = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!);
-  const { error } = await client.from("waitlist_signups").insert({ email: parsed.data.email });
+  const email = parsed.data.email.trim().toLowerCase();
+  const { error } = await client.from("waitlist_signups").insert({ email });
 
   if (error) {
     if (error.code === "23505") {
