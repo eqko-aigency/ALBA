@@ -199,3 +199,8 @@ export const verbalAgreementInputSchema = z.object({
   agreedAt: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Fecha inválida"),
 });
 export type VerbalAgreementInput = z.infer<typeof verbalAgreementInputSchema>;
+
+export const waitlistInputSchema = z.object({
+  email: z.string().email(),
+});
+export type WaitlistInput = z.infer<typeof waitlistInputSchema>;
