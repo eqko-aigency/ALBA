@@ -1,17 +1,11 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { Wordmark } from "@/components/Wordmark";
-import {
-  BovedaIcon,
-  CalendarIcon,
-  ChatIcon,
-  ClockIcon,
-  GastosIcon,
-  NotesIcon,
-  UsageModeIcon,
-  UserIcon,
-} from "@/components/icons";
-import type { ComponentType } from "react";
+import { PainPointsSection } from "@/components/landing/PainPointsSection";
+import { FeaturesSection } from "@/components/landing/FeaturesSection";
+import { HowItWorksSection } from "@/components/landing/HowItWorksSection";
+import { TrustSection } from "@/components/landing/TrustSection";
+import { FaqSection } from "@/components/landing/FaqSection";
 
 /** Página de ventas pública (no autenticada) — reemplaza el splash mínimo
  * anterior. Sigue siendo un Server Component puro: ningún bloque de abajo
@@ -22,118 +16,6 @@ export const metadata: Metadata = {
   description:
     "Chat con tono cuidado, calendario de custodia, gastos claros y documentos con respaldo — todo en un solo lugar, con evidencia lista si alguna vez la necesitas.",
 };
-
-type Feature = {
-  title: string;
-  description: string;
-  accent: string;
-  Icon: ComponentType<{ className?: string }>;
-};
-
-const PAIN_POINTS: { title: string; description: string }[] = [
-  {
-    title: "Los mensajes suben de tono",
-    description: "Una conversación sobre horarios termina siendo otra discusión más.",
-  },
-  {
-    title: "Nadie se acuerda quién dijo qué",
-    description: "Acuerdos de palabra, capturas de pantalla perdidas, versiones distintas de la misma conversación.",
-  },
-  {
-    title: "Los gastos compartidos generan desconfianza",
-    description: "¿Quién pagó qué, cuándo, y cuánto falta? Sin un registro claro, todo se vuelve un reclamo.",
-  },
-  {
-    title: "Si hace falta mostrar algo, no hay con qué",
-    description: "Ante un mediador o un juez, perseguir pantallazos no es lo mismo que tener un registro con respaldo.",
-  },
-];
-
-const FEATURES: Feature[] = [
-  {
-    title: "Chat con tono cuidado",
-    description:
-      "Antes de enviar, ALBA revisa el tono del mensaje. Si detecta tensión u hostilidad, te avisa y te sugiere una versión más neutral — tú decides si la usas.",
-    accent: "bg-salmon",
-    Icon: ChatIcon,
-  },
-  {
-    title: "Mensajes con respaldo",
-    description:
-      "Cada mensaje queda con su propia huella digital (SHA-256). Puedes sellar una conversación completa con una raíz Merkle, para que sirva como evidencia si alguna vez la necesitas.",
-    accent: "bg-orange",
-    Icon: ClockIcon,
-  },
-  {
-    title: "Calendario de custodia y visitas",
-    description:
-      "Configura el convenio con slots recurrentes, confirma check-in y check-out de cada visita, y define los lugares de encuentro habituales.",
-    accent: "bg-sky",
-    Icon: CalendarIcon,
-  },
-  {
-    title: "Gastos y pensión alimenticia",
-    description:
-      "Registra y aprueba gastos compartidos con balance 50/50 siempre a la vista, además del seguimiento de la pensión mensual fija y su historial.",
-    accent: "bg-dawn",
-    Icon: GastosIcon,
-  },
-  {
-    title: "Bóveda de documentos",
-    description:
-      "Convenios, actas y evidencia protegidos con hash SHA-256 y anclaje por Merkle Tree, para verificar que nadie los alteró después de subirlos.",
-    accent: "bg-purple",
-    Icon: BovedaIcon,
-  },
-  {
-    title: "Acuerdos verbales",
-    description:
-      "Deja constancia de lo que acordaron por teléfono o en persona. El otro progenitor confirma que lo recuerda igual, y queda registrado.",
-    accent: "bg-sea",
-    Icon: NotesIcon,
-  },
-];
-
-const STEPS: { title: string; description: string; Icon: ComponentType<{ className?: string }> }[] = [
-  {
-    title: "Crea tu cuenta",
-    description: "En minutos. Agrega a tus hijos y cuenta tu situación — no necesitas nada más para empezar.",
-    Icon: UserIcon,
-  },
-  {
-    title: "Decide cómo la vas a usar",
-    description:
-      "Invita al otro progenitor para coordinarse juntos, o usa ALBA tú solo/a por ahora y suma a la otra persona después.",
-    Icon: UsageModeIcon,
-  },
-  {
-    title: "Organicen todo en un solo lugar",
-    description: "Chat, calendario, gastos y documentos — con evidencia lista, por si alguna vez la necesitan.",
-    Icon: CalendarIcon,
-  },
-];
-
-const FAQ: { question: string; answer: string }[] = [
-  {
-    question: "¿Necesito que el otro progenitor también use ALBA?",
-    answer:
-      "No. Al crear tu cuenta puedes elegir usarla tú solo/a para llevar tu propio registro, e invitar al otro progenitor cuando quieras. Si ambos se suman, pueden coordinarse juntos desde el primer día.",
-  },
-  {
-    question: "¿Esto sirve como prueba legal?",
-    answer:
-      "ALBA te da un registro con respaldo técnico: hash SHA-256 por mensaje y documento, y sellado con raíz Merkle para que se note si algo fue alterado después. No sustituye la asesoría de un abogado, pero te da algo mucho más sólido que una captura de pantalla.",
-  },
-  {
-    question: "¿Cuánto cuesta?",
-    answer: "Puedes crear tu cuenta y empezar a usar ALBA hoy mismo, sin costo.",
-  },
-  {
-    question: "¿Qué pasa si seguimos discutiendo mucho?",
-    answer:
-      "Para eso está el aviso de tono antes de enviar un mensaje, y el registro de acuerdos verbales cuando algo se habla fuera del chat. ALBA no resuelve el conflicto por ustedes, pero evita que escale y deja constancia de lo que se acordó.",
-  },
-];
 
 export default function Home() {
   return (
@@ -199,113 +81,11 @@ export default function Home() {
           </p>
         </section>
 
-        {/* Pain points */}
-        <section className="mx-auto max-w-3xl px-6 pb-16">
-          <h2 className="text-center text-xl font-semibold tracking-tight text-ink sm:text-2xl">
-            ¿Te suena familiar?
-          </h2>
-          <div className="mt-8 grid gap-4 sm:grid-cols-2">
-            {PAIN_POINTS.map((point) => (
-              <div key={point.title} className="rounded-2xl border border-subtle bg-card p-5 shadow-ambient">
-                <p className="text-sm font-semibold text-ink">{point.title}</p>
-                <p className="mt-1.5 text-sm text-ink-soft">{point.description}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Cómo ALBA ayuda */}
-        <section className="mx-auto max-w-5xl px-6 pb-16">
-          <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-xl font-semibold tracking-tight text-ink sm:text-2xl">Cómo ALBA ayuda</h2>
-            <p className="mt-2 text-ink-soft">
-              No es solo un calendario compartido — es un espacio pensado para bajar la tensión y dejar
-              constancia de lo que importa.
-            </p>
-          </div>
-          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {FEATURES.map(({ Icon, ...feature }) => (
-              <div key={feature.title} className="rounded-3xl border border-subtle bg-card p-6 text-left shadow-ambient">
-                <span className={`flex h-11 w-11 items-center justify-center rounded-2xl text-ink ${feature.accent}`}>
-                  <Icon className="h-6 w-6" />
-                </span>
-                <p className="mt-3 text-base font-semibold text-ink">{feature.title}</p>
-                <p className="mt-2 text-sm text-ink-soft">{feature.description}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Cómo funciona */}
-        <section className="mx-auto max-w-3xl px-6 pb-16">
-          <h2 className="text-center text-xl font-semibold tracking-tight text-ink sm:text-2xl">Cómo funciona</h2>
-          <div className="mt-8 flex flex-col gap-4">
-            {STEPS.map((step, index) => (
-              <div key={step.title} className="flex items-start gap-4 rounded-2xl border border-subtle bg-card p-5 shadow-ambient">
-                <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-orange text-sm font-bold text-ink">
-                  {index + 1}
-                </span>
-                <div className="min-w-0">
-                  <p className="flex items-center gap-2 text-sm font-semibold text-ink">
-                    <step.Icon className="h-4 w-4 text-ink-soft" />
-                    {step.title}
-                  </p>
-                  <p className="mt-1 text-sm text-ink-soft">{step.description}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
-        {/* Confianza y evidencia */}
-        <section className="mx-auto max-w-3xl px-6 pb-16">
-          <div className="overflow-hidden rounded-3xl bg-gradient-to-br from-sea to-sky p-7 shadow-elevated sm:p-10">
-            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-card text-ink">
-              <BovedaIcon className="h-6 w-6" />
-            </span>
-            <h2 className="mt-4 text-xl font-semibold tracking-tight text-ink sm:text-2xl">
-              Lo que se dice, queda registrado
-            </h2>
-            <p className="mt-3 text-sm text-ink/80 sm:text-base">
-              Cada mensaje que envías genera su propia huella digital (un hash SHA-256) y puedes sellar una
-              conversación completa calculando una raíz Merkle sobre todos sus mensajes — la misma lógica que
-              usan los sistemas de verificación a prueba de alteraciones, para que se note si algo cambió después
-              de que se dijo.
-            </p>
-            <p className="mt-3 text-sm text-ink/80 sm:text-base">
-              Los documentos que subes a la Bóveda funcionan igual: hash y anclaje por Merkle Tree, para que
-              tengas certeza de que el convenio o el comprobante que guardaste es el mismo que subiste el primer
-              día.
-            </p>
-            <p className="mt-3 text-xs text-ink/70">
-              Esto no sustituye la asesoría de un abogado, pero te da un registro mucho más sólido que una
-              captura de pantalla si alguna vez necesitas mostrar algo a un mediador o un juez.
-            </p>
-          </div>
-        </section>
-
-        {/* FAQ */}
-        <section className="mx-auto max-w-2xl px-6 pb-16">
-          <h2 className="text-center text-xl font-semibold tracking-tight text-ink sm:text-2xl">
-            Preguntas frecuentes
-          </h2>
-          <div className="mt-8 flex flex-col gap-3">
-            {FAQ.map((item) => (
-              <details
-                key={item.question}
-                className="rounded-2xl border border-subtle bg-card p-4 shadow-ambient [&_summary::-webkit-details-marker]:hidden"
-              >
-                <summary className="flex cursor-pointer items-center justify-between gap-3 text-sm font-semibold text-ink">
-                  {item.question}
-                  <span className="flex-shrink-0 text-ink-faint" aria-hidden="true">
-                    +
-                  </span>
-                </summary>
-                <p className="mt-2 text-sm text-ink-soft">{item.answer}</p>
-              </details>
-            ))}
-          </div>
-        </section>
+        <PainPointsSection />
+        <FeaturesSection />
+        <HowItWorksSection />
+        <TrustSection />
+        <FaqSection />
 
         {/* CTA final */}
         <section className="mx-auto max-w-3xl px-6 pb-20">
