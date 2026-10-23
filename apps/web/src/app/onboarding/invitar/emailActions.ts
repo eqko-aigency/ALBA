@@ -7,6 +7,22 @@ import { getRequestContext } from "@/lib/repository";
 const isResendConfigured = Boolean(process.env.RESEND_API_KEY);
 
 /**
+ * `fullName` solo tiene restricción de largo (2-120), no de caracteres —
+ * en todo el resto de la app llega a pantalla vía React (que escapa solo),
+ * pero acá se inyecta directo en el HTML crudo que Resend manda a un
+ * tercero. Sin esto, un nombre con markup/links saldría del dominio de
+ * ALBA como si la propia app lo hubiera escrito.
+ */
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+/**
  * Llama directo al API HTTP de Resend (sin el SDK `resend` como dependencia
  * nueva — un solo fetch alcanza) porque el envío de correos de Supabase Auth
  * (usado para confirmar cuenta) solo manda SUS propios correos, no uno
@@ -41,20 +57,32 @@ export async function sendInvitationEmailAction(formData: FormData) {
   const invitationUrl = `${siteUrl}/invitacion/${invitation.token}`;
 
   if (isResendConfigured) {
-    const response = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from: "ALBA <invitaciones@alba.app>",
-        to: [parsed.data!.email],
-        subject: `${profile?.fullName ?? "Alguien"} te invitó a coordinarse en ALBA`,
-        html: `<p>${profile?.fullName ?? "Alguien"} te invitó a coparentar juntos en ALBA.</p><p><a href="${invitationUrl}">Aceptar invitación</a></p>`,
-      }),
-    });
-    if (!response.ok) {
+    const safeName = escapeHtml(profile?.fullName ?? "Alguien");
+    // El fetch (no el redirect() de más abajo) va envuelto en try/catch:
+    // redirect() funciona lanzando una excepción interna que Next.js
+    // reconoce más arriba en la pila — si quedara dentro de este catch,
+    // correría el riesgo de que ese mecanismo se trague por error. Un
+    // fallo de red (DNS, timeout, conexión reseteada) deja response en
+    // null en vez de propagarse como excepción no manejada.
+    let response: Response | null = null;
+    try {
+      response = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          from: "ALBA <invitaciones@alba.app>",
+          to: [parsed.data!.email],
+          subject: `${safeName} te invitó a coordinarse en ALBA`,
+          html: `<p>${safeName} te invitó a coparentar juntos en ALBA.</p><p><a href="${invitationUrl}">Aceptar invitación</a></p>`,
+        }),
+      });
+    } catch {
+      response = null;
+    }
+    if (!response || !response.ok) {
       redirect(buildRedirect(as, { emailError: "No se pudo mandar el correo. Intenta de nuevo o comparte el link directo." }));
     }
   }
