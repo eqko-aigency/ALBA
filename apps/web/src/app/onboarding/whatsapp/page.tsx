@@ -19,12 +19,17 @@ export default async function OnboardingWhatsappPage({
 
       <form action={setWhatsappNumberAction} className="mt-8 flex w-full flex-col gap-3">
         <input type="hidden" name="as" value={as ?? ""} />
+        <label htmlFor="whatsappNumber" className="sr-only">
+          Número de WhatsApp
+        </label>
         <input
+          id="whatsappNumber"
           name="whatsappNumber"
           type="tel"
           autoComplete="tel"
           required
           minLength={7}
+          maxLength={20}
           placeholder="55 1234 5678"
           className="w-full rounded-xl border border-subtle bg-card px-4 py-3 text-base text-ink"
         />
