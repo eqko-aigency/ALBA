@@ -264,6 +264,7 @@ export function createSupabasePairingRepository(
         email: "",
         usageMode: null,
         lastNotificationsSeenAt: null,
+        // whatsappNumber/onboardingNameConfirmedAt: este método no los carga (no por seguridad — RLS 0025 ya los expone al otro progenitor en cualquier otra consulta — simplemente nadie los necesita acá todavía).
         whatsappNumber: null,
         onboardingNameConfirmedAt: null,
       }));

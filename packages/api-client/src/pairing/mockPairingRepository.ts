@@ -187,18 +187,18 @@ export function createMockPairingRepository(): PairingRepository {
       const familyId = memberOf.get(parentId);
       if (!familyId) return [];
       const memberIds = familyMembers.get(familyId) ?? new Set<string>();
-      return [...memberIds].map(
-        (id) =>
-          profiles.get(id) ?? {
-            id,
-            fullName: id === parentId ? "Tú" : "El otro progenitor",
-            email: `${id}@demo.local`,
-            usageMode: null,
-            lastNotificationsSeenAt: null,
-            whatsappNumber: null,
-            onboardingNameConfirmedAt: null,
-          }
-      );
+      return [...memberIds].map((id) => ({
+        // whatsappNumber/onboardingNameConfirmedAt: este método no los carga (no por seguridad — RLS 0025 ya los expone al otro progenitor en cualquier otra consulta — simplemente nadie los necesita acá todavía).
+        ...(profiles.get(id) ?? {
+          id,
+          fullName: id === parentId ? "Tú" : "El otro progenitor",
+          email: `${id}@demo.local`,
+          usageMode: null,
+          lastNotificationsSeenAt: null,
+        }),
+        whatsappNumber: null,
+        onboardingNameConfirmedAt: null,
+      }));
     },
 
     async acceptInvitation(parentId, input: AcceptInvitationInput) {
