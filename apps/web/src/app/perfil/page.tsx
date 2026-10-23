@@ -7,7 +7,7 @@ import { BellIcon, UsageModeIcon, UserIcon } from "@/components/icons";
 import { createChildAction } from "./actions";
 import { SaveProfileForm } from "./SaveProfileForm";
 import { PushToggle } from "./PushToggle";
-import { setUsageModeAction } from "@/app/onboarding/actions";
+import { setUsageModeAction } from "@/app/onboarding/modo/actions";
 
 const CHILD_ACCENTS = ["bg-salmon", "bg-sky", "bg-dawn", "bg-purple"];
 
@@ -76,7 +76,7 @@ export default async function PerfilPage() {
               // relacionado con emparejar/configurar la familia esté en un
               // solo lugar (Mi perfil), no repartido entre dos pantallas.
               <Link
-                href="/registro"
+                href="/onboarding/invitar"
                 className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-orange px-4 py-2.5 text-sm font-semibold text-ink shadow-elevated transition-all hover:-translate-y-0.5"
               >
                 Vincular al otro progenitor
