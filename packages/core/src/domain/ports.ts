@@ -20,6 +20,7 @@ import type {
 } from "./entities";
 import type {
   AcceptInvitationInput,
+  ConfirmOnboardingNameInput,
   CreateThreadInput,
   ExpenseInput,
   PensionPaymentInput,
@@ -27,6 +28,7 @@ import type {
   RenameThreadInput,
   SendMessageInput,
   SetUsageModeInput,
+  SetWhatsappNumberInput,
   UpdateChildDetailsInput,
   UpdateChildInput,
   UpsertProfileInput,
@@ -63,6 +65,10 @@ export interface PairingRepository {
   upsertProfile(parentId: string, input: UpsertProfileInput): Promise<Parent>;
   /** Onboarding (W-xx) — elegir si la app se usa unilateral o bilateral. */
   setUsageMode(parentId: string, input: SetUsageModeInput): Promise<Parent>;
+  /** Wizard de bienvenida — confirma/corrige el nombre y marca el paso como visto. */
+  confirmOnboardingName(parentId: string, input: ConfirmOnboardingNameInput): Promise<Parent>;
+  /** Wizard de bienvenida (modo unilateral) — guarda el número de WhatsApp (placeholder de la Fase 4). */
+  setWhatsappNumber(parentId: string, input: SetWhatsappNumberInput): Promise<Parent>;
   /** Notificaciones (W-xx) — marca "ya vi mis notificaciones hasta ahora". */
   markNotificationsSeen(parentId: string): Promise<Parent>;
   /**

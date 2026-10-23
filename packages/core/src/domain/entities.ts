@@ -8,6 +8,10 @@ export interface Parent {
   usageMode: UsageMode;
   /** Último momento en que el progenitor abrió /notificaciones — null = nunca. */
   lastNotificationsSeenAt: string | null;
+  /** Placeholder para la Fase 4 (WhatsApp modo unilateral) — null = no lo ha dado todavía. */
+  whatsappNumber: string | null;
+  /** Marca que ya pasó por el paso "¿así está bien tu nombre?" del wizard — null = nunca. */
+  onboardingNameConfirmedAt: string | null;
 }
 
 export interface Family {

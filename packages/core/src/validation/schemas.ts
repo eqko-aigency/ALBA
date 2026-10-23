@@ -204,3 +204,18 @@ export const waitlistInputSchema = z.object({
   email: z.string().email(),
 });
 export type WaitlistInput = z.infer<typeof waitlistInputSchema>;
+
+export const confirmOnboardingNameInputSchema = z.object({
+  fullName: z.string().min(2).max(120),
+});
+export type ConfirmOnboardingNameInput = z.infer<typeof confirmOnboardingNameInputSchema>;
+
+export const setWhatsappNumberInputSchema = z.object({
+  whatsappNumber: z.string().min(7).max(20),
+});
+export type SetWhatsappNumberInput = z.infer<typeof setWhatsappNumberInputSchema>;
+
+export const sendInvitationEmailInputSchema = z.object({
+  email: z.string().email(),
+});
+export type SendInvitationEmailInput = z.infer<typeof sendInvitationEmailInputSchema>;
