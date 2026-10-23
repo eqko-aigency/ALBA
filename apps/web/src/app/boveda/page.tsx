@@ -2,8 +2,9 @@ import Link from "next/link";
 import { getRequestContext } from "@/lib/repository";
 import { isDemoMode } from "@/lib/demoSession";
 import { AppNav } from "@/components/AppNav";
-import { uploadDocumentAction, anchorPendingDocumentsAction } from "./actions";
+import { anchorPendingDocumentsAction } from "./actions";
 import { SubmitButton } from "@/components/SubmitButton";
+import { UploadDocumentForm } from "./UploadDocumentForm";
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("es-MX", { day: "2-digit", month: "short", year: "numeric" });
@@ -174,45 +175,7 @@ export default async function BovedaPage({
       <section className="mt-8 rounded-lg border border-subtle bg-card p-5 shadow-ambient">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-ink">Nuevo documento</h2>
 
-        <form action={uploadDocumentAction} className="mt-4 flex flex-col gap-3">
-          <input type="hidden" name="as" value={as ?? ""} />
-
-          <input
-            type="text"
-            name="title"
-            required
-            minLength={3}
-            maxLength={160}
-            placeholder="Título (ej. Convenio de custodia firmado, acta de nacimiento...)"
-            className="rounded-md border border-subtle bg-card px-3 py-2 text-base text-ink"
-          />
-
-          {children.length > 0 && (
-            <select name="childId" className="rounded-md border border-subtle bg-card px-3 py-2 text-base text-ink">
-              <option value="">General (toda la familia)</option>
-              {children.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.fullName}
-                </option>
-              ))}
-            </select>
-          )}
-
-          <div className="flex min-w-0 flex-col gap-1">
-            <label className="text-xs font-medium text-ink-soft">Archivo (PDF, imagen o Word)</label>
-            <input
-              type="file"
-              name="file"
-              required
-              accept="application/pdf,image/*,.doc,.docx"
-              className="w-full min-w-0 rounded-md border border-subtle bg-card px-3 py-2 text-base text-ink file:mr-3 file:rounded-full file:border-0 file:bg-sand file:px-3 file:py-1 file:text-xs file:font-semibold file:text-ink"
-            />
-          </div>
-
-          <SubmitButton pendingText="Subiendo…" className="mt-1 self-start rounded-full bg-salmon px-4 py-2 text-sm font-semibold text-ink">
-            Subir documento
-          </SubmitButton>
-        </form>
+        <UploadDocumentForm as={as ?? ""} children={children} />
       </section>
 
       <AppNav active="Bóveda" />

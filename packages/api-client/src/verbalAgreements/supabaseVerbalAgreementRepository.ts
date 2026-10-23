@@ -24,7 +24,7 @@ export function createSupabaseVerbalAgreementRepository(
     async createVerbalAgreement(parentId, input: VerbalAgreementInput) {
       const familyId = await getMyFamilyId(parentId);
       if (!familyId) {
-        throw new Error("No perteneces a ninguna familia todavía — empareja al otro progenitor en /registro.");
+        throw new Error("No perteneces a ninguna familia todavía — empareja al otro progenitor desde tu Perfil.");
       }
       const { data, error } = await client
         .from("verbal_agreements")
