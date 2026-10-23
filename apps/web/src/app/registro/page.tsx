@@ -3,7 +3,7 @@ import { getRequestContext } from "@/lib/repository";
 import { isDemoMode } from "@/lib/demoSession";
 import { AppNav } from "@/components/AppNav";
 import { createChildAction } from "./actions";
-import { CopyInvitationLink } from "./CopyInvitationLink";
+import { CopyInvitationLink } from "@/components/CopyInvitationLink";
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "";
 

@@ -1,0 +1,69 @@
+"use server";
+
+import { redirect } from "next/navigation";
+import { sendInvitationEmailInputSchema } from "@alba/core";
+import { getRequestContext } from "@/lib/repository";
+
+const isResendConfigured = Boolean(process.env.RESEND_API_KEY);
+
+/**
+ * Llama directo al API HTTP de Resend (sin el SDK `resend` como dependencia
+ * nueva — un solo fetch alcanza) porque el envío de correos de Supabase Auth
+ * (usado para confirmar cuenta) solo manda SUS propios correos, no uno
+ * personalizado a cualquier dirección. No se guarda ningún registro de "se
+ * mandó este correo" — es solo una forma más de entregar el mismo
+ * link/código que ya existe; el estado de la invitación (pendiente/
+ * aceptada) no cambia por este canal.
+ *
+ * Sin RESEND_API_KEY configurada (dev local), no falla — responde como si
+ * hubiera mandado, mismo criterio que isSupabaseConfigured en otras partes
+ * del proyecto. Bloqueante para producción: necesita la key real.
+ */
+export async function sendInvitationEmailAction(formData: FormData) {
+  const as = String(formData.get("as") ?? "");
+  const parsed = sendInvitationEmailInputSchema.safeParse({ email: formData.get("email") });
+  if (!parsed.success) {
+    redirect(buildRedirect(as, { emailError: "Escribe un correo válido." }));
+  }
+
+  const { pairing, parentId } = await getRequestContext(as);
+  await pairing.getOrCreateMyFamily(parentId);
+  const profile = await pairing.getProfile(parentId);
+
+  let activeInvitations = (await pairing.listPendingInvitations(parentId)).filter(
+    (inv) => new Date(inv.expiresAt) > new Date()
+  );
+  if (activeInvitations.length === 0) {
+    activeInvitations = [await pairing.createInvitation(parentId)];
+  }
+  const invitation = activeInvitations[0]!;
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "";
+  const invitationUrl = `${siteUrl}/invitacion/${invitation.token}`;
+
+  if (isResendConfigured) {
+    const response = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: "ALBA <invitaciones@alba.app>",
+        to: [parsed.data!.email],
+        subject: `${profile?.fullName ?? "Alguien"} te invitó a coordinarse en ALBA`,
+        html: `<p>${profile?.fullName ?? "Alguien"} te invitó a coparentar juntos en ALBA.</p><p><a href="${invitationUrl}">Aceptar invitación</a></p>`,
+      }),
+    });
+    if (!response.ok) {
+      redirect(buildRedirect(as, { emailError: "No se pudo mandar el correo. Intenta de nuevo o comparte el link directo." }));
+    }
+  }
+
+  redirect(buildRedirect(as, { emailSent: "1" }));
+}
+
+function buildRedirect(as: string, params: Record<string, string>): string {
+  const search = new URLSearchParams(params);
+  if (as) search.set("as", as);
+  return `/onboarding/invitar?${search.toString()}`;
+}
