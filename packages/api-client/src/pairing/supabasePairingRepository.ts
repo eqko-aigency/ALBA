@@ -2,10 +2,12 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type {
   AcceptInvitationInput,
   Child,
+  ConfirmOnboardingNameInput,
   Family,
   Invitation,
   PairingRepository,
   SetUsageModeInput,
+  SetWhatsappNumberInput,
   UpdateChildDetailsInput,
   UpdateChildInput,
   UpsertProfileInput,
@@ -105,6 +107,8 @@ export function createSupabasePairingRepository(
         email: callerEmail,
         usageMode: data.usage_mode ?? null,
         lastNotificationsSeenAt: data.last_notifications_seen_at ?? null,
+        whatsappNumber: data.whatsapp_number ?? null,
+        onboardingNameConfirmedAt: data.onboarding_name_confirmed_at ?? null,
       };
     },
 
@@ -122,6 +126,8 @@ export function createSupabasePairingRepository(
         email: callerEmail,
         usageMode: data.usage_mode ?? null,
         lastNotificationsSeenAt: data.last_notifications_seen_at ?? null,
+        whatsappNumber: data.whatsapp_number ?? null,
+        onboardingNameConfirmedAt: data.onboarding_name_confirmed_at ?? null,
       };
     },
 
@@ -140,6 +146,48 @@ export function createSupabasePairingRepository(
         email: callerEmail,
         usageMode: data.usage_mode ?? null,
         lastNotificationsSeenAt: data.last_notifications_seen_at ?? null,
+        whatsappNumber: data.whatsapp_number ?? null,
+        onboardingNameConfirmedAt: data.onboarding_name_confirmed_at ?? null,
+      };
+    },
+
+    async confirmOnboardingName(parentId, input: ConfirmOnboardingNameInput) {
+      const { data, error } = await client
+        .from("profiles")
+        .update({ full_name: input.fullName, onboarding_name_confirmed_at: new Date().toISOString() })
+        .eq("id", parentId)
+        .select()
+        .single();
+      if (error) throw error;
+
+      return {
+        id: data.id,
+        fullName: data.full_name,
+        email: callerEmail,
+        usageMode: data.usage_mode ?? null,
+        lastNotificationsSeenAt: data.last_notifications_seen_at ?? null,
+        whatsappNumber: data.whatsapp_number ?? null,
+        onboardingNameConfirmedAt: data.onboarding_name_confirmed_at ?? null,
+      };
+    },
+
+    async setWhatsappNumber(parentId, input: SetWhatsappNumberInput) {
+      const { data, error } = await client
+        .from("profiles")
+        .update({ whatsapp_number: input.whatsappNumber })
+        .eq("id", parentId)
+        .select()
+        .single();
+      if (error) throw error;
+
+      return {
+        id: data.id,
+        fullName: data.full_name,
+        email: callerEmail,
+        usageMode: data.usage_mode ?? null,
+        lastNotificationsSeenAt: data.last_notifications_seen_at ?? null,
+        whatsappNumber: data.whatsapp_number ?? null,
+        onboardingNameConfirmedAt: data.onboarding_name_confirmed_at ?? null,
       };
     },
 
@@ -158,6 +206,8 @@ export function createSupabasePairingRepository(
         email: callerEmail,
         usageMode: data.usage_mode ?? null,
         lastNotificationsSeenAt: data.last_notifications_seen_at ?? null,
+        whatsappNumber: data.whatsapp_number ?? null,
+        onboardingNameConfirmedAt: data.onboarding_name_confirmed_at ?? null,
       };
     },
 
@@ -214,6 +264,8 @@ export function createSupabasePairingRepository(
         email: "",
         usageMode: null,
         lastNotificationsSeenAt: null,
+        whatsappNumber: null,
+        onboardingNameConfirmedAt: null,
       }));
     },
 
