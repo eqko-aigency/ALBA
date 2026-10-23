@@ -42,6 +42,7 @@ export default async function OnboardingHijosPage({
           Agregar hijo/a
         </button>
       </form>
+      <p className="mt-2 text-xs text-ink-faint">Podrás agregar más hijos desde Perfil cuando quieras.</p>
 
       <form action={skipChildrenStepAction} className="mt-3">
         <input type="hidden" name="as" value={as ?? ""} />
