@@ -245,6 +245,20 @@ export default async function DashboardPage({
         </Link>
       </div>
 
+      {!otherParent && (
+        <Link
+          href={`/onboarding/invitar${as ? `?as=${as}` : ""}`}
+          className="mt-6 block rounded-2xl border border-subtle bg-card p-4 shadow-ambient transition-all hover:-translate-y-0.5 hover:shadow-elevated"
+        >
+          <p className="text-sm font-semibold text-ink">
+            {profile?.usageMode === "bilateral"
+              ? "Invita al otro progenitor para empezar a compartir"
+              : "¿Quieres invitar al otro progenitor?"}
+          </p>
+          <p className="mt-1 text-xs text-ink-soft">Invitar ahora →</p>
+        </Link>
+      )}
+
       {/* Próxima visita — hero card */}
       <div className="mt-6 overflow-hidden rounded-2xl bg-gradient-to-br from-dawn to-salmon shadow-elevated">
         <div className="p-5">
