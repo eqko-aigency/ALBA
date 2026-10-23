@@ -7,6 +7,7 @@ import { AppNav } from "@/components/AppNav";
 import { confirmCheckinAction } from "@/app/calendario/actions";
 import { buildNotifications, formatRelativeTime, NOTIFICATION_ICON_CLASS, NOTIFICATION_ICON_SYMBOL } from "@/lib/notifications";
 import { BovedaIcon, ChatIcon, ClockIcon, GastosIcon } from "@/components/icons";
+import { nextOnboardingStep } from "@/lib/onboardingGate";
 
 const MXN = new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" });
 const MONTH_LABEL = new Intl.DateTimeFormat("es-MX", { month: "long" });
@@ -65,18 +66,22 @@ export default async function DashboardPage({
   const { as } = await searchParams;
   const { pairing, chat, custody, expenses, documents, verbalAgreements, pension, parentId } = await getRequestContext(as);
 
-  // getOrCreateMyFamily y getProfile no dependen una de la otra — antes se
-  // esperaban en serie (2 vueltas de red completas) antes de siquiera llegar
-  // al Promise.all grande de abajo. En paralelo, el dashboard completo pasa
-  // de 3 "oleadas" secuenciales de red a 2.
-  const [, profile] = await Promise.all([pairing.getOrCreateMyFamily(parentId), pairing.getProfile(parentId)]);
+  // getOrCreateMyFamily/getProfile/getMyChildren/listFamilyMembers no dependen
+  // una de otra — en paralelo, y ANTES del Promise.all grande de abajo, para
+  // no gastar esas queries en un usuario que de todos modos va a ser
+  // redirigido al wizard. children/familyMembers quedan ya resueltos acá, así
+  // que el Promise.all grande más abajo deja de pedirlos de nuevo (Step 3).
+  const [, profile, children, familyMembers] = await Promise.all([
+    pairing.getOrCreateMyFamily(parentId),
+    pairing.getProfile(parentId),
+    pairing.getMyChildren(parentId),
+    pairing.listFamilyMembers(parentId),
+  ]);
 
-  // Pedido explícito de la clienta: la primera vez, preguntar si la app la
-  // van a usar los dos progenitores o solo uno, antes de mostrar el resto.
-  // Se revisa ANTES de pedir el resto del dashboard para no gastar esas
-  // queries en un usuario que de todos modos va a ser redirigido.
-  if (!profile?.usageMode) {
-    redirect(as === "b" ? "/onboarding?as=b" : "/onboarding");
+  const otherParent = familyMembers.find((m) => m.id !== parentId) ?? null;
+  const pendingStep = await nextOnboardingStep({ profile, hasChildren: children.length > 0, otherParent });
+  if (pendingStep) {
+    redirect(as === "b" ? `/onboarding/${pendingStep}?as=b` : `/onboarding/${pendingStep}`);
   }
 
   const now = new Date();
@@ -87,10 +92,8 @@ export default async function DashboardPage({
 
   const notificationsSince = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 30);
 
-  const [children, familyMembers, threads, agreement, monthEvents, balance, expenseList, documentList, agreements, pensionPayments, recentMessages] =
+  const [threads, agreement, monthEvents, balance, expenseList, documentList, agreements, pensionPayments, recentMessages] =
     await Promise.all([
-      pairing.getMyChildren(parentId),
-      pairing.listFamilyMembers(parentId),
       chat.listThreads(parentId),
       custody.getMyAgreement(parentId),
       custody.listEventsForRange(parentId, isoDateLocal(monthStart), isoDateLocal(addDays(monthEnd, 1))),
