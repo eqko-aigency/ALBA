@@ -508,7 +508,7 @@ export default async function CalendarioPage({
 
         {children.length === 0 || familyMembers.length === 0 ? (
           <p className="mt-4 text-sm text-ink-soft">
-            Agrega al menos un hijo (en /registro) y empareja al otro progenitor antes de poder configurar slots.
+            Agrega al menos un hijo y empareja al otro progenitor desde tu Perfil antes de poder configurar slots.
           </p>
         ) : (
           <form action={upsertSlotAction} className="mt-4 flex flex-col gap-2">
@@ -618,7 +618,7 @@ export default async function CalendarioPage({
 
             {children.length === 0 || familyMembers.length === 0 ? (
               <p className="mt-4 text-sm text-ink-soft">
-                Agrega al menos un hijo (en /registro) y empareja al otro progenitor antes de poder agregar visitas.
+                Agrega al menos un hijo y empareja al otro progenitor desde tu Perfil antes de poder agregar visitas.
               </p>
             ) : (
               <form action={createVisitAction} className="mt-4 flex flex-col gap-2">

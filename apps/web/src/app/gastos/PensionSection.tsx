@@ -60,7 +60,7 @@ export async function PensionSection({
         </p>
         {familyMembers.length < 2 ? (
           <p className="mt-4 text-sm text-ink-soft">
-            Empareja al otro progenitor (en /registro) antes de configurar la pensión.
+            Empareja al otro progenitor desde tu Perfil antes de configurar la pensión.
           </p>
         ) : (
           <form action={upsertPensionSettingsAction} className="mt-4 flex flex-col gap-3">

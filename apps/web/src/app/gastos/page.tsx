@@ -107,7 +107,7 @@ export default async function GastosPage({
       <section className="mt-6 rounded-xl border border-subtle bg-card p-5 text-center shadow-ambient">
         {!otherParentName ? (
           <p className="text-sm text-ink-soft">
-            Empareja al otro progenitor (en /registro) para poder calcular el balance de gastos.
+            Empareja al otro progenitor desde tu Perfil para poder calcular el balance de gastos.
           </p>
         ) : owedRounded > 0 ? (
           <p className="text-lg font-semibold text-ink">
@@ -189,7 +189,7 @@ export default async function GastosPage({
         <h2 className="text-sm font-semibold uppercase tracking-wide text-ink">Nuevo gasto</h2>
 
         {children.length === 0 ? (
-          <p className="mt-3 text-sm text-ink-soft">Agrega al menos un hijo (en /registro) antes de registrar un gasto.</p>
+          <p className="mt-3 text-sm text-ink-soft">Agrega al menos un hijo desde tu Perfil antes de registrar un gasto.</p>
         ) : (
           <form action={createExpenseAction} className="mt-4 flex flex-col gap-3" encType="multipart/form-data">
             <input type="hidden" name="as" value={as ?? ""} />
