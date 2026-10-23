@@ -1,11 +1,13 @@
 import type {
   AcceptInvitationInput,
   Child,
+  ConfirmOnboardingNameInput,
   Family,
   Invitation,
   PairingRepository,
   Parent,
   SetUsageModeInput,
+  SetWhatsappNumberInput,
   UpdateChildDetailsInput,
   UpdateChildInput,
   UpsertProfileInput,
@@ -89,6 +91,8 @@ export function createMockPairingRepository(): PairingRepository {
         email: profiles.get(parentId)?.email ?? `${parentId}@demo.local`,
         usageMode: profiles.get(parentId)?.usageMode ?? null,
         lastNotificationsSeenAt: profiles.get(parentId)?.lastNotificationsSeenAt ?? null,
+        whatsappNumber: profiles.get(parentId)?.whatsappNumber ?? null,
+        onboardingNameConfirmedAt: profiles.get(parentId)?.onboardingNameConfirmedAt ?? null,
       };
       profiles.set(parentId, profile);
       return profile;
@@ -102,6 +106,38 @@ export function createMockPairingRepository(): PairingRepository {
         email: existing?.email ?? `${parentId}@demo.local`,
         usageMode: input.usageMode,
         lastNotificationsSeenAt: existing?.lastNotificationsSeenAt ?? null,
+        whatsappNumber: existing?.whatsappNumber ?? null,
+        onboardingNameConfirmedAt: existing?.onboardingNameConfirmedAt ?? null,
+      };
+      profiles.set(parentId, profile);
+      return profile;
+    },
+
+    async confirmOnboardingName(parentId, input: ConfirmOnboardingNameInput) {
+      const existing = profiles.get(parentId);
+      const profile: Parent = {
+        id: parentId,
+        fullName: input.fullName,
+        email: existing?.email ?? `${parentId}@demo.local`,
+        usageMode: existing?.usageMode ?? null,
+        lastNotificationsSeenAt: existing?.lastNotificationsSeenAt ?? null,
+        whatsappNumber: existing?.whatsappNumber ?? null,
+        onboardingNameConfirmedAt: new Date().toISOString(),
+      };
+      profiles.set(parentId, profile);
+      return profile;
+    },
+
+    async setWhatsappNumber(parentId, input: SetWhatsappNumberInput) {
+      const existing = profiles.get(parentId);
+      const profile: Parent = {
+        id: parentId,
+        fullName: existing?.fullName ?? "",
+        email: existing?.email ?? `${parentId}@demo.local`,
+        usageMode: existing?.usageMode ?? null,
+        lastNotificationsSeenAt: existing?.lastNotificationsSeenAt ?? null,
+        whatsappNumber: input.whatsappNumber,
+        onboardingNameConfirmedAt: existing?.onboardingNameConfirmedAt ?? null,
       };
       profiles.set(parentId, profile);
       return profile;
@@ -115,6 +151,8 @@ export function createMockPairingRepository(): PairingRepository {
         email: existing?.email ?? `${parentId}@demo.local`,
         usageMode: existing?.usageMode ?? null,
         lastNotificationsSeenAt: new Date().toISOString(),
+        whatsappNumber: existing?.whatsappNumber ?? null,
+        onboardingNameConfirmedAt: existing?.onboardingNameConfirmedAt ?? null,
       };
       profiles.set(parentId, profile);
       return profile;
@@ -157,6 +195,8 @@ export function createMockPairingRepository(): PairingRepository {
             email: `${id}@demo.local`,
             usageMode: null,
             lastNotificationsSeenAt: null,
+            whatsappNumber: null,
+            onboardingNameConfirmedAt: null,
           }
       );
     },
