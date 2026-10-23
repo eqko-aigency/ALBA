@@ -21,11 +21,16 @@ export default async function OnboardingNombrePage({
 
       <form action={confirmOnboardingNameAction} className="mt-8 flex w-full flex-col gap-3">
         <input type="hidden" name="as" value={as ?? ""} />
+        <label htmlFor="fullName" className="sr-only">
+          Nombre completo
+        </label>
         <input
+          id="fullName"
           name="fullName"
           autoComplete="name"
           required
           minLength={2}
+          maxLength={120}
           defaultValue={profile?.fullName ?? ""}
           className="w-full rounded-xl border border-subtle bg-card px-4 py-3 text-base text-ink"
         />
