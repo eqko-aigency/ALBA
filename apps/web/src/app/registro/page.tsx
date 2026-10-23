@@ -8,8 +8,12 @@ export default async function RegistroPage({
 }) {
   const { as } = await searchParams;
   const { pairing, parentId } = await getRequestContext(as);
-  const familyMembers = await pairing.listFamilyMembers(parentId);
+  const [profile, familyMembers] = await Promise.all([
+    pairing.getProfile(parentId),
+    pairing.listFamilyMembers(parentId),
+  ]);
   const isPaired = familyMembers.some((m) => m.id !== parentId);
+  const needsInvite = profile?.usageMode === "bilateral" && !isPaired;
 
-  redirect(isPaired ? "/perfil" : `/onboarding/invitar${as ? `?as=${as}` : ""}`);
+  redirect(needsInvite ? `/onboarding/invitar${as ? `?as=${as}` : ""}` : isPaired ? "/perfil" : "/dashboard");
 }
