@@ -6,5 +6,5 @@ export default async function OnboardingPage({
   searchParams: Promise<{ as?: string }>;
 }) {
   const { as } = await searchParams;
-  redirect(as ? `/onboarding/modo?as=${as}` : "/onboarding/modo");
+  redirect(as === "b" ? "/onboarding/modo?as=b" : "/onboarding/modo");
 }

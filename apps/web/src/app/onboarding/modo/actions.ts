@@ -10,5 +10,5 @@ export async function setUsageModeAction(formData: FormData) {
   const { pairing, parentId } = await getRequestContext(as);
   await pairing.getOrCreateMyFamily(parentId);
   await pairing.setUsageMode(parentId, input);
-  redirect(as ? `/dashboard?as=${as}` : "/dashboard");
+  redirect(as === "b" ? "/dashboard?as=b" : "/dashboard");
 }
