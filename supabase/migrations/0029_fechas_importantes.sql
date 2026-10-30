@@ -11,7 +11,7 @@ create table if not exists public.important_dates (
   title text not null,
   start_date date not null,
   end_date date not null,
-  created_by_parent_id uuid not null references public.profiles (id),
+  created_by_parent_id uuid not null references public.profiles (id) on delete cascade,
   created_at timestamptz not null default now(),
   constraint important_dates_end_after_start check (end_date >= start_date)
 );
@@ -41,7 +41,8 @@ begin
   ) then
     create policy "important_dates: miembros de la familia crean fechas"
       on public.important_dates for insert with check (
-        exists (
+        created_by_parent_id = auth.uid()
+        and exists (
           select 1 from public.family_members m
           where m.family_id = important_dates.family_id and m.parent_id = auth.uid()
         )
