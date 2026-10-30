@@ -5,7 +5,11 @@ import { updateChildDetailsInputSchema, updateChildInputSchema, upsertProfileInp
 import { getRequestContext } from "@/lib/repository";
 
 export async function upsertProfileAction(formData: FormData) {
-  const input = upsertProfileInputSchema.parse({ fullName: formData.get("parentFullName") });
+  const rawColor = String(formData.get("color") ?? "");
+  const input = upsertProfileInputSchema.parse({
+    fullName: formData.get("parentFullName"),
+    color: rawColor === "" ? null : rawColor,
+  });
   const { pairing, parentId } = await getRequestContext();
   await pairing.upsertProfile(parentId, input);
   revalidatePath("/perfil");
@@ -52,6 +56,7 @@ function parseJsonArray(formData: FormData, field: string): unknown {
 
 export async function updateChildDetailsAction(formData: FormData) {
   const childId = String(formData.get("childId") ?? "");
+  const rawColor = String(formData.get("color") ?? "");
 
   const input = updateChildDetailsInputSchema.parse({
     contacts: parseJsonArray(formData, "contactsJson"),
@@ -60,6 +65,7 @@ export async function updateChildDetailsAction(formData: FormData) {
     schoolContacts: parseJsonArray(formData, "schoolContactsJson"),
     allergies: formData.get("allergies"),
     notes: parseJsonArray(formData, "notesJson"),
+    color: rawColor === "" ? null : rawColor,
   });
 
   const { pairing, parentId } = await getRequestContext();

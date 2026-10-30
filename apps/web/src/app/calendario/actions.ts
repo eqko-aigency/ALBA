@@ -1,7 +1,13 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { custodyEventInputSchema, custodySlotInputSchema, meetingPlaceInputSchema, visitInputSchema } from "@alba/core";
+import {
+  custodyEventInputSchema,
+  custodySlotInputSchema,
+  importantDateInputSchema,
+  meetingPlaceInputSchema,
+  visitInputSchema,
+} from "@alba/core";
 import { getRequestContext } from "@/lib/repository";
 import { notifyFamilyMembers } from "@/lib/push";
 
@@ -38,9 +44,31 @@ export async function removeSlotAction(formData: FormData) {
 }
 
 export async function createMeetingPlaceAction(formData: FormData) {
-  const input = meetingPlaceInputSchema.parse({ name: formData.get("name") });
+  const input = meetingPlaceInputSchema.parse({
+    name: formData.get("name"),
+    address: formData.get("address"),
+    hotelCheckIn: formData.get("hotelCheckIn"),
+    hotelCheckOut: formData.get("hotelCheckOut"),
+    contacts: formData.get("contacts"),
+    itinerary: formData.get("itinerary"),
+  });
   const { custody, parentId } = await getRequestContext(String(formData.get("as") ?? ""));
-  await custody.createMeetingPlace(parentId, input.name);
+  await custody.createMeetingPlace(parentId, input);
+  revalidatePath("/calendario");
+}
+
+export async function updateMeetingPlaceAction(formData: FormData) {
+  const placeId = String(formData.get("placeId") ?? "");
+  const input = meetingPlaceInputSchema.parse({
+    name: formData.get("name"),
+    address: formData.get("address"),
+    hotelCheckIn: formData.get("hotelCheckIn"),
+    hotelCheckOut: formData.get("hotelCheckOut"),
+    contacts: formData.get("contacts"),
+    itinerary: formData.get("itinerary"),
+  });
+  const { custody, parentId } = await getRequestContext(String(formData.get("as") ?? ""));
+  await custody.updateMeetingPlace(parentId, placeId, input);
   revalidatePath("/calendario");
 }
 
@@ -117,4 +145,23 @@ export async function confirmCheckoutAction(formData: FormData) {
     body: childName,
     url: "/calendario",
   });
+}
+
+export async function createImportantDateAction(formData: FormData) {
+  const input = importantDateInputSchema.parse({
+    title: formData.get("title"),
+    childId: formData.get("childId"),
+    startDate: formData.get("startDate"),
+    endDate: formData.get("endDate"),
+  });
+  const { custody, parentId } = await getRequestContext(String(formData.get("as") ?? ""));
+  await custody.createImportantDate(parentId, input);
+  revalidatePath("/calendario");
+}
+
+export async function deleteImportantDateAction(formData: FormData) {
+  const importantDateId = String(formData.get("importantDateId") ?? "");
+  const { custody, parentId } = await getRequestContext(String(formData.get("as") ?? ""));
+  await custody.deleteImportantDate(parentId, importantDateId);
+  revalidatePath("/calendario");
 }
