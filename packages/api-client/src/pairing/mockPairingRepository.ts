@@ -58,6 +58,7 @@ export function createMockPairingRepository(): PairingRepository {
         schoolContacts: [],
         allergies: null,
         notes: [],
+        color: null,
       };
       children.set(child.id, child);
       return child;
@@ -93,6 +94,7 @@ export function createMockPairingRepository(): PairingRepository {
         lastNotificationsSeenAt: profiles.get(parentId)?.lastNotificationsSeenAt ?? null,
         whatsappNumber: profiles.get(parentId)?.whatsappNumber ?? null,
         onboardingNameConfirmedAt: profiles.get(parentId)?.onboardingNameConfirmedAt ?? null,
+        color: input.color,
       };
       profiles.set(parentId, profile);
       return profile;
@@ -108,6 +110,7 @@ export function createMockPairingRepository(): PairingRepository {
         lastNotificationsSeenAt: existing?.lastNotificationsSeenAt ?? null,
         whatsappNumber: existing?.whatsappNumber ?? null,
         onboardingNameConfirmedAt: existing?.onboardingNameConfirmedAt ?? null,
+        color: existing?.color ?? null,
       };
       profiles.set(parentId, profile);
       return profile;
@@ -123,6 +126,7 @@ export function createMockPairingRepository(): PairingRepository {
         lastNotificationsSeenAt: existing?.lastNotificationsSeenAt ?? null,
         whatsappNumber: existing?.whatsappNumber ?? null,
         onboardingNameConfirmedAt: new Date().toISOString(),
+        color: existing?.color ?? null,
       };
       profiles.set(parentId, profile);
       return profile;
@@ -138,6 +142,7 @@ export function createMockPairingRepository(): PairingRepository {
         lastNotificationsSeenAt: existing?.lastNotificationsSeenAt ?? null,
         whatsappNumber: input.whatsappNumber,
         onboardingNameConfirmedAt: existing?.onboardingNameConfirmedAt ?? null,
+        color: existing?.color ?? null,
       };
       profiles.set(parentId, profile);
       return profile;
@@ -153,6 +158,7 @@ export function createMockPairingRepository(): PairingRepository {
         lastNotificationsSeenAt: new Date().toISOString(),
         whatsappNumber: existing?.whatsappNumber ?? null,
         onboardingNameConfirmedAt: existing?.onboardingNameConfirmedAt ?? null,
+        color: existing?.color ?? null,
       };
       profiles.set(parentId, profile);
       return profile;
@@ -195,6 +201,7 @@ export function createMockPairingRepository(): PairingRepository {
           email: `${id}@demo.local`,
           usageMode: null,
           lastNotificationsSeenAt: null,
+          color: null,
         }),
         whatsappNumber: null,
         onboardingNameConfirmedAt: null,

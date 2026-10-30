@@ -1,4 +1,14 @@
-import type { CustodyAgreement, CustodyEvent, CustodyEventType, CustodyRepository, CustodySlot, MeetingPlace, PairingRepository, Visit } from "@alba/core";
+import type {
+  CustodyAgreement,
+  CustodyEvent,
+  CustodyEventType,
+  CustodyRepository,
+  CustodySlot,
+  ImportantDate,
+  MeetingPlace,
+  PairingRepository,
+  Visit,
+} from "@alba/core";
 
 async function listEventsInRange(
   pairingRepository: PairingRepository,
@@ -27,6 +37,7 @@ export function createMockCustodyRepository(pairingRepository: PairingRepository
   const events = new Map<string, CustodyEvent>();
   const placesByFamily = new Map<string, MeetingPlace[]>();
   const visitsByFamily = new Map<string, Visit[]>();
+  const importantDatesByFamily = new Map<string, ImportantDate[]>();
 
   async function getFamilyId(parentId: string): Promise<string> {
     const family = await pairingRepository.getOrCreateMyFamily(parentId);
@@ -110,13 +121,22 @@ export function createMockCustodyRepository(pairingRepository: PairingRepository
       return [...(placesByFamily.get(familyId) ?? [])];
     },
 
-    async createMeetingPlace(parentId, name) {
+    async createMeetingPlace(parentId, input) {
       const familyId = await getFamilyId(parentId);
-      const place: MeetingPlace = { id: crypto.randomUUID(), name };
+      const place: MeetingPlace = { id: crypto.randomUUID(), ...input };
       const places = placesByFamily.get(familyId) ?? [];
       places.push(place);
       placesByFamily.set(familyId, places);
       return place;
+    },
+
+    async updateMeetingPlace(parentId, placeId, input) {
+      const familyId = await getFamilyId(parentId);
+      const places = placesByFamily.get(familyId) ?? [];
+      const idx = places.findIndex((p) => p.id === placeId);
+      if (idx === -1) throw new Error("lugar no encontrado");
+      places[idx] = { ...places[idx], ...input };
+      return places[idx];
     },
 
     async deleteMeetingPlace(parentId, placeId) {
@@ -149,6 +169,33 @@ export function createMockCustodyRepository(pairingRepository: PairingRepository
       visitsByFamily.set(
         familyId,
         visits.filter((v) => v.id !== visitId)
+      );
+    },
+
+    async listImportantDatesForRange(parentId, start, end) {
+      const familyId = await getFamilyId(parentId);
+      const dates = importantDatesByFamily.get(familyId) ?? [];
+      // Se superpone con [start, end) si empieza antes de que termine el rango
+      // Y termina en o después de que arranca el rango — mismo criterio que
+      // listVisitsForRange pero sobre un rango, no una fecha puntual.
+      return dates.filter((d) => d.startDate < end && d.endDate >= start);
+    },
+
+    async createImportantDate(parentId, input) {
+      const familyId = await getFamilyId(parentId);
+      const importantDate: ImportantDate = { id: crypto.randomUUID(), createdByParentId: parentId, ...input };
+      const dates = importantDatesByFamily.get(familyId) ?? [];
+      dates.push(importantDate);
+      importantDatesByFamily.set(familyId, dates);
+      return importantDate;
+    },
+
+    async deleteImportantDate(parentId, importantDateId) {
+      const familyId = await getFamilyId(parentId);
+      const dates = importantDatesByFamily.get(familyId) ?? [];
+      importantDatesByFamily.set(
+        familyId,
+        dates.filter((d) => d.id !== importantDateId)
       );
     },
   };
