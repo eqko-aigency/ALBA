@@ -2,12 +2,22 @@
 
 import { useState } from "react";
 import type { ChildContact, ChildHealthProvider, ChildNote, ChildSchoolContact } from "@alba/core";
+import { PROFILE_COLORS } from "@alba/core";
 import { ContactsIcon, HealthIcon, NotesIcon, SchoolIcon } from "@/components/icons";
 import { updateChildDetailsAction } from "../../actions";
 
 const inputClass =
   "mt-1 w-full rounded-md border border-subtle bg-card px-3 py-2 text-base text-ink";
 const labelClass = "text-sm font-medium text-ink";
+
+const COLOR_SWATCH: Record<string, string> = {
+  orange: "bg-orange",
+  sky: "bg-sky",
+  salmon: "bg-salmon",
+  success: "bg-success",
+  dawn: "bg-dawn",
+  danger: "bg-danger",
+};
 
 function AccordionHeader({
   label,
@@ -41,12 +51,14 @@ export function ChildDetailsForm({
     schoolContacts: ChildSchoolContact[];
     allergies: string | null;
     notes: ChildNote[];
+    color: string | null;
   };
 }) {
   const [contacts, setContacts] = useState<ChildContact[]>(initial.contacts);
   const [healthProviders, setHealthProviders] = useState<ChildHealthProvider[]>(initial.healthProviders);
   const [schoolContacts, setSchoolContacts] = useState<ChildSchoolContact[]>(initial.schoolContacts);
   const [notes, setNotes] = useState<ChildNote[]>(initial.notes);
+  const [color, setColor] = useState<string | null>(initial.color);
   const [pending, setPending] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -119,6 +131,7 @@ export function ChildDetailsForm({
     formData.set("healthProvidersJson", JSON.stringify(cleanHealthProviders));
     formData.set("schoolContactsJson", JSON.stringify(cleanSchoolContacts));
     formData.set("notesJson", JSON.stringify(cleanNotes));
+    formData.set("color", color ?? "");
     setPending(true);
     setSaved(false);
     await updateChildDetailsAction(formData);
@@ -334,6 +347,24 @@ export function ChildDetailsForm({
             </div>
           </div>
         </details>
+      </div>
+
+      <div>
+        <p className="text-sm font-medium text-ink">Color en el Calendario</p>
+        <div className="mt-2 flex gap-2">
+          {PROFILE_COLORS.map((c) => (
+            <button
+              key={c}
+              type="button"
+              aria-label={`Elegir color ${c}`}
+              onClick={() => {
+                setColor(c);
+                setSaved(false);
+              }}
+              className={`h-8 w-8 rounded-full ${COLOR_SWATCH[c]} ${color === c ? "ring-2 ring-ink ring-offset-2" : ""}`}
+            />
+          ))}
+        </div>
       </div>
 
       <div className="flex items-center gap-3">

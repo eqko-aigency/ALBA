@@ -79,6 +79,7 @@ export default async function ChildDetailPage({
           schoolContacts: child.schoolContacts,
           allergies: child.allergies,
           notes: child.notes,
+          color: child.color,
         }}
       />
 
