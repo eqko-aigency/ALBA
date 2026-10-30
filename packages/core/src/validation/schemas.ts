@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { PROFILE_COLORS } from "./colors";
 
 export const expenseInputSchema = z.object({
   childId: z.string().uuid(),
@@ -15,6 +16,7 @@ export type AcceptInvitationInput = z.infer<typeof acceptInvitationInputSchema>;
 
 export const upsertProfileInputSchema = z.object({
   fullName: z.string().min(2).max(120),
+  color: z.enum(PROFILE_COLORS).nullable(),
 });
 export type UpsertProfileInput = z.infer<typeof upsertProfileInputSchema>;
 
@@ -62,6 +64,7 @@ export const updateChildDetailsInputSchema = z.object({
   schoolContacts: z.array(childSchoolContactSchema).max(10),
   allergies: optionalNote(1000),
   notes: z.array(childNoteSchema).max(20),
+  color: z.enum(PROFILE_COLORS).nullable(),
 });
 export type UpdateChildDetailsInput = z.infer<typeof updateChildDetailsInputSchema>;
 
@@ -145,10 +148,42 @@ export const visitInputSchema = z.object({
 });
 export type VisitInput = z.infer<typeof visitInputSchema>;
 
+/** "" o ausente del form se normaliza a null — mismo criterio que optionalNote. */
+const optionalPlaceField = (max: number) =>
+  z
+    .union([z.string().max(max), z.literal("")])
+    .nullable()
+    .optional()
+    .transform((v) => (v && v.trim().length > 0 ? v.trim() : null));
+
+const optionalPlaceDate = z
+  .union([z.string().regex(/^\d{4}-\d{2}-\d{2}$/), z.literal("")])
+  .nullable()
+  .optional()
+  .transform((v) => (v ? v : null));
+
 export const meetingPlaceInputSchema = z.object({
   name: z.string().min(2).max(80),
+  address: optionalPlaceField(200),
+  hotelCheckIn: optionalPlaceDate,
+  hotelCheckOut: optionalPlaceDate,
+  contacts: optionalPlaceField(500),
+  itinerary: optionalPlaceField(2000),
 });
 export type MeetingPlaceInput = z.infer<typeof meetingPlaceInputSchema>;
+
+export const importantDateInputSchema = z
+  .object({
+    title: z.string().min(2).max(120),
+    childId: z
+      .union([z.string().uuid(), z.literal("")])
+      .transform((v) => (v === "" ? null : v))
+      .nullable(),
+    startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Fecha inválida"),
+    endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Fecha inválida"),
+  })
+  .refine((v) => v.endDate >= v.startDate, { message: "endDate debe ser >= startDate", path: ["endDate"] });
+export type ImportantDateInput = z.infer<typeof importantDateInputSchema>;
 
 export const signUpInputSchema = z.object({
   fullName: z.string().min(2).max(120),

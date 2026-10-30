@@ -12,6 +12,8 @@ export interface Parent {
   whatsappNumber: string | null;
   /** Marca que ya pasó por el paso "¿así está bien tu nombre?" del wizard — null = nunca. */
   onboardingNameConfirmedAt: string | null;
+  /** Color elegido en Perfil, uno de PROFILE_COLORS. null = todavía no eligió uno. */
+  color: string | null;
 }
 
 export interface Family {
@@ -74,6 +76,8 @@ export interface Child {
   schoolContacts: ChildSchoolContact[];
   allergies: string | null;
   notes: ChildNote[];
+  /** Mismo criterio que Parent.color. */
+  color: string | null;
 }
 
 export type InvitationStatus = "pending" | "accepted" | "expired";
@@ -222,6 +226,26 @@ export interface CustodyAgreement {
 export interface MeetingPlace {
   id: string;
   name: string;
+  /** Dirección libre, para el botón "Ver en mapa" — null si no se especificó. */
+  address: string | null;
+  /** "YYYY-MM-DD" — null si este lugar no es una vacación con hotel. */
+  hotelCheckIn: string | null;
+  hotelCheckOut: string | null;
+  /** Texto libre — mismo criterio que Child.notes. */
+  contacts: string | null;
+  itinerary: string | null;
+}
+
+export interface ImportantDate {
+  id: string;
+  title: string;
+  /** null = recordatorio libre, no ligado a un hijo en particular. */
+  childId: string | null;
+  /** "YYYY-MM-DD", fecha local. */
+  startDate: string;
+  /** "YYYY-MM-DD", fecha local, >= startDate. Igual a startDate = evento de 1 día. */
+  endDate: string;
+  createdByParentId: string;
 }
 
 /**
