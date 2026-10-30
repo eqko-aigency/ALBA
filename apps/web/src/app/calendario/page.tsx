@@ -161,7 +161,7 @@ export default async function CalendarioPage({
   const rangeStart = isoDateLocal(visibleDays[0]);
   const rangeEnd = isoDateLocal(addDays(visibleDays[visibleDays.length - 1], 1));
 
-  const [agreement, children, familyMembers, events, meetingPlaces, visits, importantDates] = await Promise.all([
+  const [agreement, children, familyMembers, events, meetingPlaces, visits, importantDates, profile] = await Promise.all([
     custody.getMyAgreement(parentId),
     pairing.getMyChildren(parentId),
     pairing.listFamilyMembers(parentId),
@@ -169,12 +169,34 @@ export default async function CalendarioPage({
     custody.listMeetingPlaces(parentId),
     custody.listVisitsForRange(parentId, rangeStart, rangeEnd),
     custody.listImportantDatesForRange(parentId, rangeStart, rangeEnd),
+    pairing.getProfile(parentId),
   ]);
 
   const childName = (id: string) => children.find((c) => c.id === id)?.fullName ?? "Hijo/a";
   const parentName = (id: string) =>
     id === parentId ? "Tú" : familyMembers.find((p) => p.id === id)?.fullName ?? "El otro progenitor";
   const placeName = (id: string | null) => (id ? meetingPlaces.find((p) => p.id === id)?.name ?? null : null);
+
+  // Color fijo por progenitor/hijo elegido en Perfil — a diferencia de
+  // parentAccent (que siempre pinta "Tú" naranja y al otro cielo, relativo a
+  // quién mira), esto es el MISMO color sin importar quién vea la pantalla.
+  const COLOR_CLASS: Record<string, string> = {
+    orange: "bg-orange",
+    sky: "bg-sky",
+    salmon: "bg-salmon",
+    success: "bg-success",
+    dawn: "bg-dawn",
+    danger: "bg-danger",
+  };
+
+  const parentColorClass = (id: string): string | null => {
+    const p = id === parentId ? profile : familyMembers.find((m) => m.id === id);
+    return p?.color ? COLOR_CLASS[p.color] ?? null : null;
+  };
+  const childColorClass = (id: string): string | null => {
+    const c = children.find((ch) => ch.id === id);
+    return c?.color ? COLOR_CLASS[c.color] ?? null : null;
+  };
 
   // findComplianceIssues es 100% determinístico (packages/core) — se corre
   // una vez por día visible, siempre sobre el MISMO arreglo agreement.slots,
@@ -283,6 +305,14 @@ export default async function CalendarioPage({
             const daySlots = agreement.slots.filter((s) => s.weekday === d.getDay());
             const dayVisits = visits.filter((v) => v.date === dayKey);
             const dayImportantDates = importantDates.filter((imp) => imp.startDate <= dayKey && imp.endDate >= dayKey);
+            const dayParentIds = [...new Set([...daySlots.map((s) => s.parentId), ...dayVisits.map((v) => v.parentId)])];
+            const dayChildIds = [
+              ...new Set([
+                ...daySlots.map((s) => s.childId),
+                ...dayVisits.map((v) => v.childId),
+                ...dayImportantDates.filter((d) => d.childId).map((d) => d.childId!),
+              ]),
+            ];
             const hasIssue = (issuesByDay.get(dayKey) ?? []).length > 0;
 
             return (
@@ -316,6 +346,20 @@ export default async function CalendarioPage({
                     aria-hidden="true"
                   />
                 </span>
+                {(dayParentIds.length > 0 || dayChildIds.length > 0) && (
+                  <span className="flex h-1 w-8 overflow-hidden rounded-full">
+                    <span className="flex flex-1">
+                      {dayParentIds.map((pid) => (
+                        <span key={pid} className={`flex-1 ${parentColorClass(pid) ?? "bg-ink-faint/40"}`} />
+                      ))}
+                    </span>
+                    <span className="flex flex-1">
+                      {dayChildIds.map((cid) => (
+                        <span key={cid} className={`flex-1 ${childColorClass(cid) ?? "bg-ink-faint/40"}`} />
+                      ))}
+                    </span>
+                  </span>
+                )}
               </Link>
             );
           })}
@@ -360,6 +404,8 @@ export default async function CalendarioPage({
               );
               const isMySlotToday = isSelectedToday && slot.parentId === parentId;
               const accent = parentAccent(slot.parentId === parentId);
+              const fixedParentColor = parentColorClass(slot.parentId);
+              const fixedChildColor = childColorClass(slot.childId);
               const parentDisplayName = parentName(slot.parentId);
 
               return (
@@ -367,11 +413,13 @@ export default async function CalendarioPage({
                   <div className="flex items-center justify-between gap-2">
                     <span className="flex items-center gap-2 text-sm text-ink">
                       <span
-                        className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-ink ${accent.avatar}`}
+                        className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-ink ${fixedParentColor ?? accent.avatar}`}
                       >
                         {parentDisplayName.charAt(0).toUpperCase()}
                       </span>
-                      {childName(slot.childId)} con <strong>{parentDisplayName}</strong>
+                      {childName(slot.childId)}
+                      {fixedChildColor && <span className={`inline-block h-2 w-2 rounded-full ${fixedChildColor}`} aria-hidden="true" />}
+                      {" "}con <strong>{parentDisplayName}</strong>
                     </span>
                     <span className="whitespace-nowrap text-xs text-ink-soft">
                       {slot.startTime}–{slot.endTime}
@@ -444,13 +492,15 @@ export default async function CalendarioPage({
           <ul className="mt-3 flex flex-col gap-2">
             {selectedVisits.map((visit) => {
               const accent = parentAccent(visit.parentId === parentId);
+              const fixedParentColor = parentColorClass(visit.parentId);
+              const fixedChildColor = childColorClass(visit.childId);
               const parentDisplayName = parentName(visit.parentId);
               return (
                 <li key={visit.id} className="rounded-xl border border-purple/30 bg-purple/10 px-3 py-2.5">
                   <div className="flex items-center justify-between gap-2">
                     <span className="flex items-center gap-2 text-sm text-ink">
                       <span
-                        className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-ink ${accent.avatar}`}
+                        className={`flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-ink ${fixedParentColor ?? accent.avatar}`}
                       >
                         {parentDisplayName.charAt(0).toUpperCase()}
                       </span>
@@ -458,7 +508,9 @@ export default async function CalendarioPage({
                         <span className="rounded-full bg-purple/30 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-ink">
                           Visita
                         </span>{" "}
-                        {visit.title} — {childName(visit.childId)} con <strong>{parentDisplayName}</strong>
+                        {visit.title} — {childName(visit.childId)}
+                        {fixedChildColor && <span className={`inline-block h-2 w-2 rounded-full ${fixedChildColor}`} aria-hidden="true" />}
+                        {" "}con <strong>{parentDisplayName}</strong>
                       </span>
                     </span>
                     <span className="whitespace-nowrap text-xs text-ink-soft">
