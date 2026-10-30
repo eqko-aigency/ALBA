@@ -4,20 +4,12 @@ import { useState } from "react";
 import type { ChildContact, ChildHealthProvider, ChildNote, ChildSchoolContact } from "@alba/core";
 import { PROFILE_COLORS } from "@alba/core";
 import { ContactsIcon, HealthIcon, NotesIcon, SchoolIcon } from "@/components/icons";
+import { COLOR_CLASS } from "@/lib/profileColors";
 import { updateChildDetailsAction } from "../../actions";
 
 const inputClass =
   "mt-1 w-full rounded-md border border-subtle bg-card px-3 py-2 text-base text-ink";
 const labelClass = "text-sm font-medium text-ink";
-
-const COLOR_SWATCH: Record<string, string> = {
-  orange: "bg-orange",
-  sky: "bg-sky",
-  salmon: "bg-salmon",
-  success: "bg-success",
-  dawn: "bg-dawn",
-  danger: "bg-danger",
-};
 
 function AccordionHeader({
   label,
@@ -361,7 +353,7 @@ export function ChildDetailsForm({
                 setColor(c);
                 setSaved(false);
               }}
-              className={`h-8 w-8 rounded-full ${COLOR_SWATCH[c]} ${color === c ? "ring-2 ring-ink ring-offset-2" : ""}`}
+              className={`h-8 w-8 rounded-full ${COLOR_CLASS[c]} ${color === c ? "ring-2 ring-ink ring-offset-2" : ""}`}
             />
           ))}
         </div>

@@ -2,16 +2,8 @@
 
 import { useState } from "react";
 import { PROFILE_COLORS } from "@alba/core";
+import { COLOR_CLASS } from "@/lib/profileColors";
 import { upsertProfileAction } from "./actions";
-
-const COLOR_SWATCH: Record<string, string> = {
-  orange: "bg-orange",
-  sky: "bg-sky",
-  salmon: "bg-salmon",
-  success: "bg-success",
-  dawn: "bg-dawn",
-  danger: "bg-danger",
-};
 
 export function SaveProfileForm({
   initialFullName,
@@ -59,7 +51,7 @@ export function SaveProfileForm({
                 setColor(c);
                 setSaved(false);
               }}
-              className={`h-8 w-8 rounded-full ${COLOR_SWATCH[c]} ${color === c ? "ring-2 ring-ink ring-offset-2" : ""}`}
+              className={`h-8 w-8 rounded-full ${COLOR_CLASS[c]} ${color === c ? "ring-2 ring-ink ring-offset-2" : ""}`}
             />
           ))}
         </div>

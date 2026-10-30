@@ -2,6 +2,7 @@ import Link from "next/link";
 import { findComplianceIssues, type ComplianceIssue } from "@alba/core";
 import { getRequestContext } from "@/lib/repository";
 import { isDemoMode } from "@/lib/demoSession";
+import { COLOR_CLASS } from "@/lib/profileColors";
 import { AppNav } from "@/components/AppNav";
 import { SubmitButton } from "@/components/SubmitButton";
 import { CalendarIcon, FlagIcon, PinIcon, StarIcon } from "@/components/icons";
@@ -180,15 +181,6 @@ export default async function CalendarioPage({
   // Color fijo por progenitor/hijo elegido en Perfil — a diferencia de
   // parentAccent (que siempre pinta "Tú" naranja y al otro cielo, relativo a
   // quién mira), esto es el MISMO color sin importar quién vea la pantalla.
-  const COLOR_CLASS: Record<string, string> = {
-    orange: "bg-orange",
-    sky: "bg-sky",
-    salmon: "bg-salmon",
-    success: "bg-success",
-    dawn: "bg-dawn",
-    danger: "bg-danger",
-  };
-
   const parentColorClass = (id: string): string | null => {
     const p = id === parentId ? profile : familyMembers.find((m) => m.id === id);
     return p?.color ? COLOR_CLASS[p.color] ?? null : null;
