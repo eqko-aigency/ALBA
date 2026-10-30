@@ -1,5 +1,14 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { CustodyAgreement, CustodyEvent, CustodyEventType, CustodyRepository, CustodySlot, MeetingPlace, Visit } from "@alba/core";
+import type {
+  CustodyAgreement,
+  CustodyEvent,
+  CustodyEventType,
+  CustodyRepository,
+  CustodySlot,
+  ImportantDate,
+  MeetingPlace,
+  Visit,
+} from "@alba/core";
 import { createFamilyIdResolver, type FamilyIdResolver } from "../family/resolveFamilyId";
 
 export function createSupabaseCustodyRepository(
@@ -133,12 +142,41 @@ export function createSupabaseCustodyRepository(
       return (data ?? []).map(mapPlace);
     },
 
-    async createMeetingPlace(parentId, name) {
+    async createMeetingPlace(parentId, input) {
       const familyId = await getMyFamilyId(parentId);
       if (!familyId) throw new Error("el progenitor no pertenece a ninguna familia todavía");
       const { data, error } = await client
         .from("meeting_places")
-        .insert({ family_id: familyId, name })
+        .insert({
+          family_id: familyId,
+          name: input.name,
+          address: input.address,
+          hotel_check_in: input.hotelCheckIn,
+          hotel_check_out: input.hotelCheckOut,
+          contacts: input.contacts,
+          itinerary: input.itinerary,
+        })
+        .select()
+        .single();
+      if (error) throw error;
+      return mapPlace(data);
+    },
+
+    async updateMeetingPlace(parentId, placeId, input) {
+      const familyId = await getMyFamilyId(parentId);
+      if (!familyId) throw new Error("el progenitor no pertenece a ninguna familia todavía");
+      const { data, error } = await client
+        .from("meeting_places")
+        .update({
+          name: input.name,
+          address: input.address,
+          hotel_check_in: input.hotelCheckIn,
+          hotel_check_out: input.hotelCheckOut,
+          contacts: input.contacts,
+          itinerary: input.itinerary,
+        })
+        .eq("id", placeId)
+        .eq("family_id", familyId)
         .select()
         .single();
       if (error) throw error;
@@ -194,6 +232,49 @@ export function createSupabaseCustodyRepository(
       const familyId = await getMyFamilyId(parentId);
       if (!familyId) return;
       const { error } = await client.from("custody_visits").delete().eq("id", visitId).eq("family_id", familyId);
+      if (error) throw error;
+    },
+
+    async listImportantDatesForRange(parentId, start, end) {
+      const familyId = await getMyFamilyId(parentId);
+      if (!familyId) return [];
+      const { data, error } = await client
+        .from("important_dates")
+        .select()
+        .eq("family_id", familyId)
+        .lt("start_date", end)
+        .gte("end_date", start);
+      if (error) throw error;
+      return (data ?? []).map(mapImportantDate);
+    },
+
+    async createImportantDate(parentId, input) {
+      const familyId = await getMyFamilyId(parentId);
+      if (!familyId) throw new Error("el progenitor no pertenece a ninguna familia todavía");
+      const { data, error } = await client
+        .from("important_dates")
+        .insert({
+          family_id: familyId,
+          child_id: input.childId,
+          title: input.title,
+          start_date: input.startDate,
+          end_date: input.endDate,
+          created_by_parent_id: parentId,
+        })
+        .select()
+        .single();
+      if (error) throw error;
+      return mapImportantDate(data);
+    },
+
+    async deleteImportantDate(parentId, importantDateId) {
+      const familyId = await getMyFamilyId(parentId);
+      if (!familyId) return;
+      const { error } = await client
+        .from("important_dates")
+        .delete()
+        .eq("id", importantDateId)
+        .eq("family_id", familyId);
       if (error) throw error;
     },
   };
@@ -272,7 +353,26 @@ function mapSlot(row: any): CustodySlot {
 }
 
 function mapPlace(row: any): MeetingPlace {
-  return { id: row.id, name: row.name };
+  return {
+    id: row.id,
+    name: row.name,
+    address: row.address ?? null,
+    hotelCheckIn: row.hotel_check_in ?? null,
+    hotelCheckOut: row.hotel_check_out ?? null,
+    contacts: row.contacts ?? null,
+    itinerary: row.itinerary ?? null,
+  };
+}
+
+function mapImportantDate(row: any): ImportantDate {
+  return {
+    id: row.id,
+    title: row.title,
+    childId: row.child_id,
+    startDate: row.start_date,
+    endDate: row.end_date,
+    createdByParentId: row.created_by_parent_id,
+  };
 }
 
 function mapVisit(row: any): Visit {

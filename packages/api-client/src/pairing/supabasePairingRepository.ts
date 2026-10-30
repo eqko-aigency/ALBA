@@ -87,6 +87,7 @@ export function createSupabasePairingRepository(
           school_contacts: input.schoolContacts,
           allergies: input.allergies,
           notes: input.notes,
+          color: input.color,
         })
         .eq("id", childId)
         .eq("family_id", familyId)
@@ -109,13 +110,14 @@ export function createSupabasePairingRepository(
         lastNotificationsSeenAt: data.last_notifications_seen_at ?? null,
         whatsappNumber: data.whatsapp_number ?? null,
         onboardingNameConfirmedAt: data.onboarding_name_confirmed_at ?? null,
+        color: data.color ?? null,
       };
     },
 
     async upsertProfile(parentId, input: UpsertProfileInput) {
       const { data, error } = await client
         .from("profiles")
-        .upsert({ id: parentId, full_name: input.fullName })
+        .upsert({ id: parentId, full_name: input.fullName, color: input.color })
         .select()
         .single();
       if (error) throw error;
@@ -128,6 +130,7 @@ export function createSupabasePairingRepository(
         lastNotificationsSeenAt: data.last_notifications_seen_at ?? null,
         whatsappNumber: data.whatsapp_number ?? null,
         onboardingNameConfirmedAt: data.onboarding_name_confirmed_at ?? null,
+        color: data.color ?? null,
       };
     },
 
@@ -148,6 +151,7 @@ export function createSupabasePairingRepository(
         lastNotificationsSeenAt: data.last_notifications_seen_at ?? null,
         whatsappNumber: data.whatsapp_number ?? null,
         onboardingNameConfirmedAt: data.onboarding_name_confirmed_at ?? null,
+        color: data.color ?? null,
       };
     },
 
@@ -168,6 +172,7 @@ export function createSupabasePairingRepository(
         lastNotificationsSeenAt: data.last_notifications_seen_at ?? null,
         whatsappNumber: data.whatsapp_number ?? null,
         onboardingNameConfirmedAt: data.onboarding_name_confirmed_at ?? null,
+        color: data.color ?? null,
       };
     },
 
@@ -188,6 +193,7 @@ export function createSupabasePairingRepository(
         lastNotificationsSeenAt: data.last_notifications_seen_at ?? null,
         whatsappNumber: data.whatsapp_number ?? null,
         onboardingNameConfirmedAt: data.onboarding_name_confirmed_at ?? null,
+        color: data.color ?? null,
       };
     },
 
@@ -208,6 +214,7 @@ export function createSupabasePairingRepository(
         lastNotificationsSeenAt: data.last_notifications_seen_at ?? null,
         whatsappNumber: data.whatsapp_number ?? null,
         onboardingNameConfirmedAt: data.onboarding_name_confirmed_at ?? null,
+        color: data.color ?? null,
       };
     },
 
@@ -255,7 +262,7 @@ export function createSupabasePairingRepository(
       // ambiente el embed fallara, el fallback es dos queries separadas.
       const { data, error } = await client
         .from("family_members")
-        .select("parent_id, profiles(full_name)")
+        .select("parent_id, profiles(full_name, color)")
         .eq("family_id", familyId);
       if (error) throw error;
       return (data ?? []).map((row: any) => ({
@@ -267,6 +274,7 @@ export function createSupabasePairingRepository(
         // whatsappNumber/onboardingNameConfirmedAt: este método no los carga (no por seguridad — RLS 0025 ya los expone al otro progenitor en cualquier otra consulta — simplemente nadie los necesita acá todavía).
         whatsappNumber: null,
         onboardingNameConfirmedAt: null,
+        color: row.profiles?.color ?? null,
       }));
     },
 
@@ -292,6 +300,7 @@ function mapChild(row: any): Child {
     schoolContacts: row.school_contacts ?? [],
     allergies: row.allergies ?? null,
     notes: row.notes ?? [],
+    color: row.color ?? null,
   };
 }
 
