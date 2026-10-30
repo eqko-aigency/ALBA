@@ -4,12 +4,14 @@ import { getRequestContext } from "@/lib/repository";
 import { isDemoMode } from "@/lib/demoSession";
 import { AppNav } from "@/components/AppNav";
 import { SubmitButton } from "@/components/SubmitButton";
-import { CalendarIcon, PinIcon, StarIcon } from "@/components/icons";
+import { CalendarIcon, FlagIcon, PinIcon, StarIcon } from "@/components/icons";
 import {
   confirmCheckinAction,
   confirmCheckoutAction,
+  createImportantDateAction,
   createMeetingPlaceAction,
   createVisitAction,
+  deleteImportantDateAction,
   deleteMeetingPlaceAction,
   deleteVisitAction,
   removeSlotAction,
@@ -158,13 +160,14 @@ export default async function CalendarioPage({
   const rangeStart = isoDateLocal(visibleDays[0]);
   const rangeEnd = isoDateLocal(addDays(visibleDays[visibleDays.length - 1], 1));
 
-  const [agreement, children, familyMembers, events, meetingPlaces, visits] = await Promise.all([
+  const [agreement, children, familyMembers, events, meetingPlaces, visits, importantDates] = await Promise.all([
     custody.getMyAgreement(parentId),
     pairing.getMyChildren(parentId),
     pairing.listFamilyMembers(parentId),
     custody.listEventsForRange(parentId, rangeStart, rangeEnd),
     custody.listMeetingPlaces(parentId),
     custody.listVisitsForRange(parentId, rangeStart, rangeEnd),
+    custody.listImportantDatesForRange(parentId, rangeStart, rangeEnd),
   ]);
 
   const childName = (id: string) => children.find((c) => c.id === id)?.fullName ?? "Hijo/a";
@@ -203,6 +206,7 @@ export default async function CalendarioPage({
 
   const selectedSlots = agreement.slots.filter((s) => s.weekday === selectedDate.getDay());
   const selectedVisits = visits.filter((v) => v.date === selectedDayKey);
+  const selectedImportantDates = importantDates.filter((d) => d.startDate <= selectedDayKey && d.endDate >= selectedDayKey);
   const selectedIssues = issuesByDay.get(selectedDayKey) ?? [];
   const isSelectedToday = selectedDayKey === todayKey;
 
@@ -277,6 +281,7 @@ export default async function CalendarioPage({
             const isSelected = dayKey === selectedDayKey;
             const daySlots = agreement.slots.filter((s) => s.weekday === d.getDay());
             const dayVisits = visits.filter((v) => v.date === dayKey);
+            const dayImportantDates = importantDates.filter((d) => d.startDate <= dayKey && d.endDate >= dayKey);
             const hasIssue = (issuesByDay.get(dayKey) ?? []).length > 0;
 
             return (
@@ -305,6 +310,10 @@ export default async function CalendarioPage({
                     }`}
                   />
                   <span className={`h-1.5 w-1.5 rounded-full ${dayVisits.length > 0 ? "bg-purple" : "bg-transparent"}`} />
+                  <span
+                    className={`h-1.5 w-1.5 rotate-45 ${dayImportantDates.length > 0 ? "bg-orange-deep" : "bg-transparent"}`}
+                    aria-hidden="true"
+                  />
                 </span>
               </Link>
             );
@@ -470,6 +479,36 @@ export default async function CalendarioPage({
                 </li>
               );
             })}
+          </ul>
+        )}
+
+        {selectedImportantDates.length > 0 && (
+          <ul className="mt-3 flex flex-col gap-2">
+            {selectedImportantDates.map((d) => (
+              <li key={d.id} className="rounded-xl border border-orange-deep/30 bg-dawn/40 px-3 py-2.5">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm text-ink">
+                    <span className="rounded-full bg-orange-deep/20 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-ink">
+                      Fecha importante
+                    </span>{" "}
+                    {d.title}
+                    {d.childId && <> — {childName(d.childId)}</>}
+                  </span>
+                </div>
+                {d.startDate !== d.endDate && (
+                  <p className="mt-1 text-xs text-ink-soft">
+                    {formatDay(parseDateKeyLocal(d.startDate))} – {formatDay(parseDateKeyLocal(d.endDate))}
+                  </p>
+                )}
+                <form action={deleteImportantDateAction} className="mt-2">
+                  <input type="hidden" name="as" value={as ?? ""} />
+                  <input type="hidden" name="importantDateId" value={d.id} />
+                  <button type="submit" className="text-xs font-medium text-danger underline">
+                    Quitar
+                  </button>
+                </form>
+              </li>
+            ))}
           </ul>
         )}
       </div>
@@ -695,6 +734,74 @@ export default async function CalendarioPage({
                 </button>
               </form>
             )}
+          </div>
+        </details>
+
+        <details className="group border-t border-subtle">
+          <AccordionHeader label="Fechas importantes" accent="bg-sea" Icon={FlagIcon} />
+          <div className="border-t border-subtle px-4 pb-5 pt-4">
+            <p className="text-xs text-ink-soft">
+              Cumpleaños, ciclo escolar, o cualquier recordatorio — puede durar 1 día, una semana o un mes.
+            </p>
+
+            {importantDates.length > 0 && (
+              <ul className="mt-3 flex flex-col gap-2">
+                {importantDates
+                  .slice()
+                  .sort((a, b) => a.startDate.localeCompare(b.startDate))
+                  .map((d) => (
+                    <li
+                      key={d.id}
+                      className="flex items-center justify-between gap-2 rounded-md bg-sand px-3 py-2 text-base text-ink"
+                    >
+                      <span>
+                        {formatDay(parseDateKeyLocal(d.startDate))}
+                        {d.startDate !== d.endDate && ` – ${formatDay(parseDateKeyLocal(d.endDate))}`} · {d.title}
+                        {d.childId && ` · ${childName(d.childId)}`}
+                      </span>
+                      <form action={deleteImportantDateAction}>
+                        <input type="hidden" name="as" value={as ?? ""} />
+                        <input type="hidden" name="importantDateId" value={d.id} />
+                        <button type="submit" className="shrink-0 text-xs font-medium text-danger underline">
+                          Quitar
+                        </button>
+                      </form>
+                    </li>
+                  ))}
+              </ul>
+            )}
+
+            <form action={createImportantDateAction} className="mt-4 flex flex-col gap-2">
+              <input type="hidden" name="as" value={as ?? ""} />
+              <input
+                name="title"
+                autoComplete="off"
+                required
+                minLength={2}
+                maxLength={120}
+                placeholder="Ej. Cumpleaños de Juan, Inicio de ciclo escolar..."
+                className="rounded-md border border-subtle bg-card px-3 py-2 text-base text-ink"
+              />
+              <select name="childId" className="rounded-md border border-subtle bg-card px-3 py-2 text-base text-ink">
+                <option value="">Sin hijo específico</option>
+                {children.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.fullName}
+                  </option>
+                ))}
+              </select>
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <div className="flex-1 overflow-hidden rounded-md border border-subtle bg-card">
+                  <input type="date" name="startDate" required defaultValue={selectedDayKey} className="w-full min-w-0 bg-card px-3 py-2 text-base text-ink" />
+                </div>
+                <div className="flex-1 overflow-hidden rounded-md border border-subtle bg-card">
+                  <input type="date" name="endDate" required defaultValue={selectedDayKey} className="w-full min-w-0 bg-card px-3 py-2 text-base text-ink" />
+                </div>
+              </div>
+              <SubmitButton pendingText="Agregando…" className="mt-1 self-start rounded-full bg-salmon px-4 py-2 text-sm font-semibold text-ink">
+                Agregar fecha importante
+              </SubmitButton>
+            </form>
           </div>
         </details>
 

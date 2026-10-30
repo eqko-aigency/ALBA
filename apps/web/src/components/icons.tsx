@@ -161,3 +161,17 @@ export function StarIcon({ className = "h-5 w-5" }: IconProps) {
     </svg>
   );
 }
+
+export function FlagIcon({ className = "h-5 w-5" }: IconProps) {
+  return (
+    <svg {...common} className={className}>
+      <path d="M6 3v18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <path
+        d="M6 4h10l-2.2 3.5L16 11H6"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
