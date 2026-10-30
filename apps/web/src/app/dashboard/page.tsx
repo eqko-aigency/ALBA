@@ -66,23 +66,21 @@ export default async function DashboardPage({
   const { as } = await searchParams;
   const { pairing, chat, custody, expenses, documents, verbalAgreements, pension, parentId } = await getRequestContext(as);
 
-  // getOrCreateMyFamily/getProfile/getMyChildren/listFamilyMembers no dependen
-  // una de otra — en paralelo, y ANTES del Promise.all grande de abajo, para
-  // no gastar esas queries en un usuario que de todos modos va a ser
-  // redirigido al wizard. children/familyMembers quedan ya resueltos acá, así
-  // que el Promise.all grande más abajo deja de pedirlos de nuevo (Step 3).
-  const [, profile, children, familyMembers] = await Promise.all([
-    pairing.getOrCreateMyFamily(parentId),
-    pairing.getProfile(parentId),
-    pairing.getMyChildren(parentId),
-    pairing.listFamilyMembers(parentId),
-  ]);
-
-  const otherParent = familyMembers.find((m) => m.id !== parentId) ?? null;
-  const pendingStep = await nextOnboardingStep({ profile, hasChildren: children.length > 0, otherParent });
-  if (pendingStep) {
-    redirect(as === "b" ? `/onboarding/${pendingStep}?as=b` : `/onboarding/${pendingStep}`);
-  }
+  // getOrCreateMyFamily va sola y primero porque es la única con side-effect
+  // (crea la fila de family/family_members si falta) — custody.getMyAgreement
+  // de abajo tira error si family_id es null, así que necesita que la familia
+  // ya exista. profile/children/familyMembers NO tienen esa dependencia
+  // (resuelven family_id con su propio SELECT y devuelven null/[] si no
+  // existe, no tiran), así que no hace falta separarlas en su propia tanda:
+  // van junto con todo lo demás en un solo Promise.all. Antes esto eran 2
+  // Promise.all secuenciales completos — un round-trip extra en cada carga
+  // de Dashboard — solo para evitar gastar el segundo batch en un usuario
+  // que de todos modos iba a ser redirigido al wizard. Con family ya creada
+  // de antemano, ese batch ya no puede fallar aunque corra para ese usuario;
+  // el único costo es desperdiciar esas queries en el caso raro (primer
+  // login, antes de completar onboarding) en vez del caso común (cada
+  // navegación normal de un usuario ya onboardeado).
+  await pairing.getOrCreateMyFamily(parentId);
 
   const now = new Date();
   const todayKey = isoDateLocal(now);
@@ -92,18 +90,39 @@ export default async function DashboardPage({
 
   const notificationsSince = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 30);
 
-  const [threads, agreement, monthEvents, balance, expenseList, documentList, agreements, pensionPayments, recentMessages] =
-    await Promise.all([
-      chat.listThreads(parentId),
-      custody.getMyAgreement(parentId),
-      custody.listEventsForRange(parentId, isoDateLocal(monthStart), isoDateLocal(addDays(monthEnd, 1))),
-      expenses.getBalance(parentId),
-      expenses.listExpenses(parentId),
-      documents.listDocuments(parentId),
-      verbalAgreements.listVerbalAgreements(parentId),
-      pension.listPayments(parentId),
-      chat.listRecentMessages(parentId, notificationsSince.toISOString()),
-    ]);
+  const [
+    profile,
+    children,
+    familyMembers,
+    threads,
+    agreement,
+    monthEvents,
+    balance,
+    expenseList,
+    documentList,
+    agreements,
+    pensionPayments,
+    recentMessages,
+  ] = await Promise.all([
+    pairing.getProfile(parentId),
+    pairing.getMyChildren(parentId),
+    pairing.listFamilyMembers(parentId),
+    chat.listThreads(parentId),
+    custody.getMyAgreement(parentId),
+    custody.listEventsForRange(parentId, isoDateLocal(monthStart), isoDateLocal(addDays(monthEnd, 1))),
+    expenses.getBalance(parentId),
+    expenses.listExpenses(parentId),
+    documents.listDocuments(parentId),
+    verbalAgreements.listVerbalAgreements(parentId),
+    pension.listPayments(parentId),
+    chat.listRecentMessages(parentId, notificationsSince.toISOString()),
+  ]);
+
+  const otherParent = familyMembers.find((m) => m.id !== parentId) ?? null;
+  const pendingStep = await nextOnboardingStep({ profile, hasChildren: children.length > 0, otherParent });
+  if (pendingStep) {
+    redirect(as === "b" ? `/onboarding/${pendingStep}?as=b` : `/onboarding/${pendingStep}`);
+  }
 
   const childName = (id: string) => children.find((c) => c.id === id)?.fullName ?? "Hijo/a";
   const firstName = profile?.fullName?.split(" ")[0] ?? "";
