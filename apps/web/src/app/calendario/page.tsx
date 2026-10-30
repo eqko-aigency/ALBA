@@ -342,7 +342,7 @@ export default async function CalendarioPage({
                   <span className="flex h-1 w-8 overflow-hidden rounded-full">
                     <span className="flex flex-1">
                       {dayParentIds.map((pid) => (
-                        <span key={pid} className={`flex-1 ${parentColorClass(pid) ?? "bg-ink-faint/40"}`} />
+                        <span key={pid} className={`flex-1 ${parentColorClass(pid) ?? parentAccent(pid === parentId).avatar}`} />
                       ))}
                     </span>
                     <span className="flex flex-1">
