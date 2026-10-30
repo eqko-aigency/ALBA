@@ -1,3 +1,5 @@
+import type { ProfileColor } from "../validation/colors";
+
 /** null = todavía no eligió en el onboarding (W-xx). */
 export type UsageMode = "unilateral" | "bilateral" | null;
 
@@ -13,7 +15,7 @@ export interface Parent {
   /** Marca que ya pasó por el paso "¿así está bien tu nombre?" del wizard — null = nunca. */
   onboardingNameConfirmedAt: string | null;
   /** Color elegido en Perfil, uno de PROFILE_COLORS. null = todavía no eligió uno. */
-  color: string | null;
+  color: ProfileColor | null;
 }
 
 export interface Family {
@@ -77,7 +79,7 @@ export interface Child {
   allergies: string | null;
   notes: ChildNote[];
   /** Mismo criterio que Parent.color. */
-  color: string | null;
+  color: ProfileColor | null;
 }
 
 export type InvitationStatus = "pending" | "accepted" | "expired";
