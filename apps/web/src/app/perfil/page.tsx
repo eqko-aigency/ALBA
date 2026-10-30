@@ -48,7 +48,7 @@ export default async function PerfilPage() {
             <span className="ml-auto text-ink-faint transition-transform group-open:rotate-90" aria-hidden="true">→</span>
           </summary>
           <div className="border-t border-subtle px-4 pb-5 pt-4">
-            <SaveProfileForm initialFullName={profile?.fullName ?? ""} />
+            <SaveProfileForm initialFullName={profile?.fullName ?? ""} initialColor={profile?.color ?? null} />
           </div>
         </details>
 
