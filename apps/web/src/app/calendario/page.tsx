@@ -281,7 +281,7 @@ export default async function CalendarioPage({
             const isSelected = dayKey === selectedDayKey;
             const daySlots = agreement.slots.filter((s) => s.weekday === d.getDay());
             const dayVisits = visits.filter((v) => v.date === dayKey);
-            const dayImportantDates = importantDates.filter((d) => d.startDate <= dayKey && d.endDate >= dayKey);
+            const dayImportantDates = importantDates.filter((imp) => imp.startDate <= dayKey && imp.endDate >= dayKey);
             const hasIssue = (issuesByDay.get(dayKey) ?? []).length > 0;
 
             return (
@@ -329,7 +329,7 @@ export default async function CalendarioPage({
           )}
         </p>
 
-        {selectedSlots.length === 0 && selectedVisits.length === 0 ? (
+        {selectedSlots.length === 0 && selectedVisits.length === 0 && selectedImportantDates.length === 0 ? (
           <p className="mt-2 text-sm text-ink-soft">Sin nada programado para este día.</p>
         ) : selectedSlots.length === 0 ? null : (
           <ul className="mt-3 flex flex-col gap-2">
