@@ -15,6 +15,7 @@ import {
   deleteMeetingPlaceAction,
   deleteVisitAction,
   removeSlotAction,
+  updateMeetingPlaceAction,
   upsertSlotAction,
 } from "./actions";
 
@@ -806,33 +807,106 @@ export default async function CalendarioPage({
         </details>
 
         <details className="group border-t border-subtle">
-          <AccordionHeader label="Lugares de encuentro" accent="bg-dawn" Icon={PinIcon} />
+          <AccordionHeader label="Vacaciones" accent="bg-dawn" Icon={PinIcon} />
           <div className="border-t border-subtle px-4 pb-5 pt-4">
             <p className="text-xs text-ink-soft">
-              Casa de cada progenitor, parque, cine... los que agregues aquí aparecen al crear un slot o una visita.
+              Casa de cada progenitor, parque, cine, o un viaje con hotel — los que agregues aquí aparecen al crear un slot o una visita.
             </p>
 
             {meetingPlaces.length > 0 && (
               <ul className="mt-3 flex flex-col gap-2">
                 {meetingPlaces.map((place) => (
-                  <li
-                    key={place.id}
-                    className="flex items-center justify-between gap-2 rounded-md bg-sand px-3 py-2 text-base text-ink"
-                  >
-                    <span>📍 {place.name}</span>
-                    <form action={deleteMeetingPlaceAction}>
-                      <input type="hidden" name="as" value={as ?? ""} />
-                      <input type="hidden" name="placeId" value={place.id} />
-                      <button type="submit" className="shrink-0 text-xs font-medium text-danger underline">
-                        Quitar
-                      </button>
-                    </form>
+                  <li key={place.id} className="rounded-md bg-sand px-3 py-2 text-base text-ink">
+                    <div className="flex items-center justify-between gap-2">
+                      <span>📍 {place.name}</span>
+                      <form action={deleteMeetingPlaceAction}>
+                        <input type="hidden" name="as" value={as ?? ""} />
+                        <input type="hidden" name="placeId" value={place.id} />
+                        <button type="submit" className="shrink-0 text-xs font-medium text-danger underline">
+                          Quitar
+                        </button>
+                      </form>
+                    </div>
+                    {place.address && (
+                      <a
+                        href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.address)}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="mt-1.5 inline-flex items-center gap-1 rounded-full border border-dawn bg-dawn/40 px-3 py-1 text-xs font-semibold text-ink"
+                      >
+                        📍 Ver en mapa
+                      </a>
+                    )}
+                    {(place.hotelCheckIn || place.hotelCheckOut) && (
+                      <p className="mt-1 text-xs text-ink-soft">
+                        Hotel: {place.hotelCheckIn ?? "?"} – {place.hotelCheckOut ?? "?"}
+                      </p>
+                    )}
+                    {place.contacts && <p className="mt-1 text-xs text-ink-soft">Contactos: {place.contacts}</p>}
+                    {place.itinerary && <p className="mt-1 text-xs text-ink-soft">Itinerario: {place.itinerary}</p>}
+
+                    <details className="mt-2 [&_summary::-webkit-details-marker]:hidden">
+                      <summary className="cursor-pointer text-xs font-medium text-ink-soft">Editar</summary>
+                      <form action={updateMeetingPlaceAction} className="mt-2 flex flex-col gap-2">
+                        <input type="hidden" name="as" value={as ?? ""} />
+                        <input type="hidden" name="placeId" value={place.id} />
+                        <input
+                          name="name"
+                          required
+                          minLength={2}
+                          maxLength={80}
+                          defaultValue={place.name}
+                          className="rounded-md border border-subtle bg-card px-3 py-2 text-base text-ink"
+                        />
+                        <input
+                          name="address"
+                          placeholder="Dirección (opcional)"
+                          defaultValue={place.address ?? ""}
+                          className="rounded-md border border-subtle bg-card px-3 py-2 text-base text-ink"
+                        />
+                        <div className="flex flex-col gap-2 sm:flex-row">
+                          <div className="flex-1 overflow-hidden rounded-md border border-subtle bg-card">
+                            <input
+                              type="date"
+                              name="hotelCheckIn"
+                              defaultValue={place.hotelCheckIn ?? ""}
+                              className="w-full min-w-0 bg-card px-3 py-2 text-base text-ink"
+                            />
+                          </div>
+                          <div className="flex-1 overflow-hidden rounded-md border border-subtle bg-card">
+                            <input
+                              type="date"
+                              name="hotelCheckOut"
+                              defaultValue={place.hotelCheckOut ?? ""}
+                              className="w-full min-w-0 bg-card px-3 py-2 text-base text-ink"
+                            />
+                          </div>
+                        </div>
+                        <textarea
+                          name="contacts"
+                          rows={2}
+                          placeholder="Contactos (opcional)"
+                          defaultValue={place.contacts ?? ""}
+                          className="rounded-md border border-subtle bg-card px-3 py-2 text-base text-ink"
+                        />
+                        <textarea
+                          name="itinerary"
+                          rows={3}
+                          placeholder="Itinerario (opcional)"
+                          defaultValue={place.itinerary ?? ""}
+                          className="rounded-md border border-subtle bg-card px-3 py-2 text-base text-ink"
+                        />
+                        <button type="submit" className="self-start rounded-full border border-subtle px-3 py-1.5 text-xs font-semibold text-ink">
+                          Guardar cambios
+                        </button>
+                      </form>
+                    </details>
                   </li>
                 ))}
               </ul>
             )}
 
-            <form action={createMeetingPlaceAction} className="mt-4 flex gap-2">
+            <form action={createMeetingPlaceAction} className="mt-4 flex flex-col gap-2">
               <input type="hidden" name="as" value={as ?? ""} />
               <input
                 name="name"
@@ -840,10 +914,15 @@ export default async function CalendarioPage({
                 required
                 minLength={2}
                 maxLength={80}
-                placeholder="Ej. Casa de Progenitor A, Parque..."
-                className="flex-1 rounded-md border border-subtle bg-card px-3 py-2 text-base text-ink"
+                placeholder="Ej. Casa de Progenitor A, Hotel Playa Sol..."
+                className="rounded-md border border-subtle bg-card px-3 py-2 text-base text-ink"
               />
-              <SubmitButton pendingText="Agregando…" className="shrink-0 rounded-full bg-salmon px-4 py-2 text-sm font-semibold text-ink">
+              <input
+                name="address"
+                placeholder="Dirección (opcional)"
+                className="rounded-md border border-subtle bg-card px-3 py-2 text-base text-ink"
+              />
+              <SubmitButton pendingText="Agregando…" className="self-start rounded-full bg-salmon px-4 py-2 text-sm font-semibold text-ink">
                 Agregar
               </SubmitButton>
             </form>
