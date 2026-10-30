@@ -8,6 +8,7 @@ import type {
   Expense,
   ExpenseBalance,
   Family,
+  ImportantDate,
   Invitation,
   MeetingPlace,
   Message,
@@ -23,6 +24,8 @@ import type {
   ConfirmOnboardingNameInput,
   CreateThreadInput,
   ExpenseInput,
+  ImportantDateInput,
+  MeetingPlaceInput,
   PensionPaymentInput,
   PensionSettingsInput,
   RenameThreadInput,
@@ -183,7 +186,9 @@ export interface CustodyRepository {
    * lo usaban, solo les deja placeId en null (ver 0020_lugares_encuentro.sql).
    */
   listMeetingPlaces(parentId: string): Promise<MeetingPlace[]>;
-  createMeetingPlace(parentId: string, name: string): Promise<MeetingPlace>;
+  createMeetingPlace(parentId: string, input: MeetingPlaceInput): Promise<MeetingPlace>;
+  /** Vacaciones (W-xx) — editar un lugar ya creado (dirección/hotel/contactos/itinerario). */
+  updateMeetingPlace(parentId: string, placeId: string, input: MeetingPlaceInput): Promise<MeetingPlace>;
   deleteMeetingPlace(parentId: string, placeId: string): Promise<void>;
   /**
    * Visitas puntuales (W-xx) — a diferencia de los slots del convenio
@@ -194,6 +199,13 @@ export interface CustodyRepository {
   listVisitsForRange(parentId: string, start: string, end: string): Promise<Visit[]>;
   createVisit(parentId: string, input: VisitInput): Promise<Visit>;
   deleteVisit(parentId: string, visitId: string): Promise<void>;
+  /**
+   * Fechas importantes (W-xx) — rango de fecha sin hora, igual criterio de
+   * familia que listVisitsForRange (start/end "YYYY-MM-DD", end exclusivo).
+   */
+  listImportantDatesForRange(parentId: string, start: string, end: string): Promise<ImportantDate[]>;
+  createImportantDate(parentId: string, input: ImportantDateInput): Promise<ImportantDate>;
+  deleteImportantDate(parentId: string, importantDateId: string): Promise<void>;
 }
 
 /**
