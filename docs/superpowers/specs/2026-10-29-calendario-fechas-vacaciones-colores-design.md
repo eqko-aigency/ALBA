@@ -128,7 +128,7 @@ Hoy el calendario distingue "tú" vs. "el otro progenitor" con un color **relati
 ```ts
 export interface Parent {
   // ...campos existentes...
-  /** Color elegido en Perfil, hex (ej. "#2fae7a"). null = todavía no eligió uno. */
+  /** Color elegido en Perfil, uno de PROFILE_COLORS (ej. "sky"). null = todavía no eligió uno. */
   color: string | null;
 }
 
