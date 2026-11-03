@@ -55,10 +55,20 @@ export function createSupabaseExpenseRepository(
     },
 
     async updateExpenseStatus(parentId, expenseId, status) {
+      // Defensa en profundidad — RLS ya restringe esto a gastos de hijos de
+      // la familia del caller, pero scopear también acá por child_id evita
+      // depender únicamente de la policy y falla con "not found" en vez de
+      // un error genérico de Postgres si el id no pertenece a la familia
+      // del caller (mismo criterio que updateChild en supabasePairingRepository.ts).
+      const familyId = await getMyFamilyId(parentId);
+      if (!familyId) throw new Error("el progenitor no pertenece a ninguna familia todavía");
+      const childIds = await getFamilyChildIds(familyId);
+
       const { data: existing, error: fetchError } = await client
         .from("expenses")
         .select("paid_by_parent_id")
         .eq("id", expenseId)
+        .in("child_id", childIds)
         .single();
       if (fetchError) throw fetchError;
       if (existing.paid_by_parent_id === parentId) {
@@ -69,6 +79,7 @@ export function createSupabaseExpenseRepository(
         .from("expenses")
         .update({ status })
         .eq("id", expenseId)
+        .in("child_id", childIds)
         .select()
         .single();
       if (error) throw error;
@@ -169,10 +180,12 @@ export function createSupabaseExpenseRepository(
       if (!familyId) {
         throw new Error("No perteneces a ninguna familia todavía — empareja al otro progenitor desde tu Perfil.");
       }
-      // A propósito NO se atrapa el 23505 (unique_violation) del índice
-      // parcial "una pendiente a la vez" — el puerto dice explícitamente
-      // "falla si ya hay una propuesta pendiente", a diferencia de
-      // registerPayment en Pensión, que sí es idempotente.
+      // El 23505 (unique_violation) del índice parcial "una pendiente a la
+      // vez" SÍ se atrapa específicamente para dar un mensaje de negocio
+      // claro al caller (igual que el mock) — el comportamiento en sí de
+      // "falla si ya hay una propuesta pendiente" no cambia (el puerto lo
+      // exige explícitamente, a diferencia de registerPayment en Pensión,
+      // que sí es idempotente); cualquier otro error se relanza tal cual.
       const { data, error } = await client
         .from("family_expense_splits")
         .insert({
@@ -182,7 +195,10 @@ export function createSupabaseExpenseRepository(
         })
         .select()
         .single();
-      if (error) throw error;
+      if (error) {
+        if (error.code === "23505") throw new Error("ya hay una propuesta de reparto pendiente");
+        throw error;
+      }
       return mapSplit(data);
     },
 
@@ -194,16 +210,43 @@ export function createSupabaseExpenseRepository(
       return mapSplit(data);
     },
 
-    async rejectExpenseSplit(_parentId, splitId) {
-      const { error } = await client.from("family_expense_splits").delete().eq("id", splitId);
+    async rejectExpenseSplit(parentId, splitId) {
+      const familyId = await getMyFamilyId(parentId);
+      if (!familyId) return;
+
+      const { data: existing, error: fetchError } = await client
+        .from("family_expense_splits")
+        .select("proposed_by_parent_id")
+        .eq("id", splitId)
+        .eq("family_id", familyId)
+        .maybeSingle();
+      if (fetchError) throw fetchError;
+      if (!existing) return;
+      if (existing.proposed_by_parent_id === parentId) {
+        throw new Error("quien propuso el reparto no puede rechazarlo");
+      }
+
+      const { error } = await client
+        .from("family_expense_splits")
+        .delete()
+        .eq("id", splitId)
+        .eq("family_id", familyId);
       if (error) throw error;
     },
 
     async proposeExpenseCounter(parentId, expenseId, input: ExpenseCounterInput) {
+      // Defensa en profundidad — mismo criterio que updateExpenseStatus
+      // arriba: scopear por child_id de la familia del caller además de
+      // confiar en RLS.
+      const familyId = await getMyFamilyId(parentId);
+      if (!familyId) throw new Error("el progenitor no pertenece a ninguna familia todavía");
+      const childIds = await getFamilyChildIds(familyId);
+
       const { data: existing, error: fetchError } = await client
         .from("expenses")
         .select("paid_by_parent_id, status")
         .eq("id", expenseId)
+        .in("child_id", childIds)
         .single();
       if (fetchError) throw fetchError;
       if (existing.paid_by_parent_id === parentId) {
@@ -222,6 +265,7 @@ export function createSupabaseExpenseRepository(
           countered_by_parent_id: parentId,
         })
         .eq("id", expenseId)
+        .in("child_id", childIds)
         .select()
         .single();
       if (error) throw error;
