@@ -3,6 +3,17 @@ import type { NextRequest } from "next/server";
 import { computeExpenseReimbursement } from "@alba/core";
 import { getRequestContext } from "@/lib/repository";
 
+function expensePeriod(createdAt: string): string {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/Mexico_City",
+    year: "numeric",
+    month: "2-digit",
+  }).formatToParts(new Date(createdAt));
+  const year = parts.find((p) => p.type === "year")!.value;
+  const month = parts.find((p) => p.type === "month")!.value;
+  return `${year}-${month}`;
+}
+
 export async function GET(request: NextRequest) {
   const as = request.nextUrl.searchParams.get("as") ?? "";
   const period = request.nextUrl.searchParams.get("period") ?? "";
@@ -24,9 +35,12 @@ export async function GET(request: NextRequest) {
   const parentName = (id: string) =>
     id === parentId ? "Yo" : (familyMembers.find((p) => p.id === id)?.fullName ?? "El otro progenitor");
 
-  const rows = expenseList.filter((e) => e.status === "approved" && e.createdAt.startsWith(period));
+  const rows = expenseList.filter((e) => e.status === "approved" && expensePeriod(e.createdAt) === period);
 
-  const csvEscape = (v: string) => `"${v.replace(/"/g, '""')}"`;
+  const csvEscape = (v: string) => {
+    const safe = /^[=+\-@\t\r]/.test(v) ? `'${v}` : v;
+    return `"${safe.replace(/"/g, '""')}"`;
+  };
   const lines = ["Fecha,Hijo,Descripción,Monto,Pagó,Reembolso"];
   for (const e of rows) {
     const reimbursement = otherParent
