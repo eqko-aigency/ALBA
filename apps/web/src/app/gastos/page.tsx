@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { periodKey, type Expense } from "@alba/core";
+import { formatPeriodLabel, periodKey, type Expense } from "@alba/core";
 import { getRequestContext } from "@/lib/repository";
 import { isDemoMode } from "@/lib/demoSession";
 import { AppNav } from "@/components/AppNav";
@@ -135,6 +135,13 @@ export default async function GastosPage({
         />
       ) : (
         <>
+      <a
+        href={`/gastos/export?period=${period}${asQuery}`}
+        className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-ink underline"
+      >
+        Exportar CSV de {formatPeriodLabel(period)}
+      </a>
+
       <section className="mt-6 rounded-xl border border-subtle bg-card p-5 text-center shadow-ambient">
         {!otherParentName ? (
           <p className="text-sm text-ink-soft">
