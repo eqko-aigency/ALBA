@@ -28,7 +28,6 @@ import type {
   ExpenseCounterInput,
   ExpenseInput,
   ExpenseSettlementInput,
-  ExpenseSplitInput,
   ImportantDateInput,
   MeetingPlaceInput,
   PensionPaymentInput,
