@@ -1,5 +1,14 @@
+// packages/api-client/src/expenses/supabaseExpenseRepository.ts
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { Expense, ExpenseRepository } from "@alba/core";
+import {
+  computeExpenseReimbursement,
+  type Expense,
+  type ExpenseCounterInput,
+  type ExpenseRepository,
+  type ExpenseSettlement,
+  type ExpenseSettlementInput,
+  type ExpenseSplit,
+} from "@alba/core";
 import { createFamilyIdResolver, type FamilyIdResolver } from "../family/resolveFamilyId";
 
 export function createSupabaseExpenseRepository(
@@ -30,15 +39,6 @@ export function createSupabaseExpenseRepository(
     },
 
     async createExpense(parentId, input) {
-      // Insert directo siguiendo el patrón normal de RLS (igual que
-      // children/invitations/chat/custody_events) — NO el RPC security
-      // definer que sí hizo falta para "families" (ver 0008_get_or_create_
-      // my_family_rpc.sql: esa anomalía nunca se repitió en otros inserts
-      // directos una vez corregida la propagación de sesión en
-      // getRequestContext). Si en producción este insert llegara a fallar
-      // con el mismo síntoma (RLS 42501 / "auth_user: null" pese a sesión
-      // válida), el respaldo es mover esto a una función RPC security
-      // definer análoga a get_or_create_my_family().
       const { data, error } = await client
         .from("expenses")
         .insert({
@@ -55,9 +55,6 @@ export function createSupabaseExpenseRepository(
     },
 
     async updateExpenseStatus(parentId, expenseId, status) {
-      // Defensa en profundidad — RLS ya impide que el pagador apruebe o
-      // rechace su propio gasto (0010_gastos.sql), pero se verifica también
-      // acá, mismo criterio que updateChild en supabasePairingRepository.ts.
       const { data: existing, error: fetchError } = await client
         .from("expenses")
         .select("paid_by_parent_id")
@@ -89,27 +86,193 @@ export function createSupabaseExpenseRepository(
       if (membersError) throw membersError;
       const otherParentId: string | null =
         (members ?? []).map((m: any) => m.parent_id).find((id: string) => id !== parentId) ?? null;
+      if (!otherParentId) return { otherParentId: null, amountMxnOwedByCaller: 0 };
 
       const childIds = await getFamilyChildIds(familyId);
-      if (childIds.length === 0 || !otherParentId) {
-        return { otherParentId, amountMxnOwedByCaller: 0 };
-      }
+      if (childIds.length === 0) return { otherParentId, amountMxnOwedByCaller: 0 };
 
-      const { data: approved, error: expensesError } = await client
+      const { data: settlementRow, error: settlementError } = await client
+        .from("family_expense_settlements")
+        .select("confirmed_at")
+        .eq("family_id", familyId)
+        .not("confirmed_at", "is", null)
+        .order("confirmed_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (settlementError) throw settlementError;
+      const cutoff: string | null = settlementRow?.confirmed_at ?? null;
+
+      const { data: splitRow, error: splitError } = await client
+        .from("family_expense_splits")
+        .select("proposer_share_pct, proposed_by_parent_id")
+        .eq("family_id", familyId)
+        .eq("status", "confirmed")
+        .order("confirmed_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (splitError) throw splitError;
+      const confirmedSplit = splitRow
+        ? { proposerSharePct: splitRow.proposer_share_pct, proposedByParentId: splitRow.proposed_by_parent_id }
+        : null;
+
+      let query = client
         .from("expenses")
-        .select("paid_by_parent_id, amount_mxn")
+        .select("paid_by_parent_id, amount_mxn, counter_amount_mxn")
         .in("child_id", childIds)
         .eq("status", "approved");
+      if (cutoff) query = query.gt("created_at", cutoff);
+      const { data: approved, error: expensesError } = await query;
       if (expensesError) throw expensesError;
 
-      const paidByCaller = (approved ?? [])
-        .filter((e: any) => e.paid_by_parent_id === parentId)
-        .reduce((sum: number, e: any) => sum + Number(e.amount_mxn), 0);
-      const paidByOther = (approved ?? [])
-        .filter((e: any) => e.paid_by_parent_id === otherParentId)
-        .reduce((sum: number, e: any) => sum + Number(e.amount_mxn), 0);
+      let amountMxnOwedByCaller = 0;
+      for (const row of approved ?? []) {
+        const expense = {
+          amountMxn: Number(row.amount_mxn),
+          paidByParentId: row.paid_by_parent_id,
+          counterAmountMxn: row.counter_amount_mxn !== null ? Number(row.counter_amount_mxn) : null,
+        };
+        const reimbursement = computeExpenseReimbursement(expense, confirmedSplit, { a: parentId, b: otherParentId });
+        if (expense.paidByParentId === otherParentId) amountMxnOwedByCaller += reimbursement;
+        else amountMxnOwedByCaller -= reimbursement;
+      }
 
-      return { otherParentId, amountMxnOwedByCaller: (paidByOther - paidByCaller) / 2 };
+      return { otherParentId, amountMxnOwedByCaller };
+    },
+
+    async getExpenseSplit(parentId) {
+      const familyId = await getMyFamilyId(parentId);
+      if (!familyId) return null;
+
+      const { data: pending, error: pendingError } = await client
+        .from("family_expense_splits")
+        .select()
+        .eq("family_id", familyId)
+        .eq("status", "pending")
+        .maybeSingle();
+      if (pendingError) throw pendingError;
+      if (pending) return mapSplit(pending);
+
+      const { data: confirmed, error: confirmedError } = await client
+        .from("family_expense_splits")
+        .select()
+        .eq("family_id", familyId)
+        .eq("status", "confirmed")
+        .order("confirmed_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (confirmedError) throw confirmedError;
+      return confirmed ? mapSplit(confirmed) : null;
+    },
+
+    async proposeExpenseSplit(parentId, proposerSharePct) {
+      const familyId = await getMyFamilyId(parentId);
+      if (!familyId) {
+        throw new Error("No perteneces a ninguna familia todavía — empareja al otro progenitor desde tu Perfil.");
+      }
+      // A propósito NO se atrapa el 23505 (unique_violation) del índice
+      // parcial "una pendiente a la vez" — el puerto dice explícitamente
+      // "falla si ya hay una propuesta pendiente", a diferencia de
+      // registerPayment en Pensión, que sí es idempotente.
+      const { data, error } = await client
+        .from("family_expense_splits")
+        .insert({
+          family_id: familyId,
+          proposed_by_parent_id: parentId,
+          proposer_share_pct: proposerSharePct,
+        })
+        .select()
+        .single();
+      if (error) throw error;
+      return mapSplit(data);
+    },
+
+    async confirmExpenseSplit(_parentId, splitId) {
+      // SECURITY DEFINER — ver confirm_expense_split() en
+      // 0034_reparto_gastos.sql.
+      const { data, error } = await client.rpc("confirm_expense_split", { p_split_id: splitId });
+      if (error) throw error;
+      return mapSplit(data);
+    },
+
+    async rejectExpenseSplit(_parentId, splitId) {
+      const { error } = await client.from("family_expense_splits").delete().eq("id", splitId);
+      if (error) throw error;
+    },
+
+    async proposeExpenseCounter(parentId, expenseId, input: ExpenseCounterInput) {
+      const { data: existing, error: fetchError } = await client
+        .from("expenses")
+        .select("paid_by_parent_id, status")
+        .eq("id", expenseId)
+        .single();
+      if (fetchError) throw fetchError;
+      if (existing.paid_by_parent_id === parentId) {
+        throw new Error("no puedes contraofertar tu propio gasto");
+      }
+      if (existing.status !== "pending_approval") {
+        throw new Error("este gasto ya no está pendiente de aprobación");
+      }
+
+      const { data, error } = await client
+        .from("expenses")
+        .update({
+          status: "countered",
+          counter_amount_mxn: input.counterAmountMxn,
+          counter_comment: input.counterComment,
+          countered_by_parent_id: parentId,
+        })
+        .eq("id", expenseId)
+        .select()
+        .single();
+      if (error) throw error;
+      return mapExpense(data);
+    },
+
+    async resolveExpenseCounter(_parentId, expenseId, accept) {
+      // SECURITY DEFINER — ver resolve_expense_counter() en
+      // 0035_contraoferta_gastos.sql.
+      const { data, error } = await client.rpc("resolve_expense_counter", {
+        p_expense_id: expenseId,
+        p_accept: accept,
+      });
+      if (error) throw error;
+      return mapExpense(data);
+    },
+
+    async getLatestExpenseSettlement(parentId) {
+      const familyId = await getMyFamilyId(parentId);
+      if (!familyId) return null;
+      const { data, error } = await client
+        .from("family_expense_settlements")
+        .select()
+        .eq("family_id", familyId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return data ? mapSettlement(data) : null;
+    },
+
+    async registerExpenseSettlement(parentId, input: ExpenseSettlementInput) {
+      const familyId = await getMyFamilyId(parentId);
+      if (!familyId) throw new Error("el progenitor no pertenece a ninguna familia todavía");
+      const { data, error } = await client
+        .from("family_expense_settlements")
+        .insert({ family_id: familyId, paid_by_parent_id: parentId, amount_mxn: input.amountMxn })
+        .select()
+        .single();
+      if (error) throw error;
+      return mapSettlement(data);
+    },
+
+    async confirmExpenseSettlement(_parentId, settlementId) {
+      // SECURITY DEFINER — ver confirm_expense_settlement() en
+      // 0036_liquidar_saldo_gastos.sql.
+      const { data, error } = await client.rpc("confirm_expense_settlement", {
+        p_settlement_id: settlementId,
+      });
+      if (error) throw error;
+      return mapSettlement(data);
     },
   };
 }
@@ -124,5 +287,32 @@ function mapExpense(row: any): Expense {
     receiptUrl: row.receipt_url,
     status: row.status,
     createdAt: row.created_at,
+    counterAmountMxn: row.counter_amount_mxn !== null ? Number(row.counter_amount_mxn) : null,
+    counterComment: row.counter_comment ?? null,
+    counteredByParentId: row.countered_by_parent_id ?? null,
+  };
+}
+
+function mapSplit(row: any): ExpenseSplit {
+  return {
+    id: row.id,
+    familyId: row.family_id,
+    proposedByParentId: row.proposed_by_parent_id,
+    proposerSharePct: row.proposer_share_pct,
+    status: row.status,
+    confirmedByParentId: row.confirmed_by_parent_id ?? null,
+    createdAt: row.created_at,
+  };
+}
+
+function mapSettlement(row: any): ExpenseSettlement {
+  return {
+    id: row.id,
+    familyId: row.family_id,
+    paidByParentId: row.paid_by_parent_id,
+    amountMxn: Number(row.amount_mxn),
+    createdAt: row.created_at,
+    confirmedByParentId: row.confirmed_by_parent_id ?? null,
+    confirmedAt: row.confirmed_at ?? null,
   };
 }
