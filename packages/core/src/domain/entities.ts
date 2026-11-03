@@ -140,6 +140,10 @@ export interface Expense {
   receiptUrl: string | null;
   status: "pending_approval" | "approved" | "rejected" | "countered";
   createdAt: string;
+  /** Monto que el progenitor que NO pagó ofrece cubrir (su reembolso, no el total del gasto) — null si nunca se contraofertó. */
+  counterAmountMxn: number | null;
+  counterComment: string | null;
+  counteredByParentId: string | null;
 }
 
 /**
@@ -154,6 +158,39 @@ export interface Expense {
 export interface ExpenseBalance {
   otherParentId: string | null;
   amountMxnOwedByCaller: number;
+}
+
+/**
+ * Reparto configurable de Gastos (W-xx) — reemplaza el 50/50 fijo.
+ * proposerSharePct es el % que cubre proposedByParentId; el otro
+ * progenitor cubre 100 - eso. Mismo patrón de propuesta/confirmación que
+ * Acuerdos: una propuesta "pending" todavía no afecta el balance, solo
+ * una "confirmed" sí (ver computeExpenseReimbursement en expenseEngine.ts).
+ */
+export interface ExpenseSplit {
+  id: string;
+  familyId: string;
+  proposedByParentId: string;
+  proposerSharePct: number;
+  status: "pending" | "confirmed";
+  confirmedByParentId: string | null;
+  createdAt: string;
+}
+
+/**
+ * Liquidar saldo de Gastos (W-xx) — mismo patrón que PensionPayment: quien
+ * debe registra "ya pagué" (paidByParentId), el otro confirma que lo
+ * recibió. Una vez confirmada, getBalance() deja de contar gastos
+ * aprobados de antes de confirmedAt (ver 0036_liquidar_saldo_gastos.sql).
+ */
+export interface ExpenseSettlement {
+  id: string;
+  familyId: string;
+  paidByParentId: string;
+  amountMxn: number;
+  createdAt: string;
+  confirmedByParentId: string | null;
+  confirmedAt: string | null;
 }
 
 /**

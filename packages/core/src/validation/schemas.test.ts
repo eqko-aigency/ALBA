@@ -1,6 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
+  expenseCounterInputSchema,
+  expenseSettlementInputSchema,
+  expenseSplitInputSchema,
   importantDateInputSchema,
   meetingPlaceInputSchema,
   updateChildDetailsInputSchema,
@@ -98,4 +101,30 @@ test("updateChildDetailsInputSchema acepta un color de la paleta fija", () => {
     color: "salmon",
   });
   assert.equal(input.color, "salmon");
+});
+
+test("expenseSplitInputSchema acepta un % entre 1 y 99", () => {
+  const input = expenseSplitInputSchema.parse({ proposerSharePct: 60 });
+  assert.equal(input.proposerSharePct, 60);
+});
+
+test("expenseSplitInputSchema rechaza 0, 100 y no-enteros", () => {
+  assert.throws(() => expenseSplitInputSchema.parse({ proposerSharePct: 0 }));
+  assert.throws(() => expenseSplitInputSchema.parse({ proposerSharePct: 100 }));
+  assert.throws(() => expenseSplitInputSchema.parse({ proposerSharePct: 50.5 }));
+});
+
+test("expenseCounterInputSchema rechaza monto negativo/cero y comentario corto", () => {
+  assert.throws(() => expenseCounterInputSchema.parse({ counterAmountMxn: 0, counterComment: "No puedo" }));
+  assert.throws(() => expenseCounterInputSchema.parse({ counterAmountMxn: 100, counterComment: "a" }));
+});
+
+test("expenseCounterInputSchema acepta un monto y comentario válidos", () => {
+  const input = expenseCounterInputSchema.parse({ counterAmountMxn: 200, counterComment: "Solo puedo cubrir esto" });
+  assert.equal(input.counterAmountMxn, 200);
+});
+
+test("expenseSettlementInputSchema rechaza monto negativo/cero", () => {
+  assert.throws(() => expenseSettlementInputSchema.parse({ amountMxn: 0 }));
+  assert.throws(() => expenseSettlementInputSchema.parse({ amountMxn: -50 }));
 });

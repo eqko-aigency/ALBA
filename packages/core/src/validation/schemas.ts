@@ -9,6 +9,22 @@ export const expenseInputSchema = z.object({
 });
 export type ExpenseInput = z.infer<typeof expenseInputSchema>;
 
+export const expenseSplitInputSchema = z.object({
+  proposerSharePct: z.number().int().min(1).max(99),
+});
+export type ExpenseSplitInput = z.infer<typeof expenseSplitInputSchema>;
+
+export const expenseCounterInputSchema = z.object({
+  counterAmountMxn: z.number().positive(),
+  counterComment: z.string().min(3).max(280),
+});
+export type ExpenseCounterInput = z.infer<typeof expenseCounterInputSchema>;
+
+export const expenseSettlementInputSchema = z.object({
+  amountMxn: z.number().positive(),
+});
+export type ExpenseSettlementInput = z.infer<typeof expenseSettlementInputSchema>;
+
 export const acceptInvitationInputSchema = z.object({
   token: z.string().uuid(),
 });

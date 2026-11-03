@@ -5,3 +5,4 @@ export * from "./validation/colors";
 export * from "./compliance/complianceEngine";
 export * from "./evidence/merkleEngine";
 export * from "./pension/pensionEngine";
+export * from "./expenses/expenseEngine";
