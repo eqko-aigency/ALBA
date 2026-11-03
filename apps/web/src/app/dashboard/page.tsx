@@ -361,7 +361,7 @@ export default async function DashboardPage({
           <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-orange text-ink">
             <ClockIcon />
           </span>
-          <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-ink-soft">Visitas cumplidas</p>
+          <p className="mt-3 text-xs font-semibold uppercase tracking-wide text-ink-soft">Check-ins confirmados</p>
           <p className="mt-1 text-lg font-semibold text-ink">
             {confirmedVisits}/{expectedVisits}
           </p>
