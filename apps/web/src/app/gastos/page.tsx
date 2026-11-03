@@ -7,9 +7,11 @@ import {
   confirmExpenseSettlementAction,
   confirmExpenseSplitAction,
   createExpenseAction,
+  proposeExpenseCounterAction,
   proposeExpenseSplitAction,
   registerExpenseSettlementAction,
   rejectExpenseSplitAction,
+  resolveExpenseCounterAction,
   updateExpenseStatusAction,
 } from "./actions";
 import { PensionSection } from "./PensionSection";
@@ -276,23 +278,82 @@ export default async function GastosPage({
                 </div>
 
                 {canDecide && (
-                  <div className="mt-3 flex gap-2">
-                    <form action={updateExpenseStatusAction}>
-                      <input type="hidden" name="as" value={as ?? ""} />
-                      <input type="hidden" name="expenseId" value={expense.id} />
-                      <input type="hidden" name="status" value="approved" />
-                      <SubmitButton pendingText="Aprobando…" className="rounded-full bg-success/20 px-3 py-1.5 text-xs font-semibold text-ink">
-                        Aprobar
-                      </SubmitButton>
-                    </form>
-                    <form action={updateExpenseStatusAction}>
-                      <input type="hidden" name="as" value={as ?? ""} />
-                      <input type="hidden" name="expenseId" value={expense.id} />
-                      <input type="hidden" name="status" value="rejected" />
-                      <SubmitButton pendingText="Rechazando…" className="rounded-full bg-danger/20 px-3 py-1.5 text-xs font-semibold text-ink">
-                        Rechazar
-                      </SubmitButton>
-                    </form>
+                  <div className="mt-3 flex flex-col gap-2">
+                    <div className="flex gap-2">
+                      <form action={updateExpenseStatusAction}>
+                        <input type="hidden" name="as" value={as ?? ""} />
+                        <input type="hidden" name="expenseId" value={expense.id} />
+                        <input type="hidden" name="status" value="approved" />
+                        <SubmitButton pendingText="Aprobando…" className="rounded-full bg-success/20 px-3 py-1.5 text-xs font-semibold text-ink">
+                          Aprobar
+                        </SubmitButton>
+                      </form>
+                      <form action={updateExpenseStatusAction}>
+                        <input type="hidden" name="as" value={as ?? ""} />
+                        <input type="hidden" name="expenseId" value={expense.id} />
+                        <input type="hidden" name="status" value="rejected" />
+                        <SubmitButton pendingText="Rechazando…" className="rounded-full bg-danger/20 px-3 py-1.5 text-xs font-semibold text-ink">
+                          Rechazar
+                        </SubmitButton>
+                      </form>
+                    </div>
+                    <details className="[&_summary::-webkit-details-marker]:hidden">
+                      <summary className="cursor-pointer text-xs font-medium text-ink-soft underline">Contraoferta</summary>
+                      <form action={proposeExpenseCounterAction} className="mt-2 flex flex-col gap-2">
+                        <input type="hidden" name="as" value={as ?? ""} />
+                        <input type="hidden" name="expenseId" value={expense.id} />
+                        <input
+                          type="number"
+                          name="counterAmountMxn"
+                          step="0.01"
+                          min="0.01"
+                          required
+                          placeholder="Monto que puedes cubrir"
+                          className="rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink"
+                        />
+                        <textarea
+                          name="counterComment"
+                          required
+                          minLength={3}
+                          maxLength={280}
+                          rows={2}
+                          placeholder="¿Por qué?"
+                          className="rounded-md border border-subtle bg-card px-3 py-2 text-sm text-ink"
+                        />
+                        <SubmitButton pendingText="Enviando…" className="self-start rounded-full border border-subtle px-3 py-1.5 text-xs font-semibold text-ink">
+                          Mandar contraoferta
+                        </SubmitButton>
+                      </form>
+                    </details>
+                  </div>
+                )}
+
+                {expense.status === "countered" && (
+                  <div className="mt-3 rounded-md border border-purple/30 bg-purple/10 p-3">
+                    <p className="text-sm text-ink">
+                      {parentName(expense.counteredByParentId!)} ofrece cubrir {MXN.format(expense.counterAmountMxn!)}
+                    </p>
+                    <p className="mt-1 text-xs text-ink-soft">&quot;{expense.counterComment}&quot;</p>
+                    {expense.paidByParentId === parentId && (
+                      <div className="mt-2 flex gap-2">
+                        <form action={resolveExpenseCounterAction}>
+                          <input type="hidden" name="as" value={as ?? ""} />
+                          <input type="hidden" name="expenseId" value={expense.id} />
+                          <input type="hidden" name="accept" value="true" />
+                          <SubmitButton pendingText="Aceptando…" className="rounded-full bg-success/20 px-3 py-1.5 text-xs font-semibold text-ink">
+                            Aceptar contraoferta
+                          </SubmitButton>
+                        </form>
+                        <form action={resolveExpenseCounterAction}>
+                          <input type="hidden" name="as" value={as ?? ""} />
+                          <input type="hidden" name="expenseId" value={expense.id} />
+                          <input type="hidden" name="accept" value="false" />
+                          <SubmitButton pendingText="Rechazando…" className="rounded-full bg-danger/20 px-3 py-1.5 text-xs font-semibold text-ink">
+                            Rechazar contraoferta
+                          </SubmitButton>
+                        </form>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
