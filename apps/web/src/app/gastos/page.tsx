@@ -338,7 +338,9 @@ export default async function GastosPage({
                 {expense.status === "countered" && (
                   <div className="mt-3 rounded-md border border-purple/30 bg-purple/10 p-3">
                     <p className="text-sm text-ink">
-                      {parentName(expense.counteredByParentId!)} ofrece cubrir {MXN.format(expense.counterAmountMxn!)}
+                      {expense.counteredByParentId === parentId
+                        ? `Tú ofreces cubrir ${MXN.format(expense.counterAmountMxn!)}`
+                        : `${parentName(expense.counteredByParentId!)} ofrece cubrir ${MXN.format(expense.counterAmountMxn!)}`}
                     </p>
                     <p className="mt-1 text-xs text-ink-soft">&quot;{expense.counterComment}&quot;</p>
                     {expense.paidByParentId === parentId && (
