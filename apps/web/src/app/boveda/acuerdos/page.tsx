@@ -155,7 +155,7 @@ export default async function AcuerdosVerbalesPage({
         </form>
       </section>
 
-      <AppNav active="Bóveda" />
+      <AppNav active="Acuerdos" />
     </div>
   );
 }

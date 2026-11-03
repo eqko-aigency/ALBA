@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-type NavLabel = "Dashboard" | "Perfil" | "Chat" | "Calendario" | "Gastos" | "Bóveda";
+type NavLabel = "Dashboard" | "Perfil" | "Chat" | "Calendario" | "Gastos" | "Acuerdos" | "Bóveda";
 
 const items: { href: string; label: NavLabel; enabled: boolean }[] = [
   { href: "/dashboard", label: "Dashboard", enabled: true },
@@ -8,6 +8,7 @@ const items: { href: string; label: NavLabel; enabled: boolean }[] = [
   { href: "/chat", label: "Chat", enabled: true },
   { href: "/calendario", label: "Calendario", enabled: true },
   { href: "/gastos", label: "Gastos", enabled: true },
+  { href: "/boveda/acuerdos", label: "Acuerdos", enabled: true },
   { href: "/boveda", label: "Bóveda", enabled: true },
 ];
 
@@ -65,6 +66,25 @@ function NavIcon({ label }: { label: NavLabel }) {
             stroke="currentColor"
             strokeWidth="1.6"
             strokeLinecap="round"
+          />
+        </svg>
+      );
+    case "Acuerdos":
+      return (
+        <svg {...common}>
+          <path
+            d="M7 4.5h7.5L18 8v10.5A1.5 1.5 0 0116.5 20h-9A1.5 1.5 0 016 18.5v-12A1.5 1.5 0 017 4.5z"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinejoin="round"
+          />
+          <path d="M14.5 4.5V8H18" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+          <path
+            d="M9 13.3l1.8 1.8L15 11"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
           />
         </svg>
       );
