@@ -3,7 +3,15 @@ import { periodKey, type Expense } from "@alba/core";
 import { getRequestContext } from "@/lib/repository";
 import { isDemoMode } from "@/lib/demoSession";
 import { AppNav } from "@/components/AppNav";
-import { createExpenseAction, updateExpenseStatusAction } from "./actions";
+import {
+  confirmExpenseSettlementAction,
+  confirmExpenseSplitAction,
+  createExpenseAction,
+  proposeExpenseSplitAction,
+  registerExpenseSettlementAction,
+  rejectExpenseSplitAction,
+  updateExpenseStatusAction,
+} from "./actions";
 import { PensionSection } from "./PensionSection";
 import { SubmitButton } from "@/components/SubmitButton";
 
@@ -37,14 +45,17 @@ export default async function GastosPage({
   const period = periodParam && /^\d{4}-\d{2}$/.test(periodParam) ? periodParam : periodKey(new Date());
   const { pairing, expenses, pension, parentId } = await getRequestContext(as);
 
-  const [expenseList, children, familyMembers, balance, pensionSettings, pensionPayments] = await Promise.all([
-    expenses.listExpenses(parentId),
-    pairing.getMyChildren(parentId),
-    pairing.listFamilyMembers(parentId),
-    expenses.getBalance(parentId),
-    pension.getSettings(parentId),
-    pension.listPayments(parentId),
-  ]);
+  const [expenseList, children, familyMembers, balance, pensionSettings, pensionPayments, expenseSplit, latestSettlement] =
+    await Promise.all([
+      expenses.listExpenses(parentId),
+      pairing.getMyChildren(parentId),
+      pairing.listFamilyMembers(parentId),
+      expenses.getBalance(parentId),
+      pension.getSettings(parentId),
+      pension.listPayments(parentId),
+      expenses.getExpenseSplit(parentId),
+      expenses.getLatestExpenseSettlement(parentId),
+    ]);
 
   const childName = (childId: string) => children.find((c) => c.id === childId)?.fullName ?? "Hijo/a";
   const parentName = (id: string) =>
@@ -55,6 +66,24 @@ export default async function GastosPage({
   // diferencia" por errores de punto flotante al dividir /2.
   const owedRounded = Math.round(balance.amountMxnOwedByCaller * 100) / 100;
   const asQuery = as === "b" ? "&as=b" : "";
+
+  // Reparto: % confirmado que me toca a mí, derivado del % del proponente.
+  const myConfirmedPct =
+    expenseSplit?.status === "confirmed"
+      ? expenseSplit.proposedByParentId === parentId
+        ? expenseSplit.proposerSharePct
+        : 100 - expenseSplit.proposerSharePct
+      : null;
+  const otherConfirmedPct = myConfirmedPct !== null ? 100 - myConfirmedPct : null;
+  const splitPendingFromOther = expenseSplit?.status === "pending" && expenseSplit.proposedByParentId !== parentId;
+  const splitPendingFromMe = expenseSplit?.status === "pending" && expenseSplit.proposedByParentId === parentId;
+
+  // Liquidar saldo: mismo patrón que Pensión — quien debe marca "pagué",
+  // el otro confirma. owedRounded > 0 significa que yo debo.
+  const pendingSettlement = latestSettlement && !latestSettlement.confirmedAt ? latestSettlement : null;
+  const iCanSettleDebt = owedRounded > 0 && !pendingSettlement;
+  const iRegisteredPendingSettlement = pendingSettlement?.paidByParentId === parentId;
+  const iCanConfirmSettlement = pendingSettlement !== null && pendingSettlement.paidByParentId !== parentId;
 
   return (
     <div className="mx-auto min-h-screen max-w-2xl px-6 pb-[calc(7.5rem+env(safe-area-inset-bottom))] pt-16 bg-sand">
@@ -120,8 +149,95 @@ export default async function GastosPage({
         ) : (
           <p className="text-lg font-semibold text-ink">Están a mano ✓</p>
         )}
-        <p className="mt-1 text-xs text-ink-soft">Calculado sobre gastos aprobados, divididos 50/50.</p>
+        <p className="mt-1 text-xs text-ink-soft">Calculado sobre gastos aprobados — ver el reparto abajo.</p>
+
+        {iCanSettleDebt && (
+          <form action={registerExpenseSettlementAction} className="mt-3">
+            <input type="hidden" name="as" value={as ?? ""} />
+            <input type="hidden" name="amountMxn" value={owedRounded} />
+            <SubmitButton pendingText="Registrando…" className="rounded-full bg-orange px-4 py-2 text-sm font-semibold text-ink">
+              Marcar como pagado
+            </SubmitButton>
+          </form>
+        )}
+        {iRegisteredPendingSettlement && (
+          <p className="mt-2 text-xs text-ink-soft">
+            Marcaste que pagaste {MXN.format(pendingSettlement!.amountMxn)} — esperando que {otherParentName} lo confirme.
+          </p>
+        )}
+        {iCanConfirmSettlement && (
+          <form action={confirmExpenseSettlementAction} className="mt-3">
+            <input type="hidden" name="as" value={as ?? ""} />
+            <input type="hidden" name="settlementId" value={pendingSettlement!.id} />
+            <SubmitButton pendingText="Confirmando…" className="rounded-full bg-orange px-4 py-2 text-sm font-semibold text-ink">
+              Confirmar que recibí el pago
+            </SubmitButton>
+          </form>
+        )}
       </section>
+
+      {otherParentName && (
+        <section className="mt-4 rounded-xl border border-subtle bg-card p-4 shadow-ambient">
+          <p className="text-xs font-semibold uppercase tracking-wide text-ink-soft">Reparto de gastos</p>
+
+          {splitPendingFromOther ? (
+            <>
+              <p className="mt-1 text-sm text-ink">
+                {otherParentName} propone cubrir {expenseSplit!.proposerSharePct}% / tú {100 - expenseSplit!.proposerSharePct}%
+              </p>
+              <div className="mt-3 flex gap-2">
+                <form action={confirmExpenseSplitAction}>
+                  <input type="hidden" name="as" value={as ?? ""} />
+                  <input type="hidden" name="splitId" value={expenseSplit!.id} />
+                  <SubmitButton pendingText="Aceptando…" className="rounded-full bg-success/20 px-3 py-1.5 text-xs font-semibold text-ink">
+                    Aceptar
+                  </SubmitButton>
+                </form>
+                <form action={rejectExpenseSplitAction}>
+                  <input type="hidden" name="as" value={as ?? ""} />
+                  <input type="hidden" name="splitId" value={expenseSplit!.id} />
+                  <SubmitButton pendingText="Rechazando…" className="rounded-full bg-danger/20 px-3 py-1.5 text-xs font-semibold text-ink">
+                    Rechazar
+                  </SubmitButton>
+                </form>
+              </div>
+            </>
+          ) : splitPendingFromMe ? (
+            <p className="mt-1 text-sm text-ink-soft">
+              Esperando que {otherParentName} confirme tu propuesta (tú {expenseSplit!.proposerSharePct}% / {otherParentName} {100 - expenseSplit!.proposerSharePct}%)
+            </p>
+          ) : (
+            <>
+              <p className="mt-1 text-sm text-ink">
+                {myConfirmedPct !== null
+                  ? `Reparto actual: tú ${myConfirmedPct}% / ${otherParentName} ${otherConfirmedPct}%`
+                  : "Reparto actual: 50/50 (predeterminado)"}
+              </p>
+              <details className="mt-3 [&_summary::-webkit-details-marker]:hidden">
+                <summary className="cursor-pointer text-xs font-semibold text-ink underline">Proponer otro reparto</summary>
+                <form action={proposeExpenseSplitAction} className="mt-3 flex flex-col gap-2">
+                  <input type="hidden" name="as" value={as ?? ""} />
+                  <label className="text-xs font-medium text-ink-soft">
+                    Yo cubro ___% (el otro progenitor cubre el resto)
+                    <input
+                      type="number"
+                      name="proposerSharePct"
+                      min="1"
+                      max="99"
+                      required
+                      defaultValue={50}
+                      className="mt-1 w-full rounded-md border border-subtle bg-card px-3 py-2 text-base text-ink"
+                    />
+                  </label>
+                  <SubmitButton pendingText="Proponiendo…" className="self-start rounded-full bg-salmon px-4 py-2 text-sm font-semibold text-ink">
+                    Proponer
+                  </SubmitButton>
+                </form>
+              </details>
+            </>
+          )}
+        </section>
+      )}
 
       <section className="mt-6 overflow-hidden rounded-xl border border-subtle bg-card shadow-ambient">
         {expenseList.length === 0 ? (
