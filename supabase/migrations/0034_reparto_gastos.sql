@@ -39,6 +39,10 @@ create unique index if not exists family_expense_splits_one_pending
   on public.family_expense_splits (family_id)
   where status = 'pending';
 
+create index if not exists idx_family_expense_splits_family_id on public.family_expense_splits (family_id);
+create index if not exists idx_family_expense_splits_proposed_by_parent_id on public.family_expense_splits (proposed_by_parent_id);
+create index if not exists idx_family_expense_splits_confirmed_by_parent_id on public.family_expense_splits (confirmed_by_parent_id);
+
 alter table public.family_expense_splits enable row level security;
 
 do $$
@@ -52,7 +56,7 @@ begin
       on public.family_expense_splits for select using (
         exists (
           select 1 from public.family_members m
-          where m.family_id = family_expense_splits.family_id and m.parent_id = auth.uid()
+          where m.family_id = family_expense_splits.family_id and m.parent_id = (select auth.uid())
         )
       );
   end if;
@@ -64,10 +68,10 @@ begin
   ) then
     create policy "family_expense_splits: miembros de la familia proponen"
       on public.family_expense_splits for insert with check (
-        proposed_by_parent_id = auth.uid()
+        proposed_by_parent_id = (select auth.uid())
         and exists (
           select 1 from public.family_members m
-          where m.family_id = family_expense_splits.family_id and m.parent_id = auth.uid()
+          where m.family_id = family_expense_splits.family_id and m.parent_id = (select auth.uid())
         )
       );
   end if;
@@ -81,10 +85,10 @@ begin
     create policy "family_expense_splits: el otro progenitor rechaza"
       on public.family_expense_splits for delete using (
         status = 'pending'
-        and proposed_by_parent_id <> auth.uid()
+        and proposed_by_parent_id <> (select auth.uid())
         and exists (
           select 1 from public.family_members m
-          where m.family_id = family_expense_splits.family_id and m.parent_id = auth.uid()
+          where m.family_id = family_expense_splits.family_id and m.parent_id = (select auth.uid())
         )
       );
   end if;
