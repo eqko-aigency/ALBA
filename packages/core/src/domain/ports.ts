@@ -7,6 +7,8 @@ import type {
   Document,
   Expense,
   ExpenseBalance,
+  ExpenseSettlement,
+  ExpenseSplit,
   Family,
   ImportantDate,
   Invitation,
@@ -23,7 +25,10 @@ import type {
   AcceptInvitationInput,
   ConfirmOnboardingNameInput,
   CreateThreadInput,
+  ExpenseCounterInput,
   ExpenseInput,
+  ExpenseSettlementInput,
+  ExpenseSplitInput,
   ImportantDateInput,
   MeetingPlaceInput,
   PensionPaymentInput,
@@ -225,8 +230,46 @@ export interface ExpenseRepository {
     expenseId: string,
     status: "approved" | "rejected"
   ): Promise<Expense>;
-  /** Balance 50/50 sobre gastos "approved" entre el caller y el otro progenitor de su familia. */
+  /**
+   * Balance considerando el reparto confirmado (o 50/50 por defecto), las
+   * contraofertas aceptadas, y neto de la última liquidación confirmada
+   * (ver computeExpenseReimbursement en packages/core/src/expenses/expenseEngine.ts).
+   */
   getBalance(parentId: string): Promise<ExpenseBalance>;
+
+  /**
+   * Reparto configurable (W-xx). La propuesta pendiente más reciente si
+   * hay una; si no, el acuerdo confirmado más reciente; si no hay
+   * ninguno, null (= 50/50 por defecto).
+   */
+  getExpenseSplit(parentId: string): Promise<ExpenseSplit | null>;
+  /** Falla si ya hay una propuesta pendiente para esta familia. */
+  proposeExpenseSplit(parentId: string, proposerSharePct: number): Promise<ExpenseSplit>;
+  confirmExpenseSplit(parentId: string, splitId: string): Promise<ExpenseSplit>;
+  /** Solo el que NO propuso puede rechazar una propuesta pendiente — borra la fila. */
+  rejectExpenseSplit(parentId: string, splitId: string): Promise<void>;
+
+  /**
+   * Contraoferta (W-xx). Solo quien NO pagó puede proponerla, y solo si el
+   * gasto está "pending_approval".
+   */
+  proposeExpenseCounter(parentId: string, expenseId: string, input: ExpenseCounterInput): Promise<Expense>;
+  /**
+   * Solo quien SÍ pagó puede resolverla, y solo si el gasto está
+   * "countered". accept=true → "approved" (el balance usa counterAmountMxn);
+   * accept=false → "rejected" (no cuenta para el balance).
+   */
+  resolveExpenseCounter(parentId: string, expenseId: string, accept: boolean): Promise<Expense>;
+
+  /**
+   * Liquidar saldo (W-xx). La más reciente — confirmada o no. null si
+   * nunca se liquidó nada.
+   */
+  getLatestExpenseSettlement(parentId: string): Promise<ExpenseSettlement | null>;
+  /** Solo quien debe (según getBalance) registra su propio pago — mismo criterio que registerPayment de Pensión. */
+  registerExpenseSettlement(parentId: string, input: ExpenseSettlementInput): Promise<ExpenseSettlement>;
+  /** Solo el otro progenitor (a quien le deben) confirma. */
+  confirmExpenseSettlement(parentId: string, settlementId: string): Promise<ExpenseSettlement>;
 }
 
 /**
