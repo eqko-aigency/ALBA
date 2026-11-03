@@ -654,12 +654,12 @@ export default async function CalendarioPage({
                 </option>
               ))}
             </select>
-            <button
-              type="submit"
+            <SubmitButton
+              pendingText="Agregando…"
               className="mt-1 self-start rounded-full bg-salmon px-4 py-2 text-sm font-semibold text-ink"
             >
               Agregar slot
-            </button>
+            </SubmitButton>
           </form>
         )}
           </div>
@@ -771,12 +771,12 @@ export default async function CalendarioPage({
                     </option>
                   ))}
                 </select>
-                <button
-                  type="submit"
+                <SubmitButton
+                  pendingText="Agregando…"
                   className="mt-1 self-start rounded-full bg-salmon px-4 py-2 text-sm font-semibold text-ink"
                 >
                   Agregar visita
-                </button>
+                </SubmitButton>
               </form>
             )}
           </div>
@@ -940,9 +940,12 @@ export default async function CalendarioPage({
                           defaultValue={place.itinerary ?? ""}
                           className="rounded-md border border-subtle bg-card px-3 py-2 text-base text-ink"
                         />
-                        <button type="submit" className="self-start rounded-full border border-subtle px-3 py-1.5 text-xs font-semibold text-ink">
+                        <SubmitButton
+                          pendingText="Guardando…"
+                          className="self-start rounded-full border border-subtle px-3 py-1.5 text-xs font-semibold text-ink"
+                        >
                           Guardar cambios
-                        </button>
+                        </SubmitButton>
                       </form>
                     </details>
                   </li>

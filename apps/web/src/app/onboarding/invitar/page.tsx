@@ -1,6 +1,7 @@
 import { Wordmark } from "@/components/Wordmark";
 import { getRequestContext } from "@/lib/repository";
 import { CopyInvitationLink } from "@/components/CopyInvitationLink";
+import { SubmitButton } from "@/components/SubmitButton";
 import { skipInviteStepAction } from "./actions";
 import { sendInvitationEmailAction } from "./emailActions";
 
@@ -60,16 +61,16 @@ export default async function OnboardingInvitarPage({
         </label>
         {emailError && <p className="text-sm text-danger">{emailError}</p>}
         {emailSent && <p className="text-sm font-medium text-success">✓ Correo enviado</p>}
-        <button type="submit" className="mt-1 rounded-full bg-orange px-4 py-2.5 text-sm font-semibold text-ink">
+        <SubmitButton pendingText="Enviando…" className="mt-1 rounded-full bg-orange px-4 py-2.5 text-sm font-semibold text-ink">
           Mandar invitación por correo
-        </button>
+        </SubmitButton>
       </form>
 
       <form action={skipInviteStepAction} className="mt-6">
         <input type="hidden" name="as" value={as ?? ""} />
-        <button type="submit" className="text-sm font-medium text-ink-soft underline">
+        <SubmitButton pendingText="Un momento…" className="text-sm font-medium text-ink-soft underline">
           Hacerlo después
-        </button>
+        </SubmitButton>
       </form>
     </div>
   );

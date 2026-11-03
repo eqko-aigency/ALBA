@@ -1,5 +1,6 @@
 import { Wordmark } from "@/components/Wordmark";
 import { getRequestContext } from "@/lib/repository";
+import { SubmitButton } from "@/components/SubmitButton";
 import { confirmOnboardingNameAction } from "./actions";
 
 export default async function OnboardingNombrePage({
@@ -34,12 +35,12 @@ export default async function OnboardingNombrePage({
           defaultValue={profile?.fullName ?? ""}
           className="w-full rounded-xl border border-subtle bg-card px-4 py-3 text-base text-ink"
         />
-        <button
-          type="submit"
+        <SubmitButton
+          pendingText="Guardando…"
           className="w-full rounded-full bg-orange px-4 py-3 text-sm font-semibold text-ink shadow-ambient"
         >
           Continuar
-        </button>
+        </SubmitButton>
       </form>
     </div>
   );

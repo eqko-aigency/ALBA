@@ -1,4 +1,5 @@
 import { Wordmark } from "@/components/Wordmark";
+import { SubmitButton } from "@/components/SubmitButton";
 import { setUsageModeAction } from "./actions";
 
 export default async function OnboardingModoPage({
@@ -18,29 +19,29 @@ export default async function OnboardingModoPage({
         <form action={setUsageModeAction}>
           <input type="hidden" name="as" value={as ?? ""} />
           <input type="hidden" name="usageMode" value="bilateral" />
-          <button
-            type="submit"
+          <SubmitButton
+            pendingText="Guardando…"
             className="w-full rounded-2xl border border-subtle bg-card p-5 text-left shadow-ambient transition-all hover:-translate-y-0.5 hover:shadow-elevated"
           >
             <p className="text-sm font-semibold text-ink">Los dos progenitores</p>
             <p className="mt-1 text-xs text-ink-soft">
               Yo y el otro progenitor vamos a coordinarnos juntos en la app.
             </p>
-          </button>
+          </SubmitButton>
         </form>
 
         <form action={setUsageModeAction}>
           <input type="hidden" name="as" value={as ?? ""} />
           <input type="hidden" name="usageMode" value="unilateral" />
-          <button
-            type="submit"
+          <SubmitButton
+            pendingText="Guardando…"
             className="w-full rounded-2xl border border-subtle bg-card p-5 text-left shadow-ambient transition-all hover:-translate-y-0.5 hover:shadow-elevated"
           >
             <p className="text-sm font-semibold text-ink">Solo yo, por ahora</p>
             <p className="mt-1 text-xs text-ink-soft">
               Voy a usarla yo sola/solo para llevar el registro — puedo invitar al otro progenitor después.
             </p>
-          </button>
+          </SubmitButton>
         </form>
       </div>
     </div>

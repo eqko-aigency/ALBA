@@ -1,4 +1,5 @@
 import { Wordmark } from "@/components/Wordmark";
+import { SubmitButton } from "@/components/SubmitButton";
 import { createChildAction, skipChildrenStepAction } from "./actions";
 
 export default async function OnboardingHijosPage({
@@ -38,17 +39,17 @@ export default async function OnboardingHijosPage({
             />
           </div>
         </label>
-        <button type="submit" className="mt-1 rounded-full bg-salmon px-4 py-3 text-sm font-semibold text-ink">
+        <SubmitButton pendingText="Agregando…" className="mt-1 rounded-full bg-salmon px-4 py-3 text-sm font-semibold text-ink">
           Agregar hijo/a
-        </button>
+        </SubmitButton>
       </form>
       <p className="mt-2 text-xs text-ink-faint">Podrás agregar más hijos desde Perfil cuando quieras.</p>
 
       <form action={skipChildrenStepAction} className="mt-3">
         <input type="hidden" name="as" value={as ?? ""} />
-        <button type="submit" className="text-sm font-medium text-ink-soft underline">
+        <SubmitButton pendingText="Un momento…" className="text-sm font-medium text-ink-soft underline">
           Hacerlo después
-        </button>
+        </SubmitButton>
       </form>
     </div>
   );

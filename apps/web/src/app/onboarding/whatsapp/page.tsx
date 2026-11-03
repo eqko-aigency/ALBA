@@ -1,4 +1,5 @@
 import { Wordmark } from "@/components/Wordmark";
+import { SubmitButton } from "@/components/SubmitButton";
 import { setWhatsappNumberAction } from "./actions";
 
 export default async function OnboardingWhatsappPage({
@@ -33,12 +34,12 @@ export default async function OnboardingWhatsappPage({
           placeholder="55 1234 5678"
           className="w-full rounded-xl border border-subtle bg-card px-4 py-3 text-base text-ink"
         />
-        <button
-          type="submit"
+        <SubmitButton
+          pendingText="Guardando…"
           className="w-full rounded-full bg-orange px-4 py-3 text-sm font-semibold text-ink shadow-ambient"
         >
           Continuar
-        </button>
+        </SubmitButton>
       </form>
     </div>
   );
