@@ -95,6 +95,8 @@ export function createMockPairingRepository(): PairingRepository {
         whatsappNumber: profiles.get(parentId)?.whatsappNumber ?? null,
         onboardingNameConfirmedAt: profiles.get(parentId)?.onboardingNameConfirmedAt ?? null,
         color: input.color,
+        avatarKey: input.avatarKey,
+        seenIntros: profiles.get(parentId)?.seenIntros ?? [],
       };
       profiles.set(parentId, profile);
       return profile;
@@ -111,6 +113,8 @@ export function createMockPairingRepository(): PairingRepository {
         whatsappNumber: existing?.whatsappNumber ?? null,
         onboardingNameConfirmedAt: existing?.onboardingNameConfirmedAt ?? null,
         color: existing?.color ?? null,
+        avatarKey: existing?.avatarKey ?? null,
+        seenIntros: existing?.seenIntros ?? [],
       };
       profiles.set(parentId, profile);
       return profile;
@@ -127,6 +131,8 @@ export function createMockPairingRepository(): PairingRepository {
         whatsappNumber: existing?.whatsappNumber ?? null,
         onboardingNameConfirmedAt: new Date().toISOString(),
         color: existing?.color ?? null,
+        avatarKey: existing?.avatarKey ?? null,
+        seenIntros: existing?.seenIntros ?? [],
       };
       profiles.set(parentId, profile);
       return profile;
@@ -143,6 +149,8 @@ export function createMockPairingRepository(): PairingRepository {
         whatsappNumber: input.whatsappNumber,
         onboardingNameConfirmedAt: existing?.onboardingNameConfirmedAt ?? null,
         color: existing?.color ?? null,
+        avatarKey: existing?.avatarKey ?? null,
+        seenIntros: existing?.seenIntros ?? [],
       };
       profiles.set(parentId, profile);
       return profile;
@@ -159,6 +167,8 @@ export function createMockPairingRepository(): PairingRepository {
         whatsappNumber: existing?.whatsappNumber ?? null,
         onboardingNameConfirmedAt: existing?.onboardingNameConfirmedAt ?? null,
         color: existing?.color ?? null,
+        avatarKey: existing?.avatarKey ?? null,
+        seenIntros: existing?.seenIntros ?? [],
       };
       profiles.set(parentId, profile);
       return profile;
@@ -202,6 +212,8 @@ export function createMockPairingRepository(): PairingRepository {
           usageMode: null,
           lastNotificationsSeenAt: null,
           color: null,
+          avatarKey: null,
+          seenIntros: [],
         }),
         whatsappNumber: null,
         onboardingNameConfirmedAt: null,
@@ -221,6 +233,13 @@ export function createMockPairingRepository(): PairingRepository {
       invitation.status = "accepted";
 
       return families.get(invitation.familyId)!;
+    },
+
+    async markIntroSeen(parentId, sectionKey) {
+      const existing = profiles.get(parentId);
+      if (!existing) return;
+      if (existing.seenIntros.includes(sectionKey)) return;
+      profiles.set(parentId, { ...existing, seenIntros: [...existing.seenIntros, sectionKey] });
     },
   };
 }

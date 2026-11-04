@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type {
   AcceptInvitationInput,
+  AvatarKey,
   Child,
   ConfirmOnboardingNameInput,
   Family,
@@ -111,13 +112,15 @@ export function createSupabasePairingRepository(
         whatsappNumber: data.whatsapp_number ?? null,
         onboardingNameConfirmedAt: data.onboarding_name_confirmed_at ?? null,
         color: data.color ?? null,
+        avatarKey: (data.avatar_key ?? null) as AvatarKey | null,
+        seenIntros: data.seen_intros ?? [],
       };
     },
 
     async upsertProfile(parentId, input: UpsertProfileInput) {
       const { data, error } = await client
         .from("profiles")
-        .upsert({ id: parentId, full_name: input.fullName, color: input.color })
+        .upsert({ id: parentId, full_name: input.fullName, color: input.color, avatar_key: input.avatarKey })
         .select()
         .single();
       if (error) throw error;
@@ -131,6 +134,8 @@ export function createSupabasePairingRepository(
         whatsappNumber: data.whatsapp_number ?? null,
         onboardingNameConfirmedAt: data.onboarding_name_confirmed_at ?? null,
         color: data.color ?? null,
+        avatarKey: (data.avatar_key ?? null) as AvatarKey | null,
+        seenIntros: data.seen_intros ?? [],
       };
     },
 
@@ -152,6 +157,8 @@ export function createSupabasePairingRepository(
         whatsappNumber: data.whatsapp_number ?? null,
         onboardingNameConfirmedAt: data.onboarding_name_confirmed_at ?? null,
         color: data.color ?? null,
+        avatarKey: (data.avatar_key ?? null) as AvatarKey | null,
+        seenIntros: data.seen_intros ?? [],
       };
     },
 
@@ -173,6 +180,8 @@ export function createSupabasePairingRepository(
         whatsappNumber: data.whatsapp_number ?? null,
         onboardingNameConfirmedAt: data.onboarding_name_confirmed_at ?? null,
         color: data.color ?? null,
+        avatarKey: (data.avatar_key ?? null) as AvatarKey | null,
+        seenIntros: data.seen_intros ?? [],
       };
     },
 
@@ -194,6 +203,8 @@ export function createSupabasePairingRepository(
         whatsappNumber: data.whatsapp_number ?? null,
         onboardingNameConfirmedAt: data.onboarding_name_confirmed_at ?? null,
         color: data.color ?? null,
+        avatarKey: (data.avatar_key ?? null) as AvatarKey | null,
+        seenIntros: data.seen_intros ?? [],
       };
     },
 
@@ -215,6 +226,8 @@ export function createSupabasePairingRepository(
         whatsappNumber: data.whatsapp_number ?? null,
         onboardingNameConfirmedAt: data.onboarding_name_confirmed_at ?? null,
         color: data.color ?? null,
+        avatarKey: (data.avatar_key ?? null) as AvatarKey | null,
+        seenIntros: data.seen_intros ?? [],
       };
     },
 
@@ -262,7 +275,7 @@ export function createSupabasePairingRepository(
       // ambiente el embed fallara, el fallback es dos queries separadas.
       const { data, error } = await client
         .from("family_members")
-        .select("parent_id, profiles(full_name, color)")
+        .select("parent_id, profiles(full_name, color, avatar_key, seen_intros)")
         .eq("family_id", familyId);
       if (error) throw error;
       return (data ?? []).map((row: any) => ({
@@ -275,6 +288,8 @@ export function createSupabasePairingRepository(
         whatsappNumber: null,
         onboardingNameConfirmedAt: null,
         color: row.profiles?.color ?? null,
+        avatarKey: (row.profiles?.avatar_key ?? null) as AvatarKey | null,
+        seenIntros: row.profiles?.seen_intros ?? [],
       }));
     },
 
@@ -284,6 +299,22 @@ export function createSupabasePairingRepository(
       });
       if (error) throw error;
       return { id: familyId };
+    },
+
+    async markIntroSeen(parentId, sectionKey) {
+      const { data: existing, error: fetchError } = await client
+        .from("profiles")
+        .select("seen_intros")
+        .eq("id", parentId)
+        .maybeSingle();
+      if (fetchError) throw fetchError;
+      const current: string[] = existing?.seen_intros ?? [];
+      if (current.includes(sectionKey)) return;
+      const { error } = await client
+        .from("profiles")
+        .update({ seen_intros: [...current, sectionKey] })
+        .eq("id", parentId);
+      if (error) throw error;
     },
   };
 }

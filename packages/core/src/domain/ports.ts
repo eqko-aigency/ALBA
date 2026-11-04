@@ -70,6 +70,8 @@ export interface PairingRepository {
   acceptInvitation(parentId: string, input: AcceptInvitationInput): Promise<Family>;
   getProfile(parentId: string): Promise<Parent | null>;
   upsertProfile(parentId: string, input: UpsertProfileInput): Promise<Parent>;
+  /** Marca que el progenitor ya vio el modal "Así funciona" de esa sección — no vuelve a aparecer solo después de esto (ver SectionIntroModal). Idempotente. */
+  markIntroSeen(parentId: string, sectionKey: string): Promise<void>;
   /** Onboarding (W-xx) — elegir si la app se usa unilateral o bilateral. */
   setUsageMode(parentId: string, input: SetUsageModeInput): Promise<Parent>;
   /** Wizard de bienvenida — confirma/corrige el nombre y marca el paso como visto. */
