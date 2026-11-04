@@ -1,4 +1,5 @@
 import type { ProfileColor } from "../validation/colors";
+import type { AvatarKey } from "../validation/avatars";
 
 /** null = todavía no eligió en el onboarding (W-xx). */
 export type UsageMode = "unilateral" | "bilateral" | null;
@@ -16,6 +17,10 @@ export interface Parent {
   onboardingNameConfirmedAt: string | null;
   /** Color elegido en Perfil, uno de PROFILE_COLORS. null = todavía no eligió uno. */
   color: ProfileColor | null;
+  /** Avatar ilustrado elegido en Perfil, uno de AVATAR_KEYS. null = todavía no eligió uno. */
+  avatarKey: AvatarKey | null;
+  /** Claves de sección ("inicio", "chat", "calendario", ...) cuyo modal "Así funciona" ya vio — ver SectionIntroModal. */
+  seenIntros: string[];
 }
 
 export interface Family {
@@ -80,6 +85,8 @@ export interface Child {
   notes: ChildNote[];
   /** Mismo criterio que Parent.color. */
   color: ProfileColor | null;
+  /** Mismo criterio que Parent.avatarKey. */
+  avatarKey: AvatarKey | null;
 }
 
 export type InvitationStatus = "pending" | "accepted" | "expired";

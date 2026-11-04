@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { PROFILE_COLORS } from "./colors";
+import { AVATAR_KEYS } from "./avatars";
 
 export const expenseInputSchema = z.object({
   childId: z.string().uuid(),
@@ -33,6 +34,7 @@ export type AcceptInvitationInput = z.infer<typeof acceptInvitationInputSchema>;
 export const upsertProfileInputSchema = z.object({
   fullName: z.string().min(2).max(120),
   color: z.enum(PROFILE_COLORS).nullable(),
+  avatarKey: z.enum(AVATAR_KEYS).nullable(),
 });
 export type UpsertProfileInput = z.infer<typeof upsertProfileInputSchema>;
 
@@ -81,6 +83,7 @@ export const updateChildDetailsInputSchema = z.object({
   allergies: optionalNote(1000),
   notes: z.array(childNoteSchema).max(20),
   color: z.enum(PROFILE_COLORS).nullable(),
+  avatarKey: z.enum(AVATAR_KEYS).nullable(),
 });
 export type UpdateChildDetailsInput = z.infer<typeof updateChildDetailsInputSchema>;
 
