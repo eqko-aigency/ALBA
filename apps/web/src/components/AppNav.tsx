@@ -58,6 +58,8 @@ export function AppNav({ active }: { active?: NavLabel }) {
   return (
     <nav
       className="fixed inset-x-2 z-20 mx-auto flex max-w-md items-stretch justify-between rounded-2xl bg-card px-1 py-1.5 shadow-elevated"
+      // translateZ(0) fuerza su propia capa de composición: evita el parpadeo
+      // de iOS Safari al hacer scroll con position: fixed + safe-area-inset.
       style={{ bottom: "calc(1rem + env(safe-area-inset-bottom))", transform: "translateZ(0)" }}
     >
       {items.map((item) => {
