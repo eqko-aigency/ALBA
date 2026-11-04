@@ -6,9 +6,11 @@ import { getRequestContext } from "@/lib/repository";
 
 export async function upsertProfileAction(formData: FormData) {
   const rawColor = String(formData.get("color") ?? "");
+  const rawAvatarKey = String(formData.get("avatarKey") ?? "");
   const input = upsertProfileInputSchema.parse({
     fullName: formData.get("parentFullName"),
     color: rawColor === "" ? null : rawColor,
+    avatarKey: rawAvatarKey === "" ? null : rawAvatarKey,
   });
   const { pairing, parentId } = await getRequestContext();
   await pairing.upsertProfile(parentId, input);
