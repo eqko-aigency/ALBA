@@ -17,7 +17,7 @@ function PersonRow({ name, avatarKey }: { name: string; avatarKey: AvatarKey | n
           style={{ objectPosition: "center 15%" }}
         />
       ) : (
-        <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-sand text-sm font-bold text-ink">
+        <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-dawn text-sm font-bold text-ink">
           {name.slice(0, 1)}
         </span>
       )}
@@ -64,7 +64,13 @@ export default async function NucleoPage({
       <p className="mt-1 text-sm text-ink-soft">Quiénes forman parte de la vida de tu familia.</p>
 
       <div className="mt-5 overflow-hidden rounded-[20px] border border-subtle shadow-ambient">
-        <img src="/avatars/retrato-familiar.png" alt="Retrato ilustrado de la familia" className="w-full" />
+        <img
+          src="/avatars/retrato-familiar.png"
+          alt="Retrato ilustrado de la familia"
+          width={1536}
+          height={1024}
+          className="w-full"
+        />
       </div>
 
       <div className="mt-6">
