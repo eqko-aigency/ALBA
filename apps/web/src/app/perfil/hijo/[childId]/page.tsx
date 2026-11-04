@@ -84,7 +84,7 @@ export default async function ChildDetailPage({
         }}
       />
 
-      <AppNav active="Perfil" />
+      <AppNav active="Más" />
     </div>
   );
 }

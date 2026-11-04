@@ -33,6 +33,16 @@ export default async function PerfilPage() {
         </p>
       )}
 
+      <Link
+        href="/mas"
+        className="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-ink-soft"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M15 5l-7 7 7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        Más
+      </Link>
+
       <h1 className="text-2xl font-semibold tracking-tight text-ink">Mi perfil</h1>
 
       {/* Acordeón: nada queda visible hasta que lo tocas — pedido explícito
@@ -180,7 +190,7 @@ export default async function PerfilPage() {
         <LogoutButton />
       </div>
 
-      <AppNav active="Perfil" />
+      <AppNav active="Más" />
     </div>
   );
 }

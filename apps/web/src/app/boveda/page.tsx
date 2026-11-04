@@ -61,6 +61,16 @@ export default async function BovedaPage({
         </p>
       )}
 
+      <Link
+        href={`/mas${as === "b" ? "?as=b" : ""}`}
+        className="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-ink-soft"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M15 5l-7 7 7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        Más
+      </Link>
+
       <h1 className="text-2xl font-semibold tracking-tight text-ink">Bóveda</h1>
       <p className="mt-2 text-ink-soft">
         Documentos y acuerdos básicos, con evidencia digital — hash SHA-256 y anclaje (POC) de Merkle Tree.
@@ -178,7 +188,7 @@ export default async function BovedaPage({
         <UploadDocumentForm as={as ?? ""} children={children} />
       </section>
 
-      <AppNav active="Bóveda" />
+      <AppNav active="Más" />
     </div>
   );
 }

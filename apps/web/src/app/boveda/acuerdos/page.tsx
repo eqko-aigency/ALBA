@@ -58,7 +58,17 @@ export default async function AcuerdosVerbalesPage({
         <span aria-hidden="true">←</span> Volver a Bóveda
       </Link>
 
-      <h1 className="mt-3 text-2xl font-semibold tracking-tight text-ink">Acuerdos verbales</h1>
+      <Link
+        href={`/mas${as === "b" ? "?as=b" : ""}`}
+        className="mb-4 mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-ink-soft"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M15 5l-7 7 7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        Más
+      </Link>
+
+      <h1 className="text-2xl font-semibold tracking-tight text-ink">Acuerdos verbales</h1>
       <p className="mt-2 text-ink-soft">
         Un registro de lo que acordaron de palabra (teléfono, en persona) — no se puede editar después de guardado.
       </p>
@@ -155,7 +165,7 @@ export default async function AcuerdosVerbalesPage({
         </form>
       </section>
 
-      <AppNav active="Acuerdos" />
+      <AppNav active="Más" />
     </div>
   );
 }

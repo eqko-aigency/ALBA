@@ -545,7 +545,7 @@ export default async function DashboardPage({
         )}
       </div>
 
-      <AppNav active="Dashboard" />
+      <AppNav active="Inicio" />
     </div>
   );
 }

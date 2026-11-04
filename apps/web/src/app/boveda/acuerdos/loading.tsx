@@ -5,7 +5,7 @@ export default function Loading() {
   return (
     <>
       <PageSkeleton />
-      <AppNav active="Acuerdos" />
+      <AppNav active="Más" />
     </>
   );
 }

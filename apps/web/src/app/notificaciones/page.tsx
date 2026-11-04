@@ -116,7 +116,7 @@ export default async function NotificacionesPage({
         )}
       </div>
 
-      <AppNav active="Dashboard" />
+      <AppNav active="Más" />
     </div>
   );
 }

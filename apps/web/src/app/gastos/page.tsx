@@ -98,6 +98,16 @@ export default async function GastosPage({
         </p>
       )}
 
+      <Link
+        href={`/mas${as === "b" ? "?as=b" : ""}`}
+        className="mb-4 inline-flex items-center gap-1.5 text-sm font-semibold text-ink-soft"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M15 5l-7 7 7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        Más
+      </Link>
+
       <h1 className="text-2xl font-semibold tracking-tight text-ink">Gastos</h1>
       <p className="mt-2 text-ink-soft">
         {tab === "pension"
@@ -436,7 +446,7 @@ export default async function GastosPage({
         </>
       )}
 
-      <AppNav active="Gastos" />
+      <AppNav active="Más" />
     </div>
   );
 }
