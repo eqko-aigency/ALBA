@@ -59,6 +59,7 @@ export function createMockPairingRepository(): PairingRepository {
         allergies: null,
         notes: [],
         color: null,
+        avatarKey: null,
       };
       children.set(child.id, child);
       return child;

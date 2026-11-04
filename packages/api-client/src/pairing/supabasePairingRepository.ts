@@ -332,6 +332,7 @@ function mapChild(row: any): Child {
     allergies: row.allergies ?? null,
     notes: row.notes ?? [],
     color: row.color ?? null,
+    avatarKey: (row.avatar_key ?? null) as AvatarKey | null,
   };
 }
 
