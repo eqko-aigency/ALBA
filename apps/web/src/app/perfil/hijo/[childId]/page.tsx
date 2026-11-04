@@ -72,6 +72,7 @@ export default async function ChildDetailPage({
 
       <ChildDetailsForm
         childId={child.id}
+        initialAvatarKey={child.avatarKey}
         initial={{
           contacts: child.contacts,
           healthProviders: child.healthProviders,

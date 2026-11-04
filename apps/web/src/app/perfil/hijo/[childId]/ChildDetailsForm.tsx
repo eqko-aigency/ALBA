@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import type { ChildContact, ChildHealthProvider, ChildNote, ChildSchoolContact } from "@alba/core";
-import { PROFILE_COLORS } from "@alba/core";
+import type { ChildContact, ChildHealthProvider, ChildNote, ChildSchoolContact, AvatarKey } from "@alba/core";
+import { PROFILE_COLORS, AVATAR_KEYS } from "@alba/core";
 import { ContactsIcon, HealthIcon, NotesIcon, SchoolIcon } from "@/components/icons";
 import { COLOR_CLASS } from "@/lib/profileColors";
+import { AVATAR_SRC, AVATAR_LABEL } from "@/lib/avatars";
 import { updateChildDetailsAction } from "../../actions";
 
 const inputClass =
@@ -34,6 +35,7 @@ function AccordionHeader({
 export function ChildDetailsForm({
   childId,
   initial,
+  initialAvatarKey,
 }: {
   childId: string;
   initial: {
@@ -45,12 +47,14 @@ export function ChildDetailsForm({
     notes: ChildNote[];
     color: string | null;
   };
+  initialAvatarKey: AvatarKey | null;
 }) {
   const [contacts, setContacts] = useState<ChildContact[]>(initial.contacts);
   const [healthProviders, setHealthProviders] = useState<ChildHealthProvider[]>(initial.healthProviders);
   const [schoolContacts, setSchoolContacts] = useState<ChildSchoolContact[]>(initial.schoolContacts);
   const [notes, setNotes] = useState<ChildNote[]>(initial.notes);
   const [color, setColor] = useState<string | null>(initial.color);
+  const [avatarKey, setAvatarKey] = useState<AvatarKey | null>(initialAvatarKey);
   const [pending, setPending] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -124,6 +128,7 @@ export function ChildDetailsForm({
     formData.set("schoolContactsJson", JSON.stringify(cleanSchoolContacts));
     formData.set("notesJson", JSON.stringify(cleanNotes));
     formData.set("color", color ?? "");
+    formData.set("avatarKey", avatarKey ?? "");
     setPending(true);
     setSaved(false);
     await updateChildDetailsAction(formData);
@@ -339,6 +344,34 @@ export function ChildDetailsForm({
             </div>
           </div>
         </details>
+      </div>
+
+      <div>
+        <p className="text-sm font-medium text-ink">Avatar</p>
+        <div className="mt-2 grid grid-cols-4 gap-2">
+          {AVATAR_KEYS.map((key) => (
+            <button
+              key={key}
+              type="button"
+              aria-label={`Elegir avatar ${AVATAR_LABEL[key]}`}
+              onClick={() => {
+                setAvatarKey(key);
+                setSaved(false);
+              }}
+              className={`flex flex-col items-center gap-1 rounded-xl border p-1.5 ${
+                avatarKey === key ? "border-orange ring-2 ring-orange" : "border-subtle"
+              }`}
+            >
+              <img
+                src={AVATAR_SRC[key]}
+                alt={AVATAR_LABEL[key]}
+                className="h-12 w-12 rounded-full object-cover"
+                style={{ objectPosition: "center 15%" }}
+              />
+              <span className="text-[10px] text-ink-soft">{AVATAR_LABEL[key]}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
       <div>
