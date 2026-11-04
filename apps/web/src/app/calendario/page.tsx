@@ -4,6 +4,9 @@ import { getRequestContext } from "@/lib/repository";
 import { isDemoMode } from "@/lib/demoSession";
 import { COLOR_CLASS } from "@/lib/profileColors";
 import { AppNav } from "@/components/AppNav";
+import { AppHeader } from "@/components/AppHeader";
+import { SectionIntroModal } from "@/components/SectionIntroModal";
+import { QuickActionFab } from "@/components/QuickActionFab";
 import { SubmitButton } from "@/components/SubmitButton";
 import { CalendarIcon, FlagIcon, PinIcon, StarIcon } from "@/components/icons";
 import {
@@ -236,8 +239,81 @@ export default async function CalendarioPage({
         </p>
       )}
 
-      <h1 className="text-2xl font-semibold tracking-tight text-ink">Calendario de custodia y visitas</h1>
+      <AppHeader avatarKey={profile?.avatarKey ?? null} unseenNotifications={0} as={as} />
+
+      <div className="flex items-center gap-2">
+        <h1 className="text-2xl font-semibold tracking-tight text-ink">Calendario</h1>
+        <SectionIntroModal
+          sectionKey="calendario"
+          as={as}
+          alreadySeen={profile?.seenIntros?.includes("calendario") ?? false}
+          hero={<CalendarioIntroHero />}
+          title="Calendario"
+          description="Coordina visitas, entregas y fechas importantes sin tener que preguntarle al otro progenitor qué quedó dicho."
+          points={[
+            {
+              icon: (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <rect x="4" y="5.5" width="16" height="14.5" rx="2.5" stroke="#3a332e" strokeWidth="1.8" />
+                  <path d="M4 9.5h16" stroke="#3a332e" strokeWidth="1.8" />
+                </svg>
+              ),
+              iconBgClass: "bg-sea",
+              title: "Slots recurrentes",
+              description: "Configura el convenio de custodia una vez y se repite solo.",
+            },
+            {
+              icon: (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M5 12.5l4.5 4.5L19 7" stroke="#f79a7a" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              ),
+              iconBgClass: "bg-orange/20",
+              title: "Confirma check-in y check-out",
+              description: "Marca cuándo empezó y terminó cada visita, sin ambigüedad.",
+            },
+            {
+              icon: (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path d="M12 21s-7-4.4-7-10a7 7 0 0114 0c0 5.6-7 10-7 10z" stroke="#bb889b" strokeWidth="1.8" strokeLinejoin="round" />
+                  <circle cx="12" cy="11" r="2.4" stroke="#bb889b" strokeWidth="1.8" />
+                </svg>
+              ),
+              iconBgClass: "bg-purple/20",
+              title: "Lugares de encuentro",
+              description: "Guarda los puntos de entrega habituales para no repetirlos cada vez.",
+            },
+          ]}
+        />
+      </div>
       <p className="mt-2 text-ink-soft">Toca un día para ver y confirmar check-in/check-out, y dónde se hace el encuentro.</p>
+
+      <div className="mt-3 flex gap-2">
+        <Link
+          href={`/calendario?view=month&month=${monthKey(refMonthDate)}${asQuery}`}
+          className={`rounded-full px-3.5 py-2 text-xs font-bold ${
+            view === "month" ? "bg-ink text-white" : "border border-subtle bg-card text-ink-soft"
+          }`}
+        >
+          Este mes
+        </Link>
+        <Link
+          href={`/calendario?view=week&day=${selectedDayKey}${asQuery}`}
+          className={`rounded-full px-3.5 py-2 text-xs font-bold ${
+            view === "week" ? "bg-ink text-white" : "border border-subtle bg-card text-ink-soft"
+          }`}
+        >
+          Esta semana
+        </Link>
+        <Link
+          href={todayHref}
+          className={`rounded-full px-3.5 py-2 text-xs font-bold ${
+            isSelectedToday ? "bg-ink text-white" : "border border-subtle bg-card text-ink-soft"
+          }`}
+        >
+          Hoy
+        </Link>
+      </div>
 
       <div className="mt-4 inline-flex rounded-full border border-subtle bg-sand p-1">
         <Link
@@ -816,7 +892,7 @@ export default async function CalendarioPage({
               </ul>
             )}
 
-            <form action={createImportantDateAction} className="mt-4 flex flex-col gap-2">
+            <form action={createImportantDateAction} id="fecha-importante" className="mt-4 flex flex-col gap-2">
               <input type="hidden" name="as" value={as ?? ""} />
               <input
                 name="title"
@@ -977,7 +1053,47 @@ export default async function CalendarioPage({
         </details>
       </div>
 
+      <QuickActionFab
+        actions={[
+          {
+            label: "Nuevo evento",
+            href: `/calendario?view=${view}&month=${monthKey(refMonthDate)}&day=${selectedDayKey}${asQuery}#fecha-importante`,
+            iconBgClass: "bg-dawn",
+            icon: (
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <rect x="4" y="5.5" width="16" height="14.5" rx="2.5" stroke="#3a332e" strokeWidth="1.8" />
+                <path d="M4 9.5h16M8 3.5v3M16 3.5v3" stroke="#3a332e" strokeWidth="1.8" strokeLinecap="round" />
+              </svg>
+            ),
+          },
+        ]}
+      />
+
       <AppNav active="Calendario" />
+    </div>
+  );
+}
+
+function CalendarioIntroHero() {
+  return (
+    <div className="relative h-[88px] w-full rounded-[18px]" style={{ background: "#cee4e7" }}>
+      <div className="absolute left-[18px] top-[18px] w-[150px] rounded-[14px] bg-white px-3 py-2.5 shadow-md">
+        <p className="mb-1.5 text-[10px] font-bold text-ink-soft">NOVIEMBRE</p>
+        <div className="grid grid-cols-6 gap-[5px]">
+          {[0, 1, 2, 3, 4, 5].map((i) => (
+            <span
+              key={i}
+              className={`h-[13px] w-[13px] rounded-full ${i === 2 ? "bg-orange" : "bg-sand"}`}
+            />
+          ))}
+        </div>
+      </div>
+      <div className="absolute bottom-3.5 right-4 flex h-[34px] w-[34px] items-center justify-center rounded-full bg-orange shadow-md">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 7v5l3 2" stroke="#3a332e" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+          <circle cx="12" cy="12" r="8" stroke="#3a332e" strokeWidth="1.8" />
+        </svg>
+      </div>
     </div>
   );
 }
