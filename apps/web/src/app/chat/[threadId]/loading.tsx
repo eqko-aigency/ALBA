@@ -26,7 +26,7 @@ export default function Loading() {
       </div>
 
       <div
-        className="sticky bg-sand px-4 pb-6 pt-2"
+        className="sticky bg-white px-4 pb-6 pt-2"
         style={{ bottom: "calc(7.5rem + env(safe-area-inset-bottom))" }}
       >
         <div className="h-16 animate-pulse rounded-2xl bg-card" />
