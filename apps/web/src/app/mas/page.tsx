@@ -3,6 +3,7 @@ import { getRequestContext } from "@/lib/repository";
 import { isDemoMode } from "@/lib/demoSession";
 import { AppNav } from "@/components/AppNav";
 import { AppHeader } from "@/components/AppHeader";
+import { BovedaIcon, GastosIcon, UserIcon } from "@/components/icons";
 
 function FeatureCard({
   href,
@@ -81,34 +82,19 @@ export default async function MasPage({
           href={`/gastos${asQuery}`}
           label="Gastos"
           iconBgClass="bg-orange"
-          icon={
-            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <circle cx="12" cy="12" r="8" stroke="#3a332e" strokeWidth="1.8" />
-              <path d="M14.5 9.5c-.4-.8-1.3-1.3-2.5-1.3-1.5 0-2.7.8-2.7 2s1.2 1.8 2.7 2 2.7.8 2.7 2-1.2 2-2.7 2c-1.2 0-2.1-.5-2.5-1.3M12 7.3v9.4" stroke="#3a332e" strokeWidth="1.6" strokeLinecap="round" />
-            </svg>
-          }
+          icon={<GastosIcon className="h-[21px] w-[21px] text-[#3a332e]" />}
         />
         <FeatureCard
           href={`/perfil${asQuery}`}
           label="Perfil"
           iconBgClass="bg-sky"
-          icon={
-            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <circle cx="12" cy="8.5" r="3.3" stroke="#3a332e" strokeWidth="1.8" />
-              <path d="M5 19.5c1.3-3.2 4-4.8 7-4.8s5.7 1.6 7 4.8" stroke="#3a332e" strokeWidth="1.8" strokeLinecap="round" />
-            </svg>
-          }
+          icon={<UserIcon className="h-[21px] w-[21px] text-[#3a332e]" />}
         />
         <FeatureCard
           href={`/boveda${asQuery}`}
           label="Info y documentos"
           iconBgClass="bg-salmon"
-          icon={
-            <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <rect x="5" y="10.5" width="14" height="9.5" rx="2.2" stroke="#3a332e" strokeWidth="1.8" />
-              <path d="M8 10.5V7.8a4 4 0 118 0v2.7" stroke="#3a332e" strokeWidth="1.8" strokeLinecap="round" />
-            </svg>
-          }
+          icon={<BovedaIcon className="h-[21px] w-[21px] text-[#3a332e]" />}
         />
         <FeatureCard
           label="Medicación"
