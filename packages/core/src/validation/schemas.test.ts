@@ -77,12 +77,12 @@ test("meetingPlaceInputSchema acepta los campos de vacación completos", () => {
 });
 
 test("upsertProfileInputSchema acepta color null (todavía no eligió uno)", () => {
-  const input = upsertProfileInputSchema.parse({ fullName: "Ana Pérez", color: null });
+  const input = upsertProfileInputSchema.parse({ fullName: "Ana Pérez", color: null, avatarKey: null });
   assert.equal(input.color, null);
 });
 
 test("upsertProfileInputSchema acepta un color de la paleta fija", () => {
-  const input = upsertProfileInputSchema.parse({ fullName: "Ana Pérez", color: "sky" });
+  const input = upsertProfileInputSchema.parse({ fullName: "Ana Pérez", color: "sky", avatarKey: null });
   assert.equal(input.color, "sky");
 });
 
@@ -99,6 +99,7 @@ test("updateChildDetailsInputSchema acepta un color de la paleta fija", () => {
     allergies: null,
     notes: [],
     color: "salmon",
+    avatarKey: null,
   });
   assert.equal(input.color, "salmon");
 });
