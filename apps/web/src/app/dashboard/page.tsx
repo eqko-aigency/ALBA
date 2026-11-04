@@ -6,9 +6,10 @@ import { isDemoMode } from "@/lib/demoSession";
 import { AppNav } from "@/components/AppNav";
 import { AppHeader } from "@/components/AppHeader";
 import { SectionIntroModal } from "@/components/SectionIntroModal";
+import { QuickActionFab } from "@/components/QuickActionFab";
 import { confirmCheckinAction } from "@/app/calendario/actions";
 import { buildNotifications, formatRelativeTime, NOTIFICATION_ICON_CLASS, NOTIFICATION_ICON_SYMBOL } from "@/lib/notifications";
-import { BovedaIcon, ChatIcon, ClockIcon, GastosIcon } from "@/components/icons";
+import { BovedaIcon, CalendarIcon, ChatIcon, ClockIcon, GastosIcon } from "@/components/icons";
 import { nextOnboardingStep } from "@/lib/onboardingGate";
 import { AVATAR_SRC } from "@/lib/avatars";
 
@@ -544,6 +545,23 @@ export default async function DashboardPage({
           })
         )}
       </div>
+
+      <QuickActionFab
+        actions={[
+          {
+            label: "Nuevo evento",
+            href: `/calendario${as === "b" ? "?as=b" : ""}#fecha-importante`,
+            iconBgClass: "bg-dawn",
+            icon: <CalendarIcon className="h-[19px] w-[19px] text-[#3a332e]" />,
+          },
+          {
+            label: "Nuevo gasto",
+            href: `/gastos${as === "b" ? "?as=b" : ""}#nuevo-gasto`,
+            iconBgClass: "bg-orange",
+            icon: <GastosIcon className="h-[19px] w-[19px] text-[#3a332e]" />,
+          },
+        ]}
+      />
 
       <AppNav active="Inicio" />
     </div>

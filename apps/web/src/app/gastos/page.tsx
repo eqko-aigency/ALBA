@@ -381,7 +381,7 @@ export default async function GastosPage({
         )}
       </section>
 
-      <section className="mt-8 rounded-lg border border-subtle bg-card p-5 shadow-ambient">
+      <section id="nuevo-gasto" className="mt-8 rounded-lg border border-subtle bg-card p-5 shadow-ambient">
         <h2 className="text-sm font-semibold uppercase tracking-wide text-ink">Nuevo gasto</h2>
 
         {children.length === 0 ? (
