@@ -18,7 +18,10 @@ export function QuickActionFab({ actions }: { actions: QuickAction[] }) {
   return (
     <>
       {open && (
-        <div className="fixed bottom-[168px] right-5 z-30 flex flex-col items-end gap-3">
+        <div
+          className="fixed right-5 z-30 flex flex-col items-end gap-3"
+          style={{ bottom: "calc(168px + env(safe-area-inset-bottom))" }}
+        >
           {actions.map((action) => (
             <Link
               key={action.label}
@@ -43,8 +46,12 @@ export function QuickActionFab({ actions }: { actions: QuickAction[] }) {
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-label="Agregar"
-        className="fixed bottom-[92px] right-5 z-30 flex h-[58px] w-[58px] items-center justify-center rounded-full border-4 border-white bg-orange shadow-elevated transition-transform"
-        style={{ transform: open ? "rotate(45deg)" : "rotate(0deg)" }}
+        aria-expanded={open}
+        className="fixed right-5 z-30 flex h-[58px] w-[58px] items-center justify-center rounded-full border-4 border-white bg-orange shadow-elevated transition-transform"
+        style={{
+          bottom: "calc(92px + env(safe-area-inset-bottom))",
+          transform: open ? "rotate(45deg)" : "rotate(0deg)",
+        }}
       >
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
           <path d="M12 5v14M5 12h14" stroke="#3a332e" strokeWidth="2.4" strokeLinecap="round" />
