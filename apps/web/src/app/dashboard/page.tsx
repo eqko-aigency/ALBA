@@ -4,10 +4,13 @@ import { findComplianceIssues, type CustodySlot } from "@alba/core";
 import { getRequestContext } from "@/lib/repository";
 import { isDemoMode } from "@/lib/demoSession";
 import { AppNav } from "@/components/AppNav";
+import { AppHeader } from "@/components/AppHeader";
+import { SectionIntroModal } from "@/components/SectionIntroModal";
 import { confirmCheckinAction } from "@/app/calendario/actions";
 import { buildNotifications, formatRelativeTime, NOTIFICATION_ICON_CLASS, NOTIFICATION_ICON_SYMBOL } from "@/lib/notifications";
 import { BovedaIcon, ChatIcon, ClockIcon, GastosIcon } from "@/components/icons";
 import { nextOnboardingStep } from "@/lib/onboardingGate";
+import { AVATAR_SRC } from "@/lib/avatars";
 
 const MXN = new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" });
 const MONTH_LABEL = new Intl.DateTimeFormat("es-MX", { month: "long" });
@@ -124,6 +127,14 @@ export default async function DashboardPage({
     redirect(as === "b" ? `/onboarding/${pendingStep}?as=b` : `/onboarding/${pendingStep}`);
   }
 
+  const onboardingSteps = [
+    { label: "Agrega a tu hijo/a", done: children.length > 0, href: "/perfil" },
+    { label: "Invita al otro progenitor", done: otherParent !== null, href: `/onboarding/invitar${as === "b" ? "?as=b" : ""}` },
+    { label: "Registra un gasto compartido", done: expenseList.length > 0, href: `/gastos${as === "b" ? "?as=b" : ""}` },
+  ];
+  const completedSteps = onboardingSteps.filter((s) => s.done).length;
+  const showOnboardingCard = completedSteps < onboardingSteps.length;
+
   const childName = (id: string) => children.find((c) => c.id === id)?.fullName ?? "Hijo/a";
   const firstName = profile?.fullName?.split(" ")[0] ?? "";
 
@@ -235,34 +246,84 @@ export default async function DashboardPage({
         </p>
       )}
 
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-ink">
-            Hola{firstName ? `, ${firstName}` : ""}
-          </h1>
-          <p className="mt-2 text-ink-soft">Esto es lo que está pasando en tu familia hoy.</p>
-        </div>
-        <Link
-          href={as === "b" ? "/notificaciones?as=b" : "/notificaciones"}
-          aria-label="Notificaciones"
-          className="relative flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border border-subtle bg-card shadow-ambient"
-        >
-          <svg viewBox="0 0 24 24" fill="none" className="h-5 w-5 text-ink" aria-hidden="true">
-            <path
-              d="M6 10a6 6 0 1112 0c0 4 1.5 5.5 1.5 5.5H4.5S6 14 6 10z"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinejoin="round"
+      <AppHeader avatarKey={profile?.avatarKey ?? null} unseenNotifications={unseenCount} as={as} />
+
+      <div className="flex items-center gap-2">
+        <h1 className="text-2xl font-semibold tracking-tight text-ink">
+          Hola{firstName ? `, ${firstName}` : ""}
+        </h1>
+        <SectionIntroModal
+          sectionKey="inicio"
+          as={as}
+          alreadySeen={profile?.seenIntros?.includes("inicio") ?? false}
+          hero={<InicioIntroHero />}
+          title="Inicio"
+          description="Tu resumen del día: lo próximo en el calendario, el balance de gastos y lo último del chat, todo de un vistazo."
+          points={[
+            {
+              icon: (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <rect x="4" y="5.5" width="16" height="14.5" rx="2.5" stroke="#a4bed5" strokeWidth="1.8" />
+                  <path d="M4 9.5h16" stroke="#a4bed5" strokeWidth="1.8" />
+                </svg>
+              ),
+              iconBgClass: "bg-sky/20",
+              title: "Lo próximo primero",
+              description: "Tu próxima visita o entrega siempre está arriba de todo.",
+            },
+            {
+              icon: (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <circle cx="12" cy="12" r="8" stroke="#f79a7a" strokeWidth="1.8" />
+                  <path
+                    d="M14.5 9.5c-.4-.8-1.3-1.3-2.5-1.3-1.5 0-2.7.8-2.7 2s1.2 1.8 2.7 2 2.7.8 2.7 2-1.2 2-2.7 2c-1.2 0-2.1-.5-2.5-1.3M12 7.3v9.4"
+                    stroke="#f79a7a"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              ),
+              iconBgClass: "bg-orange/20",
+              title: "Balance siempre visible",
+              description: "Quién le debe a quién, sin tener que entrar a Gastos.",
+            },
+            {
+              icon: (
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                  <path
+                    d="M4 12c0-4.4 3.6-8 8-8s8 3.6 8 8-3.6 8-8 8c-1.1 0-2.2-.2-3.1-.6L4 20l1.1-4.3C4.4 14.5 4 13.3 4 12z"
+                    stroke="#bb889b"
+                    strokeWidth="1.8"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              ),
+              iconBgClass: "bg-purple/20",
+              title: "Último mensaje a la mano",
+              description: "Un vistazo a lo último que se dijeron, sin abrir Chat.",
+            },
+          ]}
+        />
+      </div>
+      <p className="mt-1 text-ink-soft">Esto es lo que está pasando en tu familia hoy.</p>
+
+      {children[0] && (
+        <div className="mt-5 flex flex-col items-center gap-1.5">
+          {children[0].avatarKey ? (
+            <img
+              src={AVATAR_SRC[children[0].avatarKey]}
+              alt={children[0].fullName}
+              className="h-[76px] w-[76px] rounded-full border-[3px] border-orange object-cover"
+              style={{ objectPosition: "center 15%" }}
             />
-            <path d="M10 18.5a2 2 0 004 0" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-          </svg>
-          {unseenCount > 0 && (
-            <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1 text-[10px] font-bold text-white">
-              {unseenCount > 9 ? "9+" : unseenCount}
+          ) : (
+            <span className="flex h-[76px] w-[76px] items-center justify-center rounded-full border-[3px] border-orange bg-dawn text-2xl font-bold text-ink">
+              {children[0].fullName.slice(0, 1)}
             </span>
           )}
-        </Link>
-      </div>
+          <span className="text-sm font-bold text-ink">{children[0].fullName}</span>
+        </div>
+      )}
 
       {!otherParent && (
         <Link
@@ -330,6 +391,48 @@ export default async function DashboardPage({
         </div>
       </div>
 
+      {/* Primeros pasos */}
+      {showOnboardingCard && (
+        <div className="mt-6 rounded-2xl border border-subtle bg-card p-4 shadow-ambient">
+          <p className="text-sm font-bold text-ink">Primeros pasos</p>
+          <p className="mt-0.5 text-xs text-ink-soft">Completa esto para sacarle el máximo a ALBA.</p>
+          <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-sand">
+            <div
+              className="h-full bg-orange"
+              style={{ width: `${Math.round((completedSteps / onboardingSteps.length) * 100)}%` }}
+            />
+          </div>
+          <div className="mt-3 flex flex-col">
+            {onboardingSteps.map((step, i) => (
+              <div
+                key={step.label}
+                className={`flex items-center gap-2.5 py-2 ${
+                  i < onboardingSteps.length - 1 ? "border-b border-subtle" : ""
+                }`}
+              >
+                {step.done ? (
+                  <span className="flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full bg-success">
+                    <svg width="9" height="9" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <path d="M5 12.5l4.5 4.5L19 7" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </span>
+                ) : (
+                  <span className="h-4 w-4 flex-shrink-0 rounded-full border-[1.6px] border-ink-faint" />
+                )}
+                {step.done ? (
+                  <span className="flex-1 text-sm text-ink line-through opacity-60">{step.label}</span>
+                ) : (
+                  <Link href={step.href} className="flex flex-1 items-center justify-between text-sm text-ink">
+                    {step.label}
+                    <span className="text-ink-faint" aria-hidden="true">›</span>
+                  </Link>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Necesita tu atención */}
       {alerts.length > 0 && (
         <section className="mt-6">
@@ -339,9 +442,9 @@ export default async function DashboardPage({
               <Link
                 key={alert.label}
                 href={as === "b" ? `${alert.href}?as=b` : alert.href}
-                className="flex items-center gap-3 rounded-xl border border-danger/30 bg-danger/5 px-4 py-3 text-sm font-medium text-ink"
+                className="flex items-center gap-3 rounded-xl border border-orange bg-dawn/40 px-4 py-3 text-sm font-medium text-ink"
               >
-                <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-danger/15 text-danger">
+                <span className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-orange/20 text-ink">
                   !
                 </span>
                 {alert.label}
@@ -443,6 +546,28 @@ export default async function DashboardPage({
       </div>
 
       <AppNav active="Dashboard" />
+    </div>
+  );
+}
+
+function InicioIntroHero() {
+  return (
+    <div className="relative h-[88px] w-full rounded-[18px]" style={{ background: "#a4bed5" }}>
+      <div className="absolute left-[18px] top-[18px] w-[150px] rounded-[14px] bg-white px-3.5 py-[11px] shadow-md">
+        <p className="text-[10px] font-bold text-ink-soft">PRÓXIMA VISITA</p>
+        <p className="mt-0.5 text-xs font-bold text-ink">Viernes 7, 17:00</p>
+      </div>
+      <div className="absolute bottom-3.5 right-4 flex h-[34px] w-[34px] items-center justify-center rounded-full bg-orange shadow-md">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path
+            d="M4 11l8-6.5L20 11M6 9.5V19a1 1 0 001 1h3v-5h4v5h3a1 1 0 001-1V9.5"
+            stroke="#3a332e"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </div>
     </div>
   );
 }
