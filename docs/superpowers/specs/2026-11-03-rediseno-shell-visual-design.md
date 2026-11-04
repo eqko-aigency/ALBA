@@ -117,14 +117,13 @@ Cambia de una lista vertical de filas a un **grid de 2 columnas** de tarjetas (�
 | Tu Núcleo | Funcional (sección 7) | Casa, `dawn` |
 | Gastos | Funcional (ya existe) | Billete, `orange` |
 | Perfil | Funcional (ya existe) | Persona, `sky` |
-| Info y documentos | Funcional (ya existe, revisar si reemplaza o convive con Bóveda — ver nota) | Documento, `salmon` |
+| Info y documentos | Funcional — **reemplaza a "Bóveda"** (ver nota) | Candado, `salmon` |
 | Medicación | **Próximamente**, sin funcionalidad | Cruz médica, `success` (verde) |
 | Custodia | **Próximamente** — se construye en spec dedicado aparte | Intercambio, `purple` |
 | Acuerdos | Funcional (ya existe) | Documento+check, `sea` |
-| Bóveda | Funcional (ya existe) | Candado, `dawn` |
 | Listas | **Próximamente**, sin funcionalidad | Checklist, `sky` |
 
-**Nota de consistencia a resolver en implementación:** "Info y documentos" se agregó por pedido explícito de la clienta junto con el resto de la cuadrícula, pero se superpone conceptualmente con "Perfil" (mi información) y "Bóveda" (documentos con hash/Merkle). No se tomó una decisión de fusionarlas en este spec — implementar las 9 tarjetas tal cual, y señalar esta posible redundancia a la clienta para que decida si "Info y documentos" se queda como entrada propia o se elimina a favor de Perfil+Bóveda ya existentes.
+**Decisión de la clienta (resuelta):** "Bóveda" deja de existir como tarjeta separada — su funcionalidad (documentos con hash SHA-256 + sellado Merkle) se absorbe dentro de **"Info y documentos"**. En implementación, "Info y documentos" apunta a la pantalla que hoy vive en `/boveda` (sin renombrar rutas ni perder el hash/Merkle existente), solo cambia la entrada de navegación: ya no hay una tarjeta "Bóveda" separada en el grid de "Más", ni en ningún otro nav. El grid queda en **8 tarjetas**, no 9.
 
 Tarjetas marcadas "Próximamente": al tocarlas, no navegan a ningún lado funcional — mostrar un mensaje breve tipo "Esta función llega pronto" (toast o la misma tarjeta deshabilitada visualmente con opacidad reducida). No construir pantallas vacías para ellas.
 
