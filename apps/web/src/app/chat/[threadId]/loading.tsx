@@ -8,7 +8,7 @@ import { AppNav } from "@/components/AppNav";
  */
 export default function Loading() {
   return (
-    <div className="mx-auto flex min-h-screen max-w-2xl flex-col bg-sand">
+    <div className="mx-auto flex min-h-screen max-w-2xl flex-col">
       <div className="sticky top-0 z-10 border-b border-subtle bg-card px-4 py-3 shadow-ambient">
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 flex-shrink-0 animate-pulse rounded-full bg-sand" />

@@ -26,7 +26,7 @@ export default async function PerfilPage() {
   const isPaired = otherParent !== null;
 
   return (
-    <div className="mx-auto min-h-screen max-w-2xl px-6 pb-[calc(7.5rem+env(safe-area-inset-bottom))] pt-16 bg-sand">
+    <div className="mx-auto min-h-screen max-w-2xl px-6 pb-[calc(7.5rem+env(safe-area-inset-bottom))] pt-16">
       {isDemoMode && (
         <p className="mb-8 rounded-md border border-orange bg-dawn px-4 py-2 text-sm text-ink">
           Modo de prueba local — editando como Progenitor A.

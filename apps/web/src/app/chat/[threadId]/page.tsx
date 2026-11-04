@@ -78,7 +78,7 @@ export default async function ThreadPage({
   const distinctDays = [...new Set(messages.map((m) => dayKey(m.createdAt)))];
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-2xl flex-col bg-sand">
+    <div className="mx-auto flex min-h-screen max-w-2xl flex-col">
       <div className="sticky top-0 z-10 border-b border-subtle bg-card shadow-ambient">
         <div className="flex items-center gap-3 px-4 py-3">
           <Link
@@ -277,7 +277,7 @@ export default async function ThreadPage({
           valor que reserva el resto de la app para el nav), sin importar
           cuántos mensajes haya o cuánto se haya scrolleado. */}
       <div
-        className="fixed inset-x-0 z-10 mx-auto max-w-2xl bg-sand px-4 pb-1 pt-2"
+        className="fixed inset-x-0 z-10 mx-auto max-w-2xl bg-white px-4 pb-1 pt-2"
         // translateZ(0): mismo fix de AppNav.tsx para el "nado" de iOS
         // Safari en elementos fixed durante scroll con inercia.
         style={{ bottom: "calc(5rem + env(safe-area-inset-bottom))", transform: "translateZ(0)" }}
