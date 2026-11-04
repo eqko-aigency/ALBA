@@ -290,7 +290,7 @@ export default async function CalendarioPage({
 
       <div className="mt-3 flex gap-2">
         <Link
-          href={`/calendario?view=month&month=${monthKey(refMonthDate)}${asQuery}`}
+          href={`/calendario?view=month&month=${monthKey(refMonthDate)}&day=${selectedDayKey}${asQuery}`}
           className={`rounded-full px-3.5 py-2 text-xs font-bold ${
             view === "month" ? "bg-ink text-white" : "border border-subtle bg-card text-ink-soft"
           }`}
