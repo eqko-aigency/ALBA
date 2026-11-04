@@ -26,7 +26,7 @@
   --shadow-ambient: 0 4px 20px rgba(58, 51, 46, 0.05);
   --shadow-elevated: 0 12px 32px rgba(58, 51, 46, 0.09);
 
-  --background: var(--alba-sand);
+  --background: #ffffff;
   --foreground: var(--alba-ink);
 }
 
