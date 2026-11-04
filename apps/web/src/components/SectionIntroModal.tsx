@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { markSectionIntroSeenAction } from "@/app/actions/sectionIntroActions";
 
 export type IntroPoint = {
@@ -28,15 +28,26 @@ export function SectionIntroModal({
   points: IntroPoint[];
 }) {
   const [open, setOpen] = useState(!alreadySeen);
+  const dialogRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!alreadySeen) {
-      markSectionIntroSeenAction(sectionKey, as);
+      markSectionIntroSeenAction(sectionKey, as).catch(() => {});
     }
     // Solo al montar — "ya lo vio" se registra en el momento en que se le
     // mostró automáticamente, sin esperar a que lo cierre.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    dialogRef.current?.focus();
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [open]);
 
   return (
     <>
@@ -51,14 +62,14 @@ export function SectionIntroModal({
 
       {open && (
         <div className="fixed inset-0 z-40 flex items-end justify-center">
-          <button
-            type="button"
-            aria-label="Cerrar"
-            onClick={() => setOpen(false)}
-            className="absolute inset-0 bg-ink/30"
-          />
+          <div aria-hidden="true" onClick={() => setOpen(false)} className="absolute inset-0 bg-ink/30" />
           <div
-            className="relative z-10 flex max-h-[calc(100%-36px)] w-full max-w-md flex-col overflow-y-auto rounded-t-[28px] px-[22px] pb-6 pt-3.5"
+            ref={dialogRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label={title}
+            tabIndex={-1}
+            className="relative z-10 flex max-h-[calc(100%-36px)] w-full max-w-md flex-col overflow-y-auto rounded-t-[28px] px-[22px] pb-6 pt-3.5 outline-none"
             style={{ background: "#4a5a62" }}
           >
             <button
