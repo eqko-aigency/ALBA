@@ -108,9 +108,9 @@ export default async function MasPage({
           }
         />
         <FeatureCard
+          href={`/mas/custodia${asQuery}`}
           label="Custodia"
           iconBgClass="bg-purple"
-          disabled
           icon={
             <svg width="21" height="21" viewBox="0 0 24 24" fill="none" aria-hidden="true">
               <path d="M7 7l-3 3 3 3M17 7l3 3-3 3M4 10h16" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
