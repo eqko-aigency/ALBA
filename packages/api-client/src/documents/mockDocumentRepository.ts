@@ -48,6 +48,7 @@ export function createMockDocumentRepository(pairingRepository: PairingRepositor
         uploadedByParentId: parentId,
         childId: input.childId,
         title: input.title,
+        mimeType: input.mimeType,
         // Sin Storage real en modo demo — referencia simulada, nunca un
         // archivo descargable de verdad (ver comentario arriba).
         fileUrl: `demo://documentos/${familyId}/${Date.now()}-${input.fileName}`,

@@ -358,6 +358,8 @@ export interface Document {
   /** Hijo al que aplica el documento — null para documentos de la familia en general (ej. convenio). */
   childId: string | null;
   title: string;
+  /** Tipo MIME al momento de subir — null para documentos subidos antes de este campo. Se usa para filtrar qué documentos puede leer la IA de Custodia (solo PDF/imagen). */
+  mimeType: string | null;
   fileUrl: string;
   sha256Hex: string;
   merkleRoot: string | null;
