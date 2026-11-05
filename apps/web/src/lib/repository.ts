@@ -1,9 +1,11 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import {
   createAnthropicAgreementDetector,
+  createAnthropicCustodyDocumentAnalyzer,
   createAnthropicToneAnalyzer,
   createFamilyIdResolver,
   createHeuristicAgreementDetector,
+  createHeuristicCustodyDocumentAnalyzer,
   createHeuristicToneAnalyzer,
   createMockChatRepository,
   createMockCustodyRepository,
@@ -23,6 +25,7 @@ import {
 import type {
   AgreementDetector,
   ChatRepository,
+  CustodyDocumentAnalyzer,
   CustodyRepository,
   DocumentRepository,
   ExpenseRepository,
@@ -263,3 +266,10 @@ globalForAgreement.agreementDetector ??= isAnthropicConfigured
   : createHeuristicAgreementDetector();
 
 export const agreementDetector: AgreementDetector = globalForAgreement.agreementDetector;
+
+const globalForCustodyAi = globalThis as unknown as { custodyDocumentAnalyzer?: CustodyDocumentAnalyzer };
+globalForCustodyAi.custodyDocumentAnalyzer ??= isAnthropicConfigured
+  ? createAnthropicCustodyDocumentAnalyzer(process.env.ANTHROPIC_API_KEY!)
+  : createHeuristicCustodyDocumentAnalyzer();
+
+export const custodyDocumentAnalyzer: CustodyDocumentAnalyzer = globalForCustodyAi.custodyDocumentAnalyzer;
