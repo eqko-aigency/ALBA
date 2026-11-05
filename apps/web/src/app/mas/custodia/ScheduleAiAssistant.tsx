@@ -27,6 +27,14 @@ export function ScheduleAiAssistant({
   const [done, setDone] = useState(false);
   const [isPending, startTransition] = useTransition();
 
+  if (kids.length === 0 || familyMembers.length === 0) {
+    return (
+      <p className="text-sm text-ink-soft">
+        Agrega al menos un hijo y empareja al otro progenitor desde tu Perfil antes de poder usar el asistente de IA.
+      </p>
+    );
+  }
+
   if (analyzableDocuments.length === 0) {
     return (
       <p className="text-sm text-ink-soft">
@@ -46,18 +54,22 @@ export function ScheduleAiAssistant({
   function runAnalysis() {
     setError(null);
     startTransition(async () => {
-      const result = await proposeScheduleAction(documentId, as);
-      if ("error" in result) {
-        setError(result.error);
-        return;
+      try {
+        const result = await proposeScheduleAction(documentId, as);
+        if ("error" in result) {
+          setError(result.error);
+          return;
+        }
+        if (result.slots.length === 0) {
+          setError(
+            "No pudimos detectar un horario de custodia en este documento — puedes intentar con otro o crear los horarios a mano en Calendario."
+          );
+          return;
+        }
+        setProposal(result.slots.map((s) => ({ ...s, checked: true })));
+      } catch {
+        setError("Algo salió mal — intenta de nuevo.");
       }
-      if (result.slots.length === 0) {
-        setError(
-          "No pudimos detectar un horario de custodia en este documento — puedes intentar con otro o crear los horarios a mano en Calendario."
-        );
-        return;
-      }
-      setProposal(result.slots.map((s) => ({ ...s, checked: true })));
     });
   }
 
@@ -74,12 +86,16 @@ export function ScheduleAiAssistant({
     const chosen = proposal.filter((s) => s.checked).map(({ checked, ...slot }) => slot);
     setError(null);
     startTransition(async () => {
-      const result = await confirmScheduleProposalAction(chosen, as);
-      if ("error" in result) {
-        setError(result.error);
-        return;
+      try {
+        const result = await confirmScheduleProposalAction(chosen, as);
+        if ("error" in result) {
+          setError(result.error);
+          return;
+        }
+        setDone(true);
+      } catch {
+        setError("Algo salió mal — intenta de nuevo.");
       }
-      setDone(true);
     });
   }
 
