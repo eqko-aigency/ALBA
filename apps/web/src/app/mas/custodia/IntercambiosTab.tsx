@@ -54,7 +54,8 @@ export async function IntercambiosTab({
     );
   }
 
-  const today = new Date();
+  const now = new Date();
+  const today = new Date(now);
   today.setHours(0, 0, 0, 0);
   const rangeStart = addDays(today, -7);
   const rangeEnd = addDays(today, 8); // exclusivo: hoy + 7 días adelante
@@ -68,17 +69,17 @@ export async function IntercambiosTab({
   const parentName = (id: string) => (id === parentId ? "Tú" : familyMembers.find((p) => p.id === id)?.fullName ?? "—");
   const placeName = (id: string | null) => (id ? (places.find((p) => p.id === id)?.name ?? null) : null);
 
-  const now = new Date();
   type UpcomingItem = { day: Date; slot: CustodyAgreement["slots"][number]; scheduledIn: Date; scheduledOut: Date };
   const upcoming: UpcomingItem[] = [];
   for (let i = 0; i < 8; i++) {
     const day = addDays(today, i);
     const weekday = day.getDay();
+    const isToday = isoDateLocal(day) === isoDateLocal(today);
     for (const slot of agreement.slots) {
       if (slot.weekday !== weekday) continue;
       const scheduledIn = combineDateAndTime(day, slot.startTime);
       const scheduledOut = combineDateAndTime(day, slot.endTime);
-      if (scheduledOut >= now) upcoming.push({ day, slot, scheduledIn, scheduledOut });
+      if (isToday || scheduledOut >= now) upcoming.push({ day, slot, scheduledIn, scheduledOut });
     }
   }
   upcoming.sort((a, b) => a.scheduledIn.getTime() - b.scheduledIn.getTime());
