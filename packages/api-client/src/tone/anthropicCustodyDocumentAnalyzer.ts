@@ -54,6 +54,56 @@ function formatPeople(children: Child[], familyMembers: Parent[]): string {
   return `Hijos:\n${childLines || "  (ninguno)"}\nProgenitores:\n${parentLines || "  (ninguno)"}`;
 }
 
+// Mismo patrón que timeOfDaySchema en packages/core/src/validation/schemas.ts
+// (no se importa porque ese schema es z.string(), pensado para validar input
+// de formularios, no para filtrar items sueltos de un array ya parseado).
+const TIME_OF_DAY_REGEX = /^([01]\d|2[0-3]):[0-5]\d$/;
+const ISO_DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
+
+/**
+ * La IA devuelve JSON "bien formado" (pasa Array.isArray) pero no hay
+ * garantía de que cada item tenga los campos/tipos correctos, ni de que
+ * childId/parentId sean ids reales que de verdad se le pasaron al modelo
+ * (podría alucinar uno). Igual que anthropicAgreementDetector valida
+ * `typeof parsed.description === "string"` antes de confiar en el campo,
+ * acá se valida cada item antes de castear — un item inválido simplemente
+ * se descarta (silencioso, no es una condición de error).
+ */
+function isValidScheduleSlot(
+  item: unknown,
+  childIds: ReadonlySet<string>,
+  parentIds: ReadonlySet<string>
+): item is CustodyScheduleProposalSlot {
+  if (typeof item !== "object" || item === null) return false;
+  const slot = item as Record<string, unknown>;
+  return (
+    typeof slot.childId === "string" &&
+    childIds.has(slot.childId) &&
+    typeof slot.parentId === "string" &&
+    parentIds.has(slot.parentId) &&
+    typeof slot.weekday === "number" &&
+    Number.isInteger(slot.weekday) &&
+    slot.weekday >= 0 &&
+    slot.weekday <= 6 &&
+    typeof slot.startTime === "string" &&
+    TIME_OF_DAY_REGEX.test(slot.startTime) &&
+    typeof slot.endTime === "string" &&
+    TIME_OF_DAY_REGEX.test(slot.endTime)
+  );
+}
+
+function isValidReminderItem(item: unknown, childIds: ReadonlySet<string>): item is ReminderProposalItem {
+  if (typeof item !== "object" || item === null) return false;
+  const reminder = item as Record<string, unknown>;
+  if (typeof reminder.title !== "string" || reminder.title.trim().length === 0) return false;
+  if (reminder.childId !== null && !(typeof reminder.childId === "string" && childIds.has(reminder.childId))) {
+    return false;
+  }
+  if (typeof reminder.startDate !== "string" || !ISO_DATE_REGEX.test(reminder.startDate)) return false;
+  if (typeof reminder.endDate !== "string" || !ISO_DATE_REGEX.test(reminder.endDate)) return false;
+  return reminder.endDate >= reminder.startDate;
+}
+
 const SCHEDULE_SYSTEM_PROMPT = `Eres el asistente de Custodia de ALBA, una app de coparentalidad. Te dan un documento (convenio de custodia, PDF o foto) y, opcionalmente, acuerdos verbales ya confirmados por ambos progenitores. Tu tarea es proponer el horario semanal RECURRENTE de custodia (quién tiene a cada hijo, qué día de la semana, de qué hora a qué hora).
 
 Responde ÚNICAMENTE con JSON válido, sin texto adicional, con esta forma exacta:
@@ -83,71 +133,79 @@ Responde ÚNICAMENTE con JSON válido, sin texto adicional, con esta forma exact
 export function createAnthropicCustodyDocumentAnalyzer(apiKey: string): CustodyDocumentAnalyzer {
   const client = new Anthropic({ apiKey });
 
+  // Fix 2: ambos métodos comparten el mismo esqueleto
+  // build-request → extraer bloque de texto → parsear JSON (log + null en
+  // fallo) — solo difiere el prompt, el contenido del mensaje y qué campo
+  // del JSON cada uno extrae/valida después. Ese resto (nombre del campo,
+  // validación por item de Fix 1) se queda en cada método porque depende
+  // del shape de cada uno.
+  async function requestAndParseJson(
+    systemPrompt: string,
+    content: Anthropic.Beta.Messages.BetaContentBlockParam[],
+    methodLabel: string
+  ): Promise<Record<string, unknown> | null> {
+    const response = await client.beta.messages.create({
+      model: MODEL,
+      max_tokens: 1500,
+      system: systemPrompt,
+      messages: [{ role: "user", content }],
+    });
+
+    const block = response.content[0];
+    const text = block?.type === "text" ? block.text : "{}";
+
+    try {
+      return JSON.parse(extractJson(text)) as Record<string, unknown>;
+    } catch (err) {
+      console.error(`[anthropicCustodyDocumentAnalyzer] ${methodLabel}: respuesta no parseable`, { text, err });
+      return null;
+    }
+  }
+
   return {
     async proposeSchedule({ documentBytes, mimeType, verbalAgreements, children, familyMembers }) {
       if (children.length === 0 || familyMembers.length === 0) return { slots: [] };
 
-      const response = await client.beta.messages.create({
-        model: MODEL,
-        max_tokens: 1500,
-        system: SCHEDULE_SYSTEM_PROMPT,
-        messages: [
+      const parsed = await requestAndParseJson(
+        SCHEDULE_SYSTEM_PROMPT,
+        [
+          buildDocumentBlock(documentBytes, mimeType),
           {
-            role: "user",
-            content: [
-              buildDocumentBlock(documentBytes, mimeType),
-              {
-                type: "text",
-                text: `${formatPeople(children, familyMembers)}\n\nAcuerdos verbales confirmados:\n${formatVerbalAgreements(verbalAgreements)}`,
-              },
-            ],
+            type: "text",
+            text: `${formatPeople(children, familyMembers)}\n\nAcuerdos verbales confirmados:\n${formatVerbalAgreements(verbalAgreements)}`,
           },
         ],
-      });
+        "proposeSchedule"
+      );
+      if (parsed === null || !Array.isArray(parsed.slots)) return { slots: [] };
 
-      const block = response.content[0];
-      const text = block?.type === "text" ? block.text : "{}";
-
-      try {
-        const parsed = JSON.parse(extractJson(text)) as { slots?: unknown };
-        if (!Array.isArray(parsed.slots)) return { slots: [] };
-        return { slots: parsed.slots as CustodyScheduleProposalSlot[] };
-      } catch (err) {
-        console.error("[anthropicCustodyDocumentAnalyzer] proposeSchedule: respuesta no parseable", { text, err });
-        return { slots: [] };
-      }
+      const childIds = new Set(children.map((c) => c.id));
+      const parentIds = new Set(familyMembers.map((p) => p.id));
+      const slots = parsed.slots.filter((item): item is CustodyScheduleProposalSlot =>
+        isValidScheduleSlot(item, childIds, parentIds)
+      );
+      return { slots };
     },
 
     async proposeReminders({ documentBytes, mimeType, verbalAgreements, children }) {
-      const response = await client.beta.messages.create({
-        model: MODEL,
-        max_tokens: 1500,
-        system: REMINDERS_SYSTEM_PROMPT,
-        messages: [
+      const parsed = await requestAndParseJson(
+        REMINDERS_SYSTEM_PROMPT,
+        [
+          buildDocumentBlock(documentBytes, mimeType),
           {
-            role: "user",
-            content: [
-              buildDocumentBlock(documentBytes, mimeType),
-              {
-                type: "text",
-                text: `${formatPeople(children, [])}\n\nAcuerdos verbales confirmados:\n${formatVerbalAgreements(verbalAgreements)}`,
-              },
-            ],
+            type: "text",
+            text: `${formatPeople(children, [])}\n\nAcuerdos verbales confirmados:\n${formatVerbalAgreements(verbalAgreements)}`,
           },
         ],
-      });
+        "proposeReminders"
+      );
+      if (parsed === null || !Array.isArray(parsed.reminders)) return { reminders: [] };
 
-      const block = response.content[0];
-      const text = block?.type === "text" ? block.text : "{}";
-
-      try {
-        const parsed = JSON.parse(extractJson(text)) as { reminders?: unknown };
-        if (!Array.isArray(parsed.reminders)) return { reminders: [] };
-        return { reminders: parsed.reminders as ReminderProposalItem[] };
-      } catch (err) {
-        console.error("[anthropicCustodyDocumentAnalyzer] proposeReminders: respuesta no parseable", { text, err });
-        return { reminders: [] };
-      }
+      const childIds = new Set(children.map((c) => c.id));
+      const reminders = parsed.reminders.filter((item): item is ReminderProposalItem =>
+        isValidReminderItem(item, childIds)
+      );
+      return { reminders };
     },
   };
 }
