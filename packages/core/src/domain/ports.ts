@@ -308,8 +308,8 @@ export interface DocumentRepository {
   getDocument(parentId: string, documentId: string): Promise<Document | null>;
   /**
    * Bytes crudos de un documento ya subido — Document solo guarda fileUrl,
-   * no hay forma hoy de releer el archivo. Se agrega para Custodia (W-xx),
-   * que necesita mandarle el documento a la IA. Devuelve null si el
+   * no hay forma hoy de releer el archivo. Se agrega para Custodia, que
+   * necesita mandarle el documento a la IA. Devuelve null si el
    * documento no existe/no es de la familia del caller, o si no tiene
    * mimeType guardado (subido antes de la migración 0038).
    */

@@ -27,28 +27,14 @@ export function createSupabaseDocumentRepository(
     async getDocument(parentId, documentId) {
       const familyId = await getMyFamilyId(parentId);
       if (!familyId) return null;
-      const { data, error } = await client
-        .from("documents")
-        .select()
-        .eq("id", documentId)
-        .eq("family_id", familyId)
-        .maybeSingle();
-      if (error) throw error;
-      return data ? mapDocument(data) : null;
+      return fetchDocumentRow(client, familyId, documentId);
     },
 
     async getDocumentFileBytes(parentId, documentId) {
       const familyId = await getMyFamilyId(parentId);
       if (!familyId) return null;
-      const { data, error } = await client
-        .from("documents")
-        .select()
-        .eq("id", documentId)
-        .eq("family_id", familyId)
-        .maybeSingle();
-      if (error) throw error;
-      if (!data) return null;
-      const document = mapDocument(data);
+      const document = await fetchDocumentRow(client, familyId, documentId);
+      if (!document) return null;
       if (!document.mimeType) return null;
 
       const response = await fetch(document.fileUrl);
@@ -152,6 +138,27 @@ function buildAnchorReference(merkleRoot: string): string {
   const timestamp = Date.now();
   const short = computeSha256Hex(new TextEncoder().encode(`${merkleRoot}:${timestamp}`)).slice(0, 16);
   return `poc-anchor:0x${short}:${timestamp}`;
+}
+
+/**
+ * Lookup compartido por getDocument/getDocumentFileBytes — mismo filtro
+ * family_id + id, mismo mapeo a Document. Evita duplicar la consulta cuando
+ * ambos métodos necesitan exactamente la misma fila (ver comentario de
+ * code review en el commit que agregó getDocumentFileBytes).
+ */
+async function fetchDocumentRow(
+  client: SupabaseClient,
+  familyId: string,
+  documentId: string
+): Promise<Document | null> {
+  const { data, error } = await client
+    .from("documents")
+    .select()
+    .eq("id", documentId)
+    .eq("family_id", familyId)
+    .maybeSingle();
+  if (error) throw error;
+  return data ? mapDocument(data) : null;
 }
 
 function mapDocument(row: any): Document {
