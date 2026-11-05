@@ -37,6 +37,28 @@ export function createSupabaseDocumentRepository(
       return data ? mapDocument(data) : null;
     },
 
+    async getDocumentFileBytes(parentId, documentId) {
+      const familyId = await getMyFamilyId(parentId);
+      if (!familyId) return null;
+      const { data, error } = await client
+        .from("documents")
+        .select()
+        .eq("id", documentId)
+        .eq("family_id", familyId)
+        .maybeSingle();
+      if (error) throw error;
+      if (!data) return null;
+      const document = mapDocument(data);
+      if (!document.mimeType) return null;
+
+      const response = await fetch(document.fileUrl);
+      if (!response.ok) {
+        throw new Error(`No se pudo descargar el documento (${response.status})`);
+      }
+      const bytes = new Uint8Array(await response.arrayBuffer());
+      return { bytes, mimeType: document.mimeType };
+    },
+
     async uploadDocument(parentId, input) {
       const familyId = await getMyFamilyId(parentId);
       if (!familyId) {

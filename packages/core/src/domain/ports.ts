@@ -306,6 +306,14 @@ export interface DocumentRepository {
     input: { title: string; fileBytes: Uint8Array; fileName: string; mimeType: string; childId: string | null }
   ): Promise<Document>;
   getDocument(parentId: string, documentId: string): Promise<Document | null>;
+  /**
+   * Bytes crudos de un documento ya subido — Document solo guarda fileUrl,
+   * no hay forma hoy de releer el archivo. Se agrega para Custodia (W-xx),
+   * que necesita mandarle el documento a la IA. Devuelve null si el
+   * documento no existe/no es de la familia del caller, o si no tiene
+   * mimeType guardado (subido antes de la migración 0038).
+   */
+  getDocumentFileBytes(parentId: string, documentId: string): Promise<{ bytes: Uint8Array; mimeType: string } | null>;
   /** Devuelve solo los documentos recién anclados (antes estaban "pending"). */
   anchorPendingDocuments(parentId: string): Promise<Document[]>;
 }

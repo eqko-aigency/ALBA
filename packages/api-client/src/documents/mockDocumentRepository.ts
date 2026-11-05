@@ -13,6 +13,7 @@ import type { Document, DocumentRepository, PairingRepository } from "@alba/core
  */
 export function createMockDocumentRepository(pairingRepository: PairingRepository): DocumentRepository {
   const documents = new Map<string, Document>();
+  const fileBytesByDocumentId = new Map<string, Uint8Array>();
 
   async function getFamilyId(parentId: string): Promise<string> {
     const family = await pairingRepository.getOrCreateMyFamily(parentId);
@@ -39,6 +40,15 @@ export function createMockDocumentRepository(pairingRepository: PairingRepositor
       return document && document.familyId === familyId ? document : null;
     },
 
+    async getDocumentFileBytes(parentId, documentId) {
+      const familyId = await getFamilyId(parentId);
+      const document = documents.get(documentId);
+      if (!document || document.familyId !== familyId || !document.mimeType) return null;
+      const bytes = fileBytesByDocumentId.get(documentId);
+      if (!bytes) return null;
+      return { bytes, mimeType: document.mimeType };
+    },
+
     async uploadDocument(parentId, input) {
       const familyId = await getFamilyId(parentId);
       const sha256Hex = computeSha256Hex(input.fileBytes);
@@ -58,6 +68,7 @@ export function createMockDocumentRepository(pairingRepository: PairingRepositor
         anchorReference: null,
         createdAt: new Date().toISOString(),
       };
+      fileBytesByDocumentId.set(document.id, input.fileBytes);
       documents.set(document.id, document);
       return document;
     },
