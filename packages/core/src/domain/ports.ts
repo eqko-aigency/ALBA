@@ -349,6 +349,11 @@ export interface VerbalAgreementRepository {
   confirmVerbalAgreement(parentId: string, agreementId: string): Promise<VerbalAgreement>;
 }
 
+/**
+ * Igual forma que CustodySlot menos placeId: la IA no puede saber los lugares
+ * de encuentro a partir de un documento. Antes de llamar
+ * CustodyRepository.upsertSlots hay que agregar placeId (null si no aplica).
+ */
 export interface CustodyScheduleProposalSlot {
   childId: string;
   parentId: string;
@@ -362,7 +367,9 @@ export interface ReminderProposalItem {
   title: string;
   /** null = no ligado a un hijo en particular, mismo criterio que ImportantDate.childId */
   childId: string | null;
+  /** "YYYY-MM-DD", fecha local. */
   startDate: string;
+  /** "YYYY-MM-DD", fecha local, >= startDate. */
   endDate: string;
 }
 
@@ -381,6 +388,11 @@ export interface ReminderProposalItem {
  * propios mencionados en el documento ("Eugenia", "papá") a los
  * childId/parentId reales de la familia — sin esto la IA no tiene forma
  * de saber a qué id se refiere cada nombre.
+ *
+ * Los métodos devuelven un objeto envolvente ({ slots } / { reminders }) en
+ * vez de un array pelado a propósito: deja espacio para agregar campos
+ * después (p. ej. una nota de confianza o "no pudimos leer el documento")
+ * sin cambiar la firma de forma incompatible.
  */
 export interface CustodyDocumentAnalyzer {
   proposeSchedule(input: {
@@ -391,6 +403,9 @@ export interface CustodyDocumentAnalyzer {
     familyMembers: Parent[];
   }): Promise<{ slots: CustodyScheduleProposalSlot[] }>;
 
+  // Intencional: no recibe familyMembers porque ReminderProposalItem no lleva
+  // parentId (a diferencia de CustodyScheduleProposalSlot), así que no hay
+  // contra qué resolverlos en este método.
   proposeReminders(input: {
     documentBytes: Uint8Array;
     mimeType: string;
