@@ -45,12 +45,12 @@ export async function confirmScheduleProposalAction(
   if (slots.length === 0) return { error: "No seleccionaste ningún horario." };
 
   const { custody, parentId } = await getRequestContext(as);
-  let validated;
-  try {
-    validated = slots.map((s) => custodySlotInputSchema.parse({ ...s, placeId: null }));
-  } catch {
+  const parsedSlots = slots.map((s) => custodySlotInputSchema.safeParse({ ...s, placeId: null }));
+  const invalid = parsedSlots.find((p) => !p.success);
+  if (invalid) {
     return { error: "Alguno de los horarios quedó con un dato inválido — revisa los campos y vuelve a intentar." };
   }
+  const validated = parsedSlots.map((p) => p.data!);
 
   const agreement = await custody.getMyAgreement(parentId);
   await custody.upsertSlots(parentId, [...agreement.slots, ...validated]);
@@ -86,12 +86,12 @@ export async function confirmReminderProposalAction(
   if (reminders.length === 0) return { error: "No seleccionaste ningún recordatorio." };
 
   const { custody, parentId } = await getRequestContext(as);
-  let validated;
-  try {
-    validated = reminders.map((r) => importantDateInputSchema.parse(r));
-  } catch {
+  const parsedReminders = reminders.map((r) => importantDateInputSchema.safeParse(r));
+  const invalid = parsedReminders.find((p) => !p.success);
+  if (invalid) {
     return { error: "Alguno de los recordatorios quedó con un dato inválido — revisa los campos y vuelve a intentar." };
   }
+  const validated = parsedReminders.map((p) => p.data!);
 
   for (const reminder of validated) {
     await custody.createImportantDate(parentId, reminder);
