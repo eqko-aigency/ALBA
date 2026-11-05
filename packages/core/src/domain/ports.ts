@@ -348,3 +348,53 @@ export interface VerbalAgreementRepository {
   createVerbalAgreement(parentId: string, input: VerbalAgreementInput): Promise<VerbalAgreement>;
   confirmVerbalAgreement(parentId: string, agreementId: string): Promise<VerbalAgreement>;
 }
+
+export interface CustodyScheduleProposalSlot {
+  childId: string;
+  parentId: string;
+  /** 0 = domingo ... 6 = sábado */
+  weekday: number;
+  startTime: string;
+  endTime: string;
+}
+
+export interface ReminderProposalItem {
+  title: string;
+  /** null = no ligado a un hijo en particular, mismo criterio que ImportantDate.childId */
+  childId: string | null;
+  startDate: string;
+  endDate: string;
+}
+
+/**
+ * Analiza el convenio de custodia (documento PDF/imagen + Acuerdos
+ * verbales confirmados) para PROPONER horario de custodia y/o fechas
+ * importantes — nunca escribe directamente, la UI exige confirmación
+ * humana antes de persistir (mismo criterio que AgreementDetector y
+ * ToneAnalyzer: la IA nunca es la última palabra sobre un dato que se
+ * vuelve parte del convenio/calendario real). Implementación real
+ * instanciada server-side en apps/web/src/lib/repository.ts, nunca en el
+ * cliente — misma razón que AgreementDetector (la API key no puede vivir
+ * en un bundle de navegador).
+ *
+ * children/familyMembers se pasan para que el prompt pueda mapear nombres
+ * propios mencionados en el documento ("Eugenia", "papá") a los
+ * childId/parentId reales de la familia — sin esto la IA no tiene forma
+ * de saber a qué id se refiere cada nombre.
+ */
+export interface CustodyDocumentAnalyzer {
+  proposeSchedule(input: {
+    documentBytes: Uint8Array;
+    mimeType: string;
+    verbalAgreements: VerbalAgreement[];
+    children: Child[];
+    familyMembers: Parent[];
+  }): Promise<{ slots: CustodyScheduleProposalSlot[] }>;
+
+  proposeReminders(input: {
+    documentBytes: Uint8Array;
+    mimeType: string;
+    verbalAgreements: VerbalAgreement[];
+    children: Child[];
+  }): Promise<{ reminders: ReminderProposalItem[] }>;
+}
