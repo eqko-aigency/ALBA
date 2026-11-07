@@ -112,6 +112,11 @@ function formatDay(d: Date): string {
   return d.toLocaleDateString("es-MX", { day: "2-digit", month: "short" });
 }
 
+function formatDayFull(d: Date): string {
+  const label = d.toLocaleDateString("es-MX", { weekday: "long", day: "numeric", month: "long" });
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
 function formatMonthLabel(d: Date): string {
   const label = d.toLocaleDateString("es-MX", { month: "long", year: "numeric" });
   return label.charAt(0).toUpperCase() + label.slice(1);
@@ -139,7 +144,7 @@ export default async function CalendarioPage({
   const { as, month, day, view: viewParam } = await searchParams;
   const { pairing, custody, parentId } = await getRequestContext(as);
   const asQuery = as === "b" ? "&as=b" : "";
-  const view: "week" | "month" = viewParam === "week" ? "week" : "month";
+  const view: "day" | "week" | "month" = viewParam === "day" ? "day" : viewParam === "week" ? "week" : "month";
 
   const now = new Date();
   const todayKey = isoDateLocal(now);
@@ -160,7 +165,9 @@ export default async function CalendarioPage({
   const visibleDays =
     view === "month"
       ? Array.from({ length: 42 }, (_, i) => addDays(monthGridStart(refMonthDate), i))
-      : Array.from({ length: 7 }, (_, i) => addDays(startOfWeekDate(selectedDate), i));
+      : view === "week"
+        ? Array.from({ length: 7 }, (_, i) => addDays(startOfWeekDate(selectedDate), i))
+        : [selectedDate];
 
   const rangeStart = isoDateLocal(visibleDays[0]);
   const rangeEnd = isoDateLocal(addDays(visibleDays[visibleDays.length - 1], 1));
@@ -207,15 +214,21 @@ export default async function CalendarioPage({
   const prevHref =
     view === "month"
       ? `/calendario?view=month&month=${monthKey(addMonths(refMonthDate, -1))}${asQuery}`
-      : `/calendario?view=week&day=${isoDateLocal(addDays(startOfWeekDate(selectedDate), -7))}${asQuery}`;
+      : view === "week"
+        ? `/calendario?view=week&day=${isoDateLocal(addDays(startOfWeekDate(selectedDate), -7))}${asQuery}`
+        : `/calendario?view=day&day=${isoDateLocal(addDays(selectedDate, -1))}${asQuery}`;
   const nextHref =
     view === "month"
       ? `/calendario?view=month&month=${monthKey(addMonths(refMonthDate, 1))}${asQuery}`
-      : `/calendario?view=week&day=${isoDateLocal(addDays(startOfWeekDate(selectedDate), 7))}${asQuery}`;
+      : view === "week"
+        ? `/calendario?view=week&day=${isoDateLocal(addDays(startOfWeekDate(selectedDate), 7))}${asQuery}`
+        : `/calendario?view=day&day=${isoDateLocal(addDays(selectedDate, 1))}${asQuery}`;
   const headerLabel =
     view === "month"
       ? formatMonthLabel(refMonthDate)
-      : `${formatDay(visibleDays[0])} – ${formatDay(visibleDays[6])}`;
+      : view === "week"
+        ? `${formatDay(visibleDays[0])} – ${formatDay(visibleDays[6])}`
+        : formatDayFull(selectedDate);
 
   const dayCellHref = (dayKey: string) =>
     view === "month"
@@ -288,34 +301,15 @@ export default async function CalendarioPage({
       </div>
       <p className="mt-2 text-ink-soft">Toca un día para ver y confirmar check-in/check-out, y dónde se hace el encuentro.</p>
 
-      <div className="mt-3 flex gap-2">
-        <Link
-          href={`/calendario?view=month&month=${monthKey(refMonthDate)}&day=${selectedDayKey}${asQuery}`}
-          className={`rounded-full px-3.5 py-2 text-xs font-bold ${
-            view === "month" ? "bg-ink text-white" : "border border-subtle bg-card text-ink-soft"
-          }`}
-        >
-          Este mes
-        </Link>
-        <Link
-          href={`/calendario?view=week&day=${selectedDayKey}${asQuery}`}
-          className={`rounded-full px-3.5 py-2 text-xs font-bold ${
-            view === "week" ? "bg-ink text-white" : "border border-subtle bg-card text-ink-soft"
-          }`}
-        >
-          Esta semana
-        </Link>
-        <Link
-          href={todayHref}
-          className={`rounded-full px-3.5 py-2 text-xs font-bold ${
-            isSelectedToday ? "bg-ink text-white" : "border border-subtle bg-card text-ink-soft"
-          }`}
-        >
-          Hoy
-        </Link>
-      </div>
-
       <div className="mt-4 inline-flex rounded-full border border-subtle bg-sand p-1">
+        <Link
+          href={`/calendario?view=day&day=${selectedDayKey}${asQuery}`}
+          className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-colors ${
+            view === "day" ? "bg-card text-ink shadow-ambient" : "text-ink-soft"
+          }`}
+        >
+          Día
+        </Link>
         <Link
           href={`/calendario?view=week&day=${selectedDayKey}${asQuery}`}
           className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-colors ${
@@ -337,7 +331,7 @@ export default async function CalendarioPage({
       <div className="mt-4 flex items-center justify-between rounded-2xl bg-card px-3 py-2.5 shadow-ambient">
         <Link
           href={prevHref}
-          aria-label={view === "month" ? "Mes anterior" : "Semana anterior"}
+          aria-label={view === "month" ? "Mes anterior" : view === "week" ? "Semana anterior" : "Día anterior"}
           className="flex h-8 w-8 items-center justify-center rounded-full text-ink transition-colors hover:bg-sand"
         >
           <ChevronIcon direction="left" />
@@ -345,7 +339,7 @@ export default async function CalendarioPage({
         <span className="text-sm font-semibold text-ink">{headerLabel}</span>
         <Link
           href={nextHref}
-          aria-label={view === "month" ? "Mes siguiente" : "Semana siguiente"}
+          aria-label={view === "month" ? "Mes siguiente" : view === "week" ? "Semana siguiente" : "Día siguiente"}
           className="flex h-8 w-8 items-center justify-center rounded-full text-ink transition-colors hover:bg-sand"
         >
           <ChevronIcon direction="right" />
@@ -358,6 +352,7 @@ export default async function CalendarioPage({
         </Link>
       )}
 
+      {view !== "day" && (
       <div className="mt-4 rounded-2xl bg-card p-4 shadow-ambient">
         <div className="grid grid-cols-7 gap-y-2">
           {WEEKDAY_SHORT.map((label, i) => (
@@ -433,6 +428,7 @@ export default async function CalendarioPage({
           })}
         </div>
       </div>
+      )}
 
       <div className="mt-6 rounded-2xl border border-orange bg-card p-4 shadow-ambient">
         <p className="flex items-center gap-2 text-sm font-semibold text-ink">
