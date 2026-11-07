@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { PROFILE_COLORS, AVATAR_KEYS, type AvatarKey } from "@alba/core";
 import { COLOR_CLASS } from "@/lib/profileColors";
 import { AVATAR_SRC, AVATAR_LABEL } from "@/lib/avatars";
@@ -60,9 +61,11 @@ export function SaveProfileForm({
                 avatarKey === key ? "border-orange ring-2 ring-orange" : "border-subtle"
               }`}
             >
-              <img
+              <Image
                 src={AVATAR_SRC[key]}
                 alt={AVATAR_LABEL[key]}
+                width={48}
+                height={48}
                 className="h-12 w-12 rounded-full object-cover"
                 style={{ objectPosition: "center 15%" }}
               />

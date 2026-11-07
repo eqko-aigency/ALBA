@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { getRequestContext } from "@/lib/repository";
 import { isDemoMode } from "@/lib/demoSession";
 import { AppNav } from "@/components/AppNav";
@@ -10,9 +11,11 @@ function PersonRow({ name, avatarKey }: { name: string; avatarKey: AvatarKey | n
   return (
     <div className="flex items-center gap-3 rounded-2xl border border-subtle bg-card px-3.5 py-2.5 shadow-ambient">
       {avatarKey ? (
-        <img
+        <Image
           src={AVATAR_SRC[avatarKey]}
           alt={name}
+          width={44}
+          height={44}
           className="h-11 w-11 flex-shrink-0 rounded-full object-cover"
           style={{ objectPosition: "center 15%" }}
         />
@@ -64,12 +67,14 @@ export default async function NucleoPage({
       <p className="mt-1 text-sm text-ink-soft">Quiénes forman parte de la vida de tu familia.</p>
 
       <div className="mt-5 overflow-hidden rounded-[20px] border border-subtle shadow-ambient">
-        <img
+        <Image
           src="/avatars/retrato-familiar.png"
           alt="Retrato ilustrado de la familia"
           width={1536}
           height={1024}
-          className="w-full"
+          sizes="(max-width: 42rem) 100vw, 42rem"
+          className="h-auto w-full"
+          priority
         />
       </div>
 

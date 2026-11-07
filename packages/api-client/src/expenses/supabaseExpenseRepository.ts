@@ -90,37 +90,46 @@ export function createSupabaseExpenseRepository(
       const familyId = await getMyFamilyId(parentId);
       if (!familyId) return { otherParentId: null, amountMxnOwedByCaller: 0 };
 
-      const { data: members, error: membersError } = await client
-        .from("family_members")
-        .select("parent_id")
-        .eq("family_id", familyId);
+      // members/childIds/settlement/split solo dependen de familyId, no entre
+      // sí (la única dependencia real es la query final de expenses, que
+      // necesita childIds + cutoff) — van en paralelo en vez de 4 round-trips
+      // secuenciales. Se corren igual aunque after resulte que no hay otro
+      // progenitor o no hay hijos (casos en que antes se cortaba antes):
+      // ese desperdicio ocasional vale la pena por la latencia que se ahorra
+      // en el caso común (familia ya emparejada, con hijos).
+      const [membersResult, childIds, settlementResult, splitResult] = await Promise.all([
+        client.from("family_members").select("parent_id").eq("family_id", familyId),
+        getFamilyChildIds(familyId),
+        client
+          .from("family_expense_settlements")
+          .select("confirmed_at")
+          .eq("family_id", familyId)
+          .not("confirmed_at", "is", null)
+          .order("confirmed_at", { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+        client
+          .from("family_expense_splits")
+          .select("proposer_share_pct, proposed_by_parent_id")
+          .eq("family_id", familyId)
+          .eq("status", "confirmed")
+          .order("confirmed_at", { ascending: false })
+          .limit(1)
+          .maybeSingle(),
+      ]);
+
+      const { data: members, error: membersError } = membersResult;
       if (membersError) throw membersError;
       const otherParentId: string | null =
         (members ?? []).map((m: any) => m.parent_id).find((id: string) => id !== parentId) ?? null;
       if (!otherParentId) return { otherParentId: null, amountMxnOwedByCaller: 0 };
-
-      const childIds = await getFamilyChildIds(familyId);
       if (childIds.length === 0) return { otherParentId, amountMxnOwedByCaller: 0 };
 
-      const { data: settlementRow, error: settlementError } = await client
-        .from("family_expense_settlements")
-        .select("confirmed_at")
-        .eq("family_id", familyId)
-        .not("confirmed_at", "is", null)
-        .order("confirmed_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+      const { data: settlementRow, error: settlementError } = settlementResult;
       if (settlementError) throw settlementError;
       const cutoff: string | null = settlementRow?.confirmed_at ?? null;
 
-      const { data: splitRow, error: splitError } = await client
-        .from("family_expense_splits")
-        .select("proposer_share_pct, proposed_by_parent_id")
-        .eq("family_id", familyId)
-        .eq("status", "confirmed")
-        .order("confirmed_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
+      const { data: splitRow, error: splitError } = splitResult;
       if (splitError) throw splitError;
       const confirmedSplit = splitRow
         ? { proposerSharePct: splitRow.proposer_share_pct, proposedByParentId: splitRow.proposed_by_parent_id }

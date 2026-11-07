@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { redirect } from "next/navigation";
 import { findComplianceIssues, type CustodySlot } from "@alba/core";
 import { getRequestContext } from "@/lib/repository";
@@ -311,9 +312,11 @@ export default async function DashboardPage({
       {children[0] && (
         <div className="mt-5 flex flex-col items-center gap-1.5">
           {children[0].avatarKey ? (
-            <img
+            <Image
               src={AVATAR_SRC[children[0].avatarKey]}
               alt={children[0].fullName}
+              width={76}
+              height={76}
               className="h-[76px] w-[76px] rounded-full border-[3px] border-orange object-cover"
               style={{ objectPosition: "center 15%" }}
             />

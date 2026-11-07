@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import type { ChildContact, ChildHealthProvider, ChildNote, ChildSchoolContact, AvatarKey } from "@alba/core";
 import { PROFILE_COLORS, AVATAR_KEYS } from "@alba/core";
 import { ContactsIcon, HealthIcon, NotesIcon, SchoolIcon } from "@/components/icons";
@@ -362,9 +363,11 @@ export function ChildDetailsForm({
                 avatarKey === key ? "border-orange ring-2 ring-orange" : "border-subtle"
               }`}
             >
-              <img
+              <Image
                 src={AVATAR_SRC[key]}
                 alt={AVATAR_LABEL[key]}
+                width={48}
+                height={48}
                 className="h-12 w-12 rounded-full object-cover"
                 style={{ objectPosition: "center 15%" }}
               />

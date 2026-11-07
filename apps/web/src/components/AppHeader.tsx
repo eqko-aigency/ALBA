@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { AvatarKey } from "@alba/core";
 import { AVATAR_SRC } from "@/lib/avatars";
 
@@ -16,9 +17,11 @@ export function AppHeader({
     <div className="flex flex-shrink-0 items-center justify-between px-6 pb-4 pt-5">
       <Link href={`/perfil${asQuery}`} aria-label="Tu perfil" className="flex-shrink-0">
         {avatarKey ? (
-          <img
+          <Image
             src={AVATAR_SRC[avatarKey]}
             alt="Tu perfil"
+            width={46}
+            height={46}
             className="h-[46px] w-[46px] rounded-full border-2 border-white object-cover shadow-ambient"
             style={{ objectPosition: "center 15%" }}
           />
